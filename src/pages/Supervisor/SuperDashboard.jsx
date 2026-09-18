@@ -1,4 +1,4 @@
-import React from "react";
+import { useState } from "react";
 import {
   LayoutDashboard,
   Package,
@@ -31,7 +31,7 @@ const kpis = [
     value: "187",
     suffix: "órdenes",
     badge: "Meta 90%",
-    badgeClass: "bg-blue-50 text-blue-600",
+    badgeClass: "bg-orange-50 text-orange-600",
   },
   {
     title: "TIEMPO PROM. DESPACHO",
@@ -45,7 +45,7 @@ const kpis = [
     value: "3",
     suffix: "casos",
     badge: "Bajo",
-    badgeClass: "bg-orange-50 text-orange-600",
+    badgeClass: "bg-blue-50 text-blue-600",
   },
 ];
 
@@ -146,10 +146,12 @@ function SidebarItem({
   icon: Icon,
   children,
   active = false,
+  onClick,
 }) {
   return (
     <button
       type="button"
+      onClick={onClick}
       className={`
         relative flex w-full items-center gap-3
         rounded-md px-3 py-2.5
@@ -173,7 +175,7 @@ function SidebarItem({
   );
 }
 
-function Sidebar() {
+function Sidebar({ activeSection, onSelect }) {
   return (
     <aside
       className="
@@ -222,36 +224,37 @@ function Sidebar() {
         <div className="space-y-1">
           <SidebarItem
             icon={LayoutDashboard}
-            active
+            active={activeSection === "Inicio"}
+            onClick={() => onSelect("Inicio")}
           >
             Inicio
           </SidebarItem>
 
-          <SidebarItem icon={Package}>
+          <SidebarItem icon={Package} active={activeSection === "Inventario"} onClick={() => onSelect("Inventario")}>
             Inventario
           </SidebarItem>
 
-          <SidebarItem icon={ArrowDownToLine}>
+          <SidebarItem icon={ArrowDownToLine} active={activeSection === "Entradas"} onClick={() => onSelect("Entradas")}>
             Entradas
           </SidebarItem>
 
-          <SidebarItem icon={ArrowUpFromLine}>
+          <SidebarItem icon={ArrowUpFromLine} active={activeSection === "Salidas"} onClick={() => onSelect("Salidas")}>
             Salidas
           </SidebarItem>
 
-          <SidebarItem icon={Users}>
+          <SidebarItem icon={Users} active={activeSection === "Equipo"} onClick={() => onSelect("Equipo")}>
             Equipo
           </SidebarItem>
 
-          <SidebarItem icon={ClipboardCheck}>
+          <SidebarItem icon={ClipboardCheck} active={activeSection === "Aprobaciones"} onClick={() => onSelect("Aprobaciones")}>
             Aprobaciones
           </SidebarItem>
 
-          <SidebarItem icon={BarChart3}>
+          <SidebarItem icon={BarChart3} active={activeSection === "Análisis"} onClick={() => onSelect("Análisis")}>
             Análisis
           </SidebarItem>
 
-          <SidebarItem icon={FileText}>
+          <SidebarItem icon={FileText} active={activeSection === "Reportes"} onClick={() => onSelect("Reportes")}>
             Reportes
           </SidebarItem>
         </div>
@@ -290,7 +293,7 @@ function Sidebar() {
    HEADER
 ========================================================= */
 
-function Header() {
+function Header({ notificationsRead, onNotifications }) {
   return (
     <header
       className="
@@ -326,6 +329,9 @@ function Header() {
         <LogoutButton className="text-gray-300 hover:bg-white/10 hover:text-white" />
 
         <button
+          type="button"
+          onClick={onNotifications}
+          aria-label="Marcar notificaciones como leídas"
           className="
             relative flex h-7 w-7
             items-center justify-center
@@ -339,11 +345,12 @@ function Header() {
           />
 
           <span
-            className="
+            className={`
               absolute right-0 top-0
               h-1.5 w-1.5
               rounded-full bg-orange-500
-            "
+              ${notificationsRead ? "opacity-0" : ""}
+            `}
           />
         </button>
 
@@ -366,12 +373,12 @@ function Header() {
 
           <div className="leading-tight">
             <p className="text-[8px] font-semibold text-white">
-              Sofía Peralta
+              Juan Jimenez
             </p>
 
             <div className="flex items-center gap-1">
               <span className="text-[6px] text-gray-400">
-                Supervisora General
+                Supervisor General
               </span>
 
               <span
@@ -414,8 +421,8 @@ function KpiCard({
     <div
       className="
         rounded-lg
-        border border-[#e0e5ec]
-        bg-white
+        border border-white/10
+        bg-[#292929]
         px-3 py-3
         shadow-[0_1px_3px_rgba(15,23,42,0.03)]
       "
@@ -446,7 +453,7 @@ function KpiCard({
       </div>
 
       <div className="mt-3 flex items-baseline gap-1">
-        <span className="text-[22px] font-bold leading-none text-[#172238]">
+        <span className="text-[22px] font-bold leading-none text-white">
           {value}
         </span>
 
@@ -469,12 +476,12 @@ function WeeklyChart() {
     <div
       className="
         rounded-lg
-        border border-[#e0e5ec]
-        bg-white
+        border border-white/10
+        bg-[#292929]
         p-4
       "
     >
-      <h2 className="text-[11px] font-bold text-[#172238]">
+      <h2 className="text-[11px] font-bold text-white">
         Rendimiento Semanal (% de Eficiencia)
       </h2>
 
@@ -501,7 +508,7 @@ function WeeklyChart() {
               justify-end
             "
           >
-            <span className="mb-1 text-[7px] font-medium text-slate-600">
+            <span className="mb-1 text-[7px] font-medium text-gray-400">
               {item.value}%
             </span>
 
@@ -531,18 +538,20 @@ function WeeklyChart() {
 ========================================================= */
 
 function ApprovalCard({ approval }) {
+  const [decision, setDecision] = useState("");
+
   return (
     <div
       className="
         rounded-md
-        border border-[#e0e5ec]
-        bg-white
+        border border-white/10
+        bg-[#292929]
         p-2.5
       "
     >
       <div className="flex items-start justify-between gap-2">
         <div>
-          <h3 className="text-[9px] font-bold text-[#172238]">
+          <h3 className="text-[9px] font-bold text-white">
             {approval.title}
           </h3>
 
@@ -568,6 +577,9 @@ function ApprovalCard({ approval }) {
 
       <div className="mt-2 flex gap-2">
         <button
+          type="button"
+          onClick={() => setDecision("Aprobada")}
+          aria-pressed={decision === "Aprobada"}
           className="
             flex-1
             rounded
@@ -580,24 +592,27 @@ function ApprovalCard({ approval }) {
             hover:bg-green-700
           "
         >
-          Aprobar
+          {decision === "Aprobada" ? "Aprobada" : "Aprobar"}
         </button>
 
         <button
+          type="button"
+          onClick={() => setDecision("Rechazada")}
+          aria-pressed={decision === "Rechazada"}
           className="
             flex-1
             rounded
-            border border-[#e0e5ec]
-            bg-white
+            border border-white/10
+            bg-[#202020]
             py-1.5
             text-[7px]
             font-medium
-            text-slate-600
+            text-gray-300
             transition
             hover:bg-slate-50
           "
         >
-          Rechazar
+          {decision === "Rechazada" ? "Rechazada" : "Rechazar"}
         </button>
       </div>
     </div>
@@ -609,14 +624,14 @@ function Approvals() {
     <div
       className="
         rounded-lg
-        border border-[#e0e5ec]
-        bg-white
+        border border-white/10
+        bg-[#292929]
         p-3
       "
     >
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-[11px] font-bold text-[#172238]">
+          <h2 className="text-[11px] font-bold text-white">
             Aprobaciones Pendientes
           </h2>
 
@@ -700,12 +715,12 @@ function TeamActivity() {
     <div
       className="
         rounded-lg
-        border border-[#e0e5ec]
-        bg-white
+        border border-white/10
+        bg-[#292929]
         p-4
       "
     >
-      <h2 className="text-[11px] font-bold text-[#172238]">
+      <h2 className="text-[11px] font-bold text-white">
         Actividad del Equipo
       </h2>
 
@@ -718,7 +733,7 @@ function TeamActivity() {
               py-2
               ${
                 index !== teamActivity.length - 1
-                  ? "border-b border-[#e8ebef]"
+                  ? "border-b border-white/10"
                   : ""
               }
             `}
@@ -734,7 +749,7 @@ function TeamActivity() {
             <div className="min-w-0 flex-1">
               <div className="flex justify-between gap-2">
                 <div>
-                  <p className="text-[8px] font-bold text-[#172238]">
+                  <p className="text-[8px] font-bold text-white">
                     {person.name}
                   </p>
 
@@ -768,12 +783,12 @@ function Inventory() {
     <div
       className="
         rounded-lg
-        border border-[#e0e5ec]
-        bg-white
+        border border-white/10
+        bg-[#292929]
         p-4
       "
     >
-      <h2 className="text-[11px] font-bold text-[#172238]">
+      <h2 className="text-[11px] font-bold text-white">
         Inventario por Categoría
       </h2>
 
@@ -781,16 +796,16 @@ function Inventory() {
         {inventory.map((item) => (
           <div key={item.name}>
             <div className="mb-1 flex items-center justify-between">
-              <span className="text-[7px] font-medium text-slate-600">
+              <span className="text-[7px] font-medium text-gray-400">
                 {item.name}
               </span>
 
-              <span className="text-[7px] font-bold text-slate-600">
+              <span className="text-[7px] font-bold text-gray-300">
                 {item.value}%
               </span>
             </div>
 
-            <div className="h-[5px] rounded-full bg-slate-200">
+            <div className="h-[5px] rounded-full bg-[#3a3a3a]">
               <div
                 className={`h-[5px] rounded-full ${item.color}`}
                 style={{
@@ -810,26 +825,35 @@ function Inventory() {
 ========================================================= */
 
 export default function SupervisorDashboard() {
+  const [activeSection, setActiveSection] = useState("Inicio");
+  const [notificationsRead, setNotificationsRead] = useState(false);
+
   return (
     <div
       className="
         min-h-screen
-        bg-[#f4f6f8]
+        bg-[#181818]
         font-sans
-        text-[#172238]
+        text-white
         antialiased
       "
     >
       <div className="flex min-h-screen">
 
         {/* Sidebar */}
-        <Sidebar />
+        <Sidebar
+          activeSection={activeSection}
+          onSelect={setActiveSection}
+        />
 
         {/* Main */}
         <main className="min-w-0 flex-1">
 
           {/* Header */}
-          <Header />
+          <Header
+            notificationsRead={notificationsRead}
+            onNotifications={() => setNotificationsRead(true)}
+          />
 
           {/* Content */}
           <div
