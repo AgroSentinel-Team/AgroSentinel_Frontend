@@ -1,368 +1,193 @@
-import React from "react";
+import { useState } from "react";
 import {
   LayoutDashboard,
   FileWarning,
   FileText,
-  Settings,
-  AlertTriangle,
   Tractor,
+  ClipboardList,
+  AlertTriangle,
 } from "lucide-react";
 import LogoutButton from "../../components/LogoutButton";
+import OrdenesTrabajo from "./OrdenesTrabajo";
+import Maquinaria from "./Maquinaria";
+import MisReportes from "./MisReportes";
+import ReportarFalla from "./reportarFalla";
+
+const navigation = [
+  { label: "Mi Panel", icon: LayoutDashboard },
+  { label: "Reportar Falla", icon: FileWarning },
+  { label: "Mis Reportes", icon: FileText },
+  { label: "Maquinaria", icon: Tractor },
+  { label: "Órdenes de Trabajo", icon: ClipboardList },
+];
 
 export default function OperDashboard() {
+  const [activeTab, setActiveTab] = useState("Mi Panel");
+
+  const contentMap = {
+    "Mi Panel": <DashboardHome />,
+    "Reportar Falla": <ReportarFalla />,
+    "Mis Reportes": <MisReportes />,
+    Maquinaria: <Maquinaria />,
+    "Órdenes de Trabajo": <OrdenesTrabajo />,
+  };
+
   return (
-    <div className="min-h-screen bg-[#181818] text-white flex font-sans">
-
-      {/* SIDEBAR */}
+    <div className="flex min-h-screen bg-[#181818] text-white font-sans">
       <aside className="w-[180px] bg-[#292929] min-h-screen">
-
-        {/* Logo */}
-        <div className="h-[70px] flex items-center px-5">
+        <div className="flex h-[70px] items-center px-5">
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-md bg-blue-600 flex items-center justify-center">
+            <div className="flex h-7 w-7 items-center justify-center rounded-md bg-blue-600">
               <Tractor size={15} />
             </div>
-
-            <span className="text-blue-400 font-semibold text-sm">
-              AgroSentinel
-            </span>
+            <span className="text-sm font-semibold text-blue-400">AgroSentinel</span>
           </div>
         </div>
 
-        {/* MENÚ */}
-        <nav className="px-3 space-y-2">
-
-          <MenuItem
-            icon={<LayoutDashboard size={15} />}
-            text="Mi Panel"
-            active
-          />
-
-          <MenuItem
-            icon={<FileWarning size={15} />}
-            text="Reportar Falla"
-          />
-
-          <MenuItem
-            icon={<FileText size={15} />}
-            text="Mis Reportes"
-          />
-
-          <MenuItem
-            icon={<Settings size={15} />}
-            text="Maquinaria"
-          />
-
+        <nav className="space-y-2 px-3">
+          {navigation.map(({ label, icon: Icon }) => (
+            <button
+              key={label}
+              type="button"
+              onClick={() => setActiveTab(label)}
+              className={`flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-xs transition ${
+                activeTab === label
+                  ? "bg-blue-600 text-white"
+                  : "text-gray-400 hover:bg-[#333] hover:text-white"
+              }`}
+            >
+              <Icon size={15} />
+              <span>{label}</span>
+            </button>
+          ))}
         </nav>
       </aside>
 
-
-      {/* CONTENIDO */}
       <main className="flex-1">
-
-        {/* HEADER */}
-        <header className="h-[70px] bg-[#252525] border-b border-[#333] flex items-center justify-between px-7">
-
+        <header className="flex h-[70px] items-center justify-between border-b border-[#333] bg-[#252525] px-7">
           <div className="flex items-center gap-2 text-sm">
-
-            <span className="text-blue-500 font-semibold">
-              AgroSentinel
-            </span>
-
-            <span className="text-gray-600">
-              |
-            </span>
-
-            <span className="text-gray-400">
-              Mi Panel de Control
-            </span>
-
+            <span className="font-semibold text-blue-500">AgroSentinel</span>
+            <span className="text-gray-600">|</span>
+            <span className="text-gray-400">{activeTab}</span>
           </div>
 
-
-          {/* USUARIO */}
           <div className="flex items-center gap-3">
             <LogoutButton className="text-gray-300 hover:bg-white/10 hover:text-white" />
 
             <div className="text-right">
-
-              <p className="text-[11px] font-semibold">
-                Esteban Bertrano
-              </p>
-
-              <p className="text-[8px] text-gray-400">
-                OPERARIO DE MAQUINARIA
-              </p>
-
+              <p className="text-[11px] font-semibold">Esteban Bertrano</p>
+              <p className="text-[8px] text-gray-400">OPERARIO DE MAQUINARIA</p>
             </div>
 
-            <div className="w-8 h-8 rounded-full bg-gray-600 flex items-center justify-center">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-600">
               👨🏻‍🌾
             </div>
-
           </div>
-
         </header>
 
-
-        {/* BODY */}
-        <section className="p-7">
-
-          {/* SALUDO */}
-          <div className="mb-6">
-
-            <h1 className="text-xl font-bold">
-              ¡Hola, Esteban!
-            </h1>
-
-            <p className="text-xs text-gray-400 mt-1">
-              Reporte novedades de los equipos agrícolas asignados hoy.
-            </p>
-
-          </div>
-
-
-          {/* GRID */}
-          <div className="grid grid-cols-1 lg:grid-cols-[1.6fr_1fr] gap-5">
-
-            {/* IZQUIERDA */}
-            <div className="space-y-5">
-
-              {/* ALERTA */}
-              <div className="border border-blue-600 rounded-xl bg-[#202020] p-4">
-
-                <div className="flex gap-3">
-
-                  <div className="w-9 h-9 rounded-full bg-blue-600/20 flex items-center justify-center">
-                    <AlertTriangle
-                      size={18}
-                      className="text-blue-500"
-                    />
-                  </div>
-
-                  <div>
-
-                    <h2 className="text-sm font-semibold text-blue-400">
-                      ¿Algún equipo fallando?
-                    </h2>
-
-                    <p className="text-[10px] text-gray-400 mt-1">
-                      Reporta rápidamente cualquier novedad que
-                      estés observando en tus equipos.
-                    </p>
-
-                  </div>
-
-                </div>
-
-
-                <button className="mt-4 w-full bg-blue-600 hover:bg-blue-700 transition rounded-md py-2 text-[10px] font-semibold">
-                  Reportar Nueva Falla
-                </button>
-
-              </div>
-
-
-              {/* REPORTES */}
-              <div className="bg-[#242424] rounded-xl p-4">
-
-                <h2 className="text-sm font-semibold mb-4">
-                  Mis Reportes Recientes
-                </h2>
-
-
-                <div className="space-y-2">
-
-                  <ReportItem
-                    machine="Fumigadora Jacto 3030"
-                    description="Fuga de manguera de retorno de presión"
-                    date="Hoy, 8:30 AM"
-                    status="Evaluando"
-                  />
-
-                  <ReportItem
-                    machine="Tractor John Deere 6125J"
-                    description="Testigo de baja tensión en el tablero"
-                    date="Ayer, 4:15 PM"
-                    status="En Taller"
-                  />
-
-                </div>
-
-              </div>
-
-            </div>
-
-
-            {/* DERECHA */}
-            <div className="bg-[#292929] rounded-xl p-4 h-fit">
-
-              <h2 className="text-sm font-semibold mb-5">
-                Disponibilidad de Maquinaria
-              </h2>
-
-
-              <Availability
-                name="Tractor John Deere 613"
-                value={95}
-                description="Totalmente operativo"
-              />
-
-              <Availability
-                name="Cosechadora New Holland"
-                value={80}
-                description="Operacional, requiere revisión"
-              />
-
-              <Availability
-                name="Fumigadora Jacto 3030"
-                value={40}
-                description="Fuera de servicio por falla reportada"
-              />
-
-              <Availability
-                name="Sistema de Riego Lote A"
-                value={100}
-                description="Presión óptima"
-              />
-
-            </div>
-
-          </div>
-
-        </section>
-
+        <section className="p-7">{contentMap[activeTab]}</section>
       </main>
-
     </div>
   );
 }
 
-
-/* ================= MENU ================= */
-
-function MenuItem({ icon, text, active }) {
-
+function DashboardHome() {
   return (
-    <div
-      className={`
-        flex items-center gap-2
-        px-3 py-2 rounded-md
-        text-xs cursor-pointer
-        transition
-
-        ${
-          active
-            ? "bg-blue-600 text-white"
-            : "text-gray-400 hover:bg-[#333] hover:text-white"
-        }
-      `}
-    >
-
-      {icon}
-
-      <span>
-        {text}
-      </span>
-
-    </div>
-  );
-}
-
-
-/* ================= REPORTES ================= */
-
-function ReportItem({
-  machine,
-  description,
-  date,
-  status,
-}) {
-
-  return (
-
-    <div className="bg-[#292929] border border-[#333] rounded-md p-3 flex items-center justify-between">
-
-      <div>
-
-        <p className="text-[11px] font-semibold">
-          {machine}
+    <>
+      <div className="mb-6">
+        <h1 className="text-xl font-bold">¡Hola, Esteban!</h1>
+        <p className="mt-1 text-xs text-gray-400">
+          Reporte novedades de los equipos agrícolas asignados hoy.
         </p>
-
-        <p className="text-[9px] text-gray-400 mt-1">
-          {description}
-        </p>
-
-        <p className="text-[8px] text-gray-500 mt-1">
-          {date}
-        </p>
-
       </div>
 
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-[1.6fr_1fr]">
+        <div className="space-y-5">
+          <div className="rounded-xl border border-blue-600 bg-[#202020] p-4">
+            <div className="flex gap-3">
+              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-600/20">
+                <AlertTriangle size={18} className="text-blue-500" />
+              </div>
 
-      <span className="bg-blue-600 text-[8px] px-2 py-1 rounded-sm">
-        {status}
-      </span>
+              <div>
+                <h2 className="text-sm font-semibold text-blue-400">¿Algún equipo fallando?</h2>
+                <p className="mt-1 text-[10px] text-gray-400">
+                  Reporta rápidamente cualquier novedad que estés observando en tus equipos.
+                </p>
+              </div>
+            </div>
 
-    </div>
+            <button className="mt-4 w-full rounded-md bg-blue-600 py-2 text-[10px] font-semibold transition hover:bg-blue-700">
+              Reportar Nueva Falla
+            </button>
+          </div>
 
+          <div className="rounded-xl bg-[#242424] p-4">
+            <h2 className="mb-4 text-sm font-semibold">Mis Reportes Recientes</h2>
+
+            <div className="space-y-2">
+              <ReportItem
+                machine="Fumigadora Jacto 3030"
+                description="Fuga de manguera de retorno de presión"
+                date="Hoy, 8:30 AM"
+                status="Evaluando"
+              />
+
+              <ReportItem
+                machine="Tractor John Deere 6125J"
+                description="Testigo de baja tensión en el tablero"
+                date="Ayer, 4:15 PM"
+                status="En Taller"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="h-fit rounded-xl bg-[#292929] p-4">
+          <h2 className="mb-5 text-sm font-semibold">Disponibilidad de Maquinaria</h2>
+
+          <Availability name="Tractor John Deere 613" value={95} description="Totalmente operativo" />
+          <Availability name="Cosechadora New Holland" value={80} description="Operacional, requiere revisión" />
+          <Availability name="Fumigadora Jacto 3030" value={40} description="Fuera de servicio por falla reportada" />
+          <Availability name="Sistema de Riego Lote A" value={100} description="Presión óptima" />
+        </div>
+      </div>
+    </>
   );
 }
 
-
-/* ================= DISPONIBILIDAD ================= */
-
-function Availability({
-  name,
-  value,
-  description,
-}) {
-
+function ReportItem({ machine, description, date, status }) {
   return (
+    <div className="flex items-center justify-between rounded-md border border-[#333] bg-[#292929] p-3">
+      <div>
+        <p className="text-[11px] font-semibold">{machine}</p>
+        <p className="mt-1 text-[9px] text-gray-400">{description}</p>
+        <p className="mt-1 text-[8px] text-gray-500">{date}</p>
+      </div>
 
+      <span className="rounded-sm bg-blue-600 px-2 py-1 text-[8px]">{status}</span>
+    </div>
+  );
+}
+
+function Availability({ name, value, description }) {
+  return (
     <div className="mb-4">
-
-      <div className="flex justify-between mb-1">
-
-        <span className="text-[10px] text-gray-300">
-          {name}
-        </span>
-
-        <span
-          className={`text-[9px] font-semibold ${
-            value < 50
-              ? "text-orange-400"
-              : "text-blue-400"
-          }`}
-        >
+      <div className="mb-1 flex justify-between">
+        <span className="text-[10px] text-gray-300">{name}</span>
+        <span className={`text-[9px] font-semibold ${value < 50 ? "text-orange-400" : "text-blue-400"}`}>
           {value}%
         </span>
-
       </div>
 
-
-      {/* Barra */}
-      <div className="h-[5px] bg-[#3a3a3a] rounded-full overflow-hidden">
-
+      <div className="h-[5px] overflow-hidden rounded-full bg-[#3a3a3a]">
         <div
-          className={`h-full rounded-full ${
-            value < 50
-              ? "bg-orange-400"
-              : "bg-blue-500"
-          }`}
-          style={{
-            width: `${value}%`,
-          }}
+          className={`h-full rounded-full ${value < 50 ? "bg-orange-400" : "bg-blue-500"}`}
+          style={{ width: `${value}%` }}
         />
-
       </div>
 
-
-      <p className="text-[7px] text-gray-500 mt-1">
-        {description}
-      </p>
-
+      <p className="mt-1 text-[7px] text-gray-500">{description}</p>
     </div>
-
   );
 }
