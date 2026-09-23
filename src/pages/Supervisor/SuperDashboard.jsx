@@ -14,6 +14,13 @@ import {
   Boxes,
 } from "lucide-react";
 import LogoutButton from "../../components/LogoutButton";
+import Inventario from "../Compartido/Inventario";
+import Entradas from "../Compartido/Entradas";
+import Salidas from "../Compartido/Salidas";
+import Reportes from "../Compartido/Reportes";
+import Equipo from "./Equipo";
+import Aprobaciones from "./Aprobaciones";
+import Analisis from "./Analisis";
 
 /* =========================================================
    DATA
@@ -828,6 +835,46 @@ export default function SupervisorDashboard() {
   const [activeSection, setActiveSection] = useState("Inicio");
   const [notificationsRead, setNotificationsRead] = useState(false);
 
+  const renderSection = () => {
+    switch (activeSection) {
+      case "Inventario":
+        return <Inventario variant="dark" />;
+      case "Entradas":
+        return <Entradas variant="dark" />;
+      case "Salidas":
+        return <Salidas variant="dark" />;
+      case "Equipo":
+        return <Equipo />;
+      case "Aprobaciones":
+        return <Aprobaciones />;
+      case "Análisis":
+        return <Analisis />;
+      case "Reportes":
+        return <Reportes variant="dark" />;
+      case "Inicio":
+      default:
+        return (
+          <>
+            <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+              {kpis.map((kpi) => (
+                <KpiCard key={kpi.title} {...kpi} />
+              ))}
+            </section>
+
+            <section className="mt-4 grid grid-cols-1 gap-4 xl:grid-cols-[1fr_240px]">
+              <WeeklyChart />
+              <Approvals />
+            </section>
+
+            <section className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-[1fr_200px]">
+              <TeamActivity />
+              <Inventory />
+            </section>
+          </>
+        );
+    }
+  };
+
   return (
     <div
       className="
@@ -856,70 +903,8 @@ export default function SupervisorDashboard() {
           />
 
           {/* Content */}
-          <div
-            className="
-              mx-auto
-              max-w-[1180px]
-              px-5
-              py-5
-            "
-          >
-            {/* ================================================= */}
-            {/* KPI CARDS */}
-            {/* ================================================= */}
-
-            <section
-              className="
-                grid
-                grid-cols-1
-                gap-3
-                sm:grid-cols-2
-                xl:grid-cols-4
-              "
-            >
-              {kpis.map((kpi) => (
-                <KpiCard
-                  key={kpi.title}
-                  {...kpi}
-                />
-              ))}
-            </section>
-
-            {/* ================================================= */}
-            {/* TOP CONTENT */}
-            {/* ================================================= */}
-
-            <section
-              className="
-                mt-4
-                grid
-                grid-cols-1
-                gap-4
-                xl:grid-cols-[1fr_240px]
-              "
-            >
-              <WeeklyChart />
-
-              <Approvals />
-            </section>
-
-            {/* ================================================= */}
-            {/* BOTTOM CONTENT */}
-            {/* ================================================= */}
-
-            <section
-              className="
-                mt-4
-                grid
-                grid-cols-1
-                gap-4
-                md:grid-cols-[1fr_200px]
-              "
-            >
-              <TeamActivity />
-
-              <Inventory />
-            </section>
+          <div className="mx-auto max-w-[1180px] px-5 py-5">
+            {renderSection()}
           </div>
         </main>
       </div>

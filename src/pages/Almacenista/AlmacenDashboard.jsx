@@ -15,8 +15,8 @@ import {
 import LogoutButton from "../../components/LogoutButton";
 import Inventario from "../Compartido/Inventario";
 import Reportes from "../Compartido/Reportes";
-import Entradas from "./Entradas";
-import Salidas from "./Salidas";
+import Entradas from "../Compartido/Entradas";
+import Salidas from "../Compartido/Salidas";
 
 const movements = [
   {
