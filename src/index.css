@@ -1,1 +1,41 @@
 @import "tailwindcss";
+
+:root {
+  --bg-deep: #020d16;
+  --bg-main: #071f2e;
+  --panel: #0d2437;
+  --panel-alt: #13293a;
+  --panel-soft: #173d4f;
+  --line: #1b2f3f;
+  --text: #eaf7ff;
+  --muted: #9bb5c9;
+  --cyan: #59d0f0;
+  --cyan-strong: #0f9ec7;
+  --cyan-soft: #3fc4ec;
+  --teal: #7fe0e8;
+  --button: #0d7ca3;
+  --warning: #d7a94a;
+  --success: #1f654a;
+  --shadow: rgba(2, 13, 22, 0.42);
+}
+
+html, body, #root {
+  margin: 0;
+  min-height: 100%;
+  background: var(--bg-deep);
+  color: var(--text);
+  font-family: Inter, "Segoe UI", sans-serif;
+}
+
+body {
+  min-height: 100vh;
+  background: var(--bg-deep);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+::selection {
+  background: rgba(89, 208, 240, 0.35);
+}

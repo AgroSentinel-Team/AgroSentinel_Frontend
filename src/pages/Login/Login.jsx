@@ -56,28 +56,28 @@ export default function Login() {
   };
 
   return (
-    <div className="flex min-h-screen bg-[#0F172A] font-sans">
+    <div className="flex min-h-screen bg-[var(--bg-deep)] font-sans">
       <div className="hidden lg:flex lg:w-1/2 relative bg-[url('https://images.unsplash.com/photo-1592982537447-7440770cbfc9?q=80&w=2000&auto=format&fit=crop')] bg-cover bg-center">
         <div className="absolute inset-0 bg-slate-900/80"></div> 
         <div className="relative z-10 flex flex-col justify-between p-12 w-full h-full">
            <div className="flex items-center gap-3 text-white">
-              <div className="bg-blue-600 p-1.5 rounded-md flex items-center justify-center">
+              <div className="bg-[var(--cyan-strong)] p-1.5 rounded-md flex items-center justify-center">
                  <XCircle size={22} className="text-white" />
               </div>
               <span className="text-xl font-bold tracking-wide">AgroSentinel</span>
            </div>
            <div>
               <h1 className="text-4xl font-bold text-white mb-4 leading-tight">Gestión Integral de<br/>Mantenimiento Agrícola</h1>
-              <p className="text-[#00B4D8] max-w-md text-base leading-relaxed">Mantenga sus tractores, cosechadoras, fumigadoras e irrigadores en óptimo estado.</p>
+              <p className="text-[var(--cyan)] max-w-md text-base leading-relaxed">Mantenga sus tractores, cosechadoras, fumigadoras e irrigadores en óptimo estado.</p>
            </div>
            <div className="text-[#D4AF37] text-xs font-medium tracking-wide">© 2026 AgroSentinel, Colombia S.A.</div>
         </div>
       </div>
 
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-[#0F172A]">
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-[var(--bg-main)]">
         <div className="w-full max-w-md">
             <h2 className="text-2xl font-bold text-white mb-2">Ingresar al Sistema</h2>
-            <p className="text-[#00B4D8] text-sm mb-8">Digite sus credenciales para acceder a la plataforma</p>
+            <p className="text-[var(--cyan)] text-sm mb-8">Digite sus credenciales para acceder a la plataforma</p>
 
             {error && <div className="bg-red-500/10 border border-red-500 text-red-500 text-sm p-3 rounded-md mb-4">{error}</div>}
 
@@ -100,13 +100,13 @@ export default function Login() {
                     </div>
                 </div>
 
-                <button type="submit" disabled={loading} className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 rounded-lg mt-8 flex justify-center items-center">
+                <button type="submit" disabled={loading} className="w-full bg-[var(--cyan-strong)] hover:brightness-110 text-white font-medium py-2.5 rounded-lg mt-8 flex justify-center items-center">
                     {loading ? 'Verificando...' : 'Iniciar sesión'}
                 </button>
             </form>
             
             <div className="mt-6 text-center text-sm text-slate-400">
-                ¿No tienes cuenta? <Link to="/registro" className="text-blue-500 hover:text-blue-400">Regístrate aquí</Link>
+                ¿No tienes cuenta? <Link to="/registro" className="text-[var(--cyan)] hover:brightness-110">Regístrate aquí</Link>
             </div>
             
             <div className="flex items-center justify-center gap-2 mt-8 text-slate-500 text-xs">
