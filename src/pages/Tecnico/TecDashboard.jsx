@@ -1,16 +1,18 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import {
   ShieldCheck,
   Home,
   ClipboardList,
   History,
   SlidersHorizontal,
+  Activity,
 } from "lucide-react";
 import LogoutButton from "../../components/LogoutButton";
 import MiPanel from "./MiPanel";
 import OrdenesAsignadas from "./OrdenesAsignadas";
 import Historial from "./Historial";
 import InventarioRepuestos from "./InventarioRepuestos";
+import MantenimientoPredictivo from "../Compartido/MantenimientoPredictivo";
 
 function SidebarItem({ icon: Icon, children, active = false, onClick }) {
   return (
@@ -43,14 +45,15 @@ export default function TechnicianPanel() {
     "Órdenes Asignadas": <OrdenesAsignadas />,
     Historial: <Historial />,
     "Inventario Repuestos": <InventarioRepuestos />,
+    Mantenimiento: <MantenimientoPredictivo />,
   };
 
   return (
-    <div className="min-h-screen bg-[#181818] font-sans text-white antialiased">
+    <div className="min-h-screen bg-[#020d16] font-sans text-white antialiased">
       <div className="flex min-h-screen">
-        <aside className="hidden w-[177px] shrink-0 border-r border-white/10 bg-[#292929] md:block">
+        <aside className="hidden w-[177px] shrink-0 border-r border-[#1b2f3f] bg-[#0d1f2d] md:block">
           <div className="flex h-[45px] items-center gap-2 border-b border-white/10 px-4">
-            <div className="flex h-[21px] w-[21px] items-center justify-center rounded-md bg-blue-600">
+            <div className="flex h-[21px] w-[21px] items-center justify-center rounded-md bg-[#0f9ec7]">
               <ShieldCheck size={13} strokeWidth={2} className="text-white" />
             </div>
 
@@ -73,15 +76,19 @@ export default function TechnicianPanel() {
             <SidebarItem icon={SlidersHorizontal} active={activeTab === "Inventario Repuestos"} onClick={() => setActiveTab("Inventario Repuestos")}>
               Inventario Repuestos
             </SidebarItem>
+
+            <SidebarItem icon={Activity} active={activeTab === "Mantenimiento"} onClick={() => setActiveTab("Mantenimiento")}>
+              Mantenimiento
+            </SidebarItem>
           </nav>
         </aside>
 
         <main className="min-w-0 flex-1">
-          <header className="flex h-[45px] items-center justify-between border-b border-white/10 bg-[#242424] px-5">
+          <header className="flex h-[45px] items-center justify-between border-b border-[#1f3446] bg-[#0d2437] px-5">
             <div className="flex items-center gap-2">
-              <span className="text-[14px] font-semibold text-blue-400">AgroSentinel</span>
-              <span className="text-[10px] text-gray-500">|</span>
-              <span className="text-[10px] text-gray-300">{activeTab}</span>
+              <span className="text-[14px] font-semibold text-cyan-300">AgroSentinel</span>
+              <span className="text-[10px] text-slate-500">|</span>
+              <span className="text-[10px] text-slate-300">{activeTab}</span>
             </div>
 
             <div className="flex items-center gap-3">

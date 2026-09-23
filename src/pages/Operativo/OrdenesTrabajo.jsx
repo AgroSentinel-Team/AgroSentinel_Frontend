@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Search, Plus, CheckCircle2, Clock3, AlertTriangle, CircleDashed } from 'lucide-react';
 
 const orderStats = [
@@ -34,6 +35,15 @@ const statusClass = {
 };
 
 export default function OrdenesTrabajo() {
+  const [activeFilter, setActiveFilter] = useState('Todos');
+  const [query, setQuery] = useState('');
+  const visibleOrders = orders.filter((order) => {
+    const matchesFilter = activeFilter === 'Todos' || order.status === activeFilter;
+    const normalizedQuery = query.toLowerCase();
+    const matchesQuery = `${order.id} ${order.type} ${order.machine} ${order.responsible}`.toLowerCase().includes(normalizedQuery);
+    return matchesFilter && matchesQuery;
+  });
+
   return (
     <div className="space-y-5">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
@@ -47,6 +57,8 @@ export default function OrdenesTrabajo() {
             <Search size={14} className="text-gray-400" />
             <input
               type="text"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
               placeholder="Buscar orden..."
               className="w-36 border-0 bg-transparent text-white placeholder:text-gray-500 focus:outline-none"
             />
@@ -75,14 +87,15 @@ export default function OrdenesTrabajo() {
 
       <div className="rounded-xl border border-white/10 bg-[#202a36] overflow-hidden">
         <div className="flex flex-wrap items-center gap-2 border-b border-white/10 px-4 py-3">
-          {filters.map((filter, index) => (
+          {filters.map((filter) => (
             <button
               key={filter}
               type="button"
+              onClick={() => setActiveFilter(filter)}
               className={[
                 'rounded-md px-3 py-1.5 text-[11px] transition',
-                index === 0
-                  ? 'bg-transparent text-white underline decoration-blue-500 decoration-2 underline-offset-8'
+                activeFilter === filter
+                  ? 'bg-transparent text-white underline decoration-amber-400 decoration-2 underline-offset-8'
                   : 'text-gray-400 hover:bg-white/5 hover:text-white',
               ].join(' ')}
             >
@@ -105,7 +118,7 @@ export default function OrdenesTrabajo() {
               </tr>
             </thead>
             <tbody>
-              {orders.map((order) => (
+              {visibleOrders.map((order) => (
                 <tr key={order.id} className="border-b border-white/10 last:border-b-0 hover:bg-white/5">
                   <td className="px-4 py-3 font-semibold text-white">{order.id}</td>
                   <td className="px-4 py-3">{order.type}</td>
@@ -131,6 +144,11 @@ export default function OrdenesTrabajo() {
                   </td>
                 </tr>
               ))}
+              {visibleOrders.length === 0 && (
+                <tr>
+                  <td colSpan="7" className="px-4 py-8 text-center text-gray-400">No hay órdenes que coincidan con la búsqueda.</td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>

@@ -6,12 +6,14 @@ import {
   Tractor,
   ClipboardList,
   AlertTriangle,
+  Activity,
 } from "lucide-react";
 import LogoutButton from "../../components/LogoutButton";
 import OrdenesTrabajo from "./OrdenesTrabajo";
 import Maquinaria from "./Maquinaria";
 import MisReportes from "./MisReportes";
 import ReportarFalla from "./reportarFalla";
+import MantenimientoPredictivo from "../Compartido/MantenimientoPredictivo";
 
 const navigation = [
   { label: "Mi Panel", icon: LayoutDashboard },
@@ -19,6 +21,7 @@ const navigation = [
   { label: "Mis Reportes", icon: FileText },
   { label: "Maquinaria", icon: Tractor },
   { label: "Órdenes de Trabajo", icon: ClipboardList },
+  { label: "Mantenimiento", icon: Activity },
 ];
 
 export default function OperDashboard() {
@@ -30,14 +33,15 @@ export default function OperDashboard() {
     "Mis Reportes": <MisReportes />,
     Maquinaria: <Maquinaria />,
     "Órdenes de Trabajo": <OrdenesTrabajo />,
+    Mantenimiento: <MantenimientoPredictivo />,
   };
 
   return (
-    <div className="flex min-h-screen bg-[#181818] text-white font-sans">
-      <aside className="w-[180px] bg-[#292929] min-h-screen">
+    <div className="flex min-h-screen bg-[#020d16] text-white font-sans">
+      <aside className="w-[180px] min-h-screen border-r border-[#1b2f3f] bg-[#0d1f2d]">
         <div className="flex h-[70px] items-center px-5">
           <div className="flex items-center gap-2">
-            <div className="flex h-7 w-7 items-center justify-center rounded-md bg-blue-600">
+            <div className="flex h-7 w-7 items-center justify-center rounded-md bg-[#0f9ec7]">
               <Tractor size={15} />
             </div>
             <span className="text-sm font-semibold text-blue-400">AgroSentinel</span>
@@ -52,8 +56,8 @@ export default function OperDashboard() {
               onClick={() => setActiveTab(label)}
               className={`flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-xs transition ${
                 activeTab === label
-                  ? "bg-blue-600 text-white"
-                  : "text-gray-400 hover:bg-[#333] hover:text-white"
+                  ? "bg-[#143c50] text-cyan-200"
+                  : "text-slate-300 hover:bg-[#143c50] hover:text-white"
               }`}
             >
               <Icon size={15} />
@@ -64,11 +68,11 @@ export default function OperDashboard() {
       </aside>
 
       <main className="flex-1">
-        <header className="flex h-[70px] items-center justify-between border-b border-[#333] bg-[#252525] px-7">
+        <header className="flex h-[70px] items-center justify-between border-b border-[#1f3446] bg-[#0d2437] px-7">
           <div className="flex items-center gap-2 text-sm">
-            <span className="font-semibold text-blue-500">AgroSentinel</span>
-            <span className="text-gray-600">|</span>
-            <span className="text-gray-400">{activeTab}</span>
+            <span className="font-semibold text-cyan-300">AgroSentinel</span>
+            <span className="text-slate-500">|</span>
+            <span className="text-slate-300">{activeTab}</span>
           </div>
 
           <div className="flex items-center gap-3">

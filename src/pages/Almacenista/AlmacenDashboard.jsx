@@ -345,12 +345,12 @@ function TaskItem({ task }) {
 
 export default function SgaControlDashboard() {
   const [activeTab, setActiveTab] = useState("Inicio");
-  const content = { Inventario: <Inventario variant="light" />, Entradas: <Entradas />, Salidas: <Salidas />, Reportes: <Reportes variant="light" /> };
+  const content = { Inventario: <Inventario />, Entradas: <Entradas />, Salidas: <Salidas />, Reportes: <Reportes /> };
   return (
     <div
       className="
         min-h-screen
-        bg-[#f4f7fa]
+        bg-[#020d16]
         font-sans
         text-[#182235]
       "
@@ -365,7 +365,8 @@ export default function SgaControlDashboard() {
           className="
             hidden w-[181px]
             shrink-0
-            bg-[#0e172b]
+            border-r border-[#1b2f3f]
+            bg-[#0d1f2d]
             md:block
           "
         >
@@ -465,8 +466,8 @@ export default function SgaControlDashboard() {
             className="
               flex h-[59px]
               items-center justify-between
-              border-b border-[#e4e9ee]
-              bg-white
+              border-b border-[#1f3446]
+              bg-[#0d2437]
               px-5
             "
           >
@@ -477,7 +478,7 @@ export default function SgaControlDashboard() {
                 w-[215px]
                 items-center gap-2
                 rounded-md
-                bg-[#f5f7f9]
+                bg-[#102a3d]
                 px-2.5
               "
             >
@@ -511,7 +512,7 @@ export default function SgaControlDashboard() {
                   flex h-[27px]
                   items-center gap-1.5
                   rounded-md
-                  bg-orange-500
+                  bg-[#0f9ec7]
                   px-3
                   text-[9px]
                   font-semibold

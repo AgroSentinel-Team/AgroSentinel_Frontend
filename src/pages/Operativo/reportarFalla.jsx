@@ -1,6 +1,20 @@
+import { useState } from 'react';
 import { AlertTriangle, Wrench, PhoneCall } from 'lucide-react';
 
 export default function ReportarFalla() {
+  const [form, setForm] = useState({ equipment: '', type: '', description: '' });
+  const [submitted, setSubmitted] = useState(false);
+
+  const updateField = (field, value) => {
+    setSubmitted(false);
+    setForm((current) => ({ ...current, [field]: value }));
+  };
+
+  const submitReport = (event) => {
+    event.preventDefault();
+    setSubmitted(true);
+  };
+
   return (
     <div className="space-y-4">
       <div>
@@ -20,24 +34,25 @@ export default function ReportarFalla() {
             </div>
           </div>
 
-          <div className="space-y-4">
+          <form onSubmit={submitReport} className="space-y-4">
             <div>
               <label className="mb-1 block text-[10px] uppercase tracking-[0.15em] text-gray-400">Equipo</label>
-              <input className="w-full rounded-lg border border-white/10 bg-[#141b24] px-3 py-2 text-[12px] text-white placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-blue-500" placeholder="Ej. Fumigadora Jacto 3030" />
+              <input required value={form.equipment} onChange={(event) => updateField('equipment', event.target.value)} className="w-full rounded-lg border border-white/10 bg-[#141b24] px-3 py-2 text-[12px] text-white placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-emerald-500" placeholder="Ej. Fumigadora Jacto 3030" />
             </div>
 
             <div>
               <label className="mb-1 block text-[10px] uppercase tracking-[0.15em] text-gray-400">Tipo de falla</label>
-              <input className="w-full rounded-lg border border-white/10 bg-[#141b24] px-3 py-2 text-[12px] text-white placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-blue-500" placeholder="Ej. Fuga de manguera" />
+              <input required value={form.type} onChange={(event) => updateField('type', event.target.value)} className="w-full rounded-lg border border-white/10 bg-[#141b24] px-3 py-2 text-[12px] text-white placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-emerald-500" placeholder="Ej. Fuga de manguera" />
             </div>
 
             <div>
               <label className="mb-1 block text-[10px] uppercase tracking-[0.15em] text-gray-400">Descripción</label>
-              <textarea rows="4" className="w-full rounded-lg border border-white/10 bg-[#141b24] px-3 py-2 text-[12px] text-white placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-blue-500" placeholder="Describe la falla observada..." />
+              <textarea required rows="4" value={form.description} onChange={(event) => updateField('description', event.target.value)} className="w-full rounded-lg border border-white/10 bg-[#141b24] px-3 py-2 text-[12px] text-white placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-emerald-500" placeholder="Describe la falla observada..." />
             </div>
 
-            <button className="w-full rounded-lg bg-blue-600 px-4 py-2.5 text-[12px] font-semibold text-white transition hover:bg-blue-500">Enviar reporte</button>
-          </div>
+            <button type="submit" className="w-full rounded-lg bg-emerald-600 px-4 py-2.5 text-[12px] font-semibold text-white transition hover:bg-emerald-500">Enviar reporte</button>
+            {submitted && <p className="text-center text-[10px] font-semibold text-emerald-300">Reporte enviado para revisión y asignación técnica.</p>}
+          </form>
         </div>
 
         <div className="space-y-4">

@@ -6,6 +6,7 @@ import GruposTrabajo from './GruposTrabajo';
 import Activos from './Activos';
 import Inventario from '../Compartido/Inventario';
 import Reportes from '../Compartido/Reportes';
+import MantenimientoPredictivo from '../Compartido/MantenimientoPredictivo';
 
 const navigation = [
   { label: 'Dashboard', icon: LayoutDashboard },
@@ -14,6 +15,7 @@ const navigation = [
   { label: 'Activos', icon: Tractor },
   { label: 'Inventario', icon: Package },
   { label: 'Reportes', icon: BarChart3 },
+  { label: 'Mantenimiento', icon: Activity },
 ];
 
 const stats = [
@@ -54,6 +56,13 @@ const reports = [
 ];
 
 function DashboardHome() {
+  const [selectedReport, setSelectedReport] = useState(reports[0]);
+  const [assignment, setAssignment] = useState('');
+
+  const assignReport = () => {
+    setAssignment(`OT generada para ${selectedReport.id}`);
+  };
+
   return (
     <>
       <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
@@ -95,6 +104,7 @@ function DashboardHome() {
 
                   <button
                     type="button"
+                    onClick={() => setSelectedReport(report)}
                     className={`rounded-md px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.08em] ${report.button}`}
                   >
                     Revisar
@@ -107,7 +117,7 @@ function DashboardHome() {
 
         <aside className="rounded-xl border border-[#2d4055] bg-[#102a3d] p-4">
           <div className="flex items-start justify-between gap-3">
-            <h2 className="text-[14px] font-semibold text-white">Detalle del reporte RF-001</h2>
+            <h2 className="text-[14px] font-semibold text-white">Detalle del reporte {selectedReport.id}</h2>
             <span className="rounded-full border border-cyan-400/40 bg-cyan-400/10 px-2 py-1 text-[9px] font-medium uppercase tracking-[0.1em] text-cyan-300">
               Urgencia: Media
             </span>
@@ -116,11 +126,11 @@ function DashboardHome() {
           <div className="mt-4 grid grid-cols-2 gap-3 text-[10px] text-slate-300">
             <div>
               <p className="text-slate-400">Equipo</p>
-              <p className="mt-1 font-medium text-white">Fumigadora Jacto 3030</p>
+              <p className="mt-1 font-medium text-white">{selectedReport.title}</p>
             </div>
             <div>
               <p className="text-slate-400">Tipo falla</p>
-              <p className="mt-1 font-medium text-white">Hidráulica</p>
+              <p className="mt-1 font-medium text-white">{selectedReport.category}</p>
             </div>
             <div>
               <p className="text-slate-400">Ubicación</p>
@@ -137,9 +147,7 @@ function DashboardHome() {
               Descripción del operador
             </p>
             <p className="mt-2 text-[11px] leading-relaxed text-slate-300">
-              Se detectó fuga de aceite en la manga de retorno de presión del sistema hidráulico.
-              El equipo presenta pérdida de potencia y se observa una filtración leve bajo la
-              compuerta lateral.
+              {selectedReport.summary}
             </p>
           </div>
 
@@ -191,17 +199,19 @@ function DashboardHome() {
               <textarea
                 rows="3"
                 className="mt-2 w-full resize-none rounded-xl border border-[#36556f] bg-[#1a2c3d] px-3 py-2.5 text-[11px] text-white outline-none focus:border-cyan-400"
-                defaultValue="Llevar manguera de alta presión tipo Gato y juego de acoples rápidos de repuesto."
+                defaultValue="Llevar manguera de alta presión y juego de acoples rápidos de repuesto."
               />
             </div>
           </div>
 
           <button
             type="button"
-            className="mt-5 w-full rounded-xl border border-cyan-300/60 bg-gradient-to-r from-[#3fc4ec] to-[#7fe0e8] px-4 py-3 text-[12px] font-bold uppercase tracking-[0.08em] text-slate-950 shadow-[0_8px_18px_rgba(34,211,238,0.25)]"
+            onClick={assignReport}
+            className="mt-5 w-full rounded-xl border border-emerald-300/60 bg-gradient-to-r from-[#4ade80] to-[#a3e635] px-4 py-3 text-[12px] font-bold uppercase tracking-[0.08em] text-slate-950 shadow-[0_8px_18px_rgba(74,222,128,0.2)]"
           >
             Asignar Técnico y Generar OT
           </button>
+          {assignment && <p className="mt-3 text-center text-[10px] font-semibold text-emerald-300">{assignment}</p>}
         </aside>
       </section>
     </>
@@ -210,6 +220,7 @@ function DashboardHome() {
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState('Dashboard');
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
   const content = {
     Dashboard: <DashboardHome />,
     Usuarios: <Usuarios />,
@@ -217,6 +228,7 @@ export default function AdminDashboard() {
     Activos: <Activos />,
     Inventario: <Inventario />,
     Reportes: <Reportes />,
+    Mantenimiento: <MantenimientoPredictivo />,
   };
 
   return (
@@ -258,7 +270,23 @@ export default function AdminDashboard() {
             </div>
 
             <div className="flex items-center gap-3">
-              <Bell size={15} className="text-slate-300" />
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setNotificationsOpen((current) => !current)}
+                  aria-label="Ver notificaciones"
+                  className="rounded-md p-1.5 text-slate-300 transition hover:bg-[#1d3d52] hover:text-white"
+                >
+                  <Bell size={15} />
+                </button>
+                {notificationsOpen && (
+                  <div className="absolute right-0 top-9 z-10 w-56 rounded-xl border border-[#36556f] bg-[#13293a] p-3 shadow-xl">
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-amber-300">Notificaciones</p>
+                    <p className="mt-2 text-[11px] leading-relaxed text-slate-300">Hay 3 reportes pendientes de revisión.</p>
+                    <button type="button" onClick={() => { setNotificationsOpen(false); setActiveTab('Reportes'); }} className="mt-3 text-[10px] font-semibold text-emerald-300 hover:text-emerald-200">Ver reportes</button>
+                  </div>
+                )}
+              </div>
               <LogoutButton className="text-slate-300 hover:bg-[#1d3d52] hover:text-white" />
               <div className="hidden text-right leading-tight sm:block">
                 <p className="text-[9px] font-medium text-white">Don Carlos Restrepo</p>

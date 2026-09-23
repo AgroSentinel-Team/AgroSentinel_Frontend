@@ -46,25 +46,25 @@ export default function Registro() {
   };
 
   return (
-    <div className="flex min-h-screen bg-[var(--bg-deep)] font-sans">
+    <div className="flex min-h-screen bg-[#0b1220] font-sans">
       <div className="hidden lg:flex lg:w-1/2 relative bg-[url('https://images.unsplash.com/photo-1586771107445-d3ca888129ff?q=80&w=2000&auto=format&fit=crop')] bg-cover bg-center">
-        <div className="absolute inset-0 bg-slate-900/80"></div> 
+        <div className="absolute inset-0 bg-[#0e1729]/85"></div> 
         <div className="relative z-10 flex flex-col justify-between p-12 w-full h-full">
            <div className="flex items-center gap-3 text-white">
-              <div className="bg-[var(--cyan-strong)] p-1.5 rounded-md flex items-center justify-center">
+              <div className="bg-[#08b6d4] p-1.5 rounded-md flex items-center justify-center">
                  <XCircle size={22} className="text-white" />
               </div>
               <span className="text-xl font-bold tracking-wide">AgroSentinel</span>
            </div>
            <div>
               <h1 className="text-4xl font-bold text-white mb-4 leading-tight">Únete a la plataforma</h1>
-              <p className="text-[var(--cyan)] max-w-md text-base leading-relaxed">Registra a tu personal para digitalizar el mantenimiento de tu maquinaria.</p>
+              <p className="text-[#22d3ee] max-w-md text-base leading-relaxed">Registra a tu personal para digitalizar el mantenimiento de tu maquinaria.</p>
            </div>
            <div className="text-[#D4AF37] text-xs font-medium tracking-wide">© 2026 AgroSentinel, Colombia S.A.</div>
         </div>
       </div>
 
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-[var(--bg-main)]">
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-[#0b1220]">
         <div className="w-full max-w-md">
             <h2 className="text-2xl font-bold text-white mb-2">Crear nueva cuenta</h2>
             
@@ -74,7 +74,7 @@ export default function Registro() {
             <form onSubmit={handleRegister} className="space-y-4">
                 <div>
                     <label className="block text-white text-sm font-medium mb-1">Nombre Completo</label>
-                    <div className="flex items-center bg-[#1E293B] border border-slate-700 rounded-lg px-3 py-2.5 focus-within:border-blue-500 focus-within:ring-1">
+                    <div className="flex items-center bg-[#1b2739] border border-slate-700 rounded-lg px-3 py-2.5 focus-within:border-cyan-400 focus-within:ring-1">
                         <User className="text-slate-400 w-5 h-5 mr-3" />
                         <input type="text" name="nombre" value={formData.nombre} onChange={handleChange} className="w-full bg-transparent text-white outline-none text-sm" required />
                     </div>
@@ -82,7 +82,7 @@ export default function Registro() {
 
                 <div>
                     <label className="block text-white text-sm font-medium mb-1">Correo electrónico</label>
-                    <div className="flex items-center bg-[#1E293B] border border-slate-700 rounded-lg px-3 py-2.5 focus-within:border-blue-500 focus-within:ring-1">
+                    <div className="flex items-center bg-[#1b2739] border border-slate-700 rounded-lg px-3 py-2.5 focus-within:border-cyan-400 focus-within:ring-1">
                         <Mail className="text-slate-400 w-5 h-5 mr-3" />
                         <input type="email" name="email" value={formData.email} onChange={handleChange} className="w-full bg-transparent text-white outline-none text-sm" required />
                     </div>
@@ -90,7 +90,7 @@ export default function Registro() {
 
                 <div>
                     <label className="block text-white text-sm font-medium mb-1">Contraseña</label>
-                    <div className="flex items-center bg-[#1E293B] border border-slate-700 rounded-lg px-3 py-2.5 focus-within:border-blue-500 focus-within:ring-1">
+                    <div className="flex items-center bg-[#1b2739] border border-slate-700 rounded-lg px-3 py-2.5 focus-within:border-cyan-400 focus-within:ring-1">
                         <Lock className="text-slate-400 w-5 h-5 mr-3" />
                         <input type={showPassword ? "text" : "password"} name="password" value={formData.password} onChange={handleChange} className="w-full bg-transparent text-white outline-none text-sm" required />
                         <button type="button" onClick={() => setShowPassword(!showPassword)}>
@@ -101,7 +101,7 @@ export default function Registro() {
 
                 <div>
                     <label className="block text-white text-sm font-medium mb-1">Rol en el sistema</label>
-                    <div className="flex items-center bg-[#1E293B] border border-slate-700 rounded-lg px-3 py-2.5 focus-within:border-blue-500 focus-within:ring-1">
+                    <div className="flex items-center bg-[#1b2739] border border-slate-700 rounded-lg px-3 py-2.5 focus-within:border-cyan-400 focus-within:ring-1">
                         <Briefcase className="text-slate-400 w-5 h-5 mr-3" />
                         <select name="rol" value={formData.rol} onChange={handleChange} className="w-full bg-transparent text-white outline-none text-sm cursor-pointer" required>
                             <option value="" disabled className="bg-slate-800">Seleccione un rol...</option>
@@ -114,13 +114,13 @@ export default function Registro() {
                     </div>
                 </div>
 
-                <button type="submit" disabled={loading} className="w-full bg-[var(--cyan-strong)] hover:brightness-110 text-white font-medium py-2.5 rounded-lg transition-colors mt-6 flex justify-center items-center">
+                <button type="submit" disabled={loading} className="w-full bg-[#08b6d4] hover:bg-[#0891b2] text-[#07101f] font-semibold py-2.5 rounded-lg transition-colors mt-6 flex justify-center items-center">
                     {loading ? 'Registrando...' : 'Registrar usuario'}
                 </button>
             </form>
 
             <div className="mt-6 text-center text-sm text-slate-400">
-                ¿Ya tienes cuenta? <Link to="/login" className="text-[var(--cyan)] hover:brightness-110">Inicia sesión</Link>
+                ¿Ya tienes cuenta? <Link to="/login" className="text-cyan-400 hover:text-cyan-300">Inicia sesión</Link>
             </div>
         </div>
       </div>

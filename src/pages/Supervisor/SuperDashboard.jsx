@@ -12,6 +12,7 @@ import {
   Search,
   AlertTriangle,
   Boxes,
+  Activity,
 } from "lucide-react";
 import LogoutButton from "../../components/LogoutButton";
 import Inventario from "../Compartido/Inventario";
@@ -21,6 +22,7 @@ import Reportes from "../Compartido/Reportes";
 import Equipo from "./Equipo";
 import Aprobaciones from "./Aprobaciones";
 import Analisis from "./Analisis";
+import MantenimientoPredictivo from "../Compartido/MantenimientoPredictivo";
 
 /* =========================================================
    DATA
@@ -166,8 +168,8 @@ function SidebarItem({
         transition-all
         ${
           active
-            ? "bg-[#1d2a3f] text-white"
-            : "text-slate-400 hover:bg-white/5 hover:text-white"
+            ? "bg-[#143c50] text-cyan-200"
+            : "text-slate-300 hover:bg-[#143c50] hover:text-white"
         }
       `}
     >
@@ -187,7 +189,8 @@ function Sidebar({ activeSection, onSelect }) {
     <aside
       className="
         hidden w-[172px] shrink-0
-        bg-[#0e1729]
+        border-r border-[#1b2f3f]
+        bg-[#0d1f2d]
         md:block
       "
     >
@@ -264,6 +267,10 @@ function Sidebar({ activeSection, onSelect }) {
           <SidebarItem icon={FileText} active={activeSection === "Reportes"} onClick={() => onSelect("Reportes")}>
             Reportes
           </SidebarItem>
+
+          <SidebarItem icon={Activity} active={activeSection === "Mantenimiento"} onClick={() => onSelect("Mantenimiento")}>
+            Mantenimiento
+          </SidebarItem>
         </div>
 
         {/* Divider */}
@@ -306,8 +313,8 @@ function Header({ notificationsRead, onNotifications }) {
       className="
         flex h-[62px]
         items-center justify-between
-        border-b border-[#d7dce4]
-        bg-[#1c293d]
+        border-b border-[#1f3446]
+        bg-[#0d2437]
         px-5
       "
     >
@@ -446,15 +453,7 @@ function KpiCard({
           {title}
         </p>
 
-        <span
-          className={`
-            rounded
-            px-1.5 py-1
-            text-[6px]
-            font-semibold
-            ${badgeClass}
-          `}
-        >
+        <span className={`rounded px-1.5 py-1 text-[6px] font-semibold ${badgeClass}`}>
           {badge}
         </span>
       </div>
@@ -707,7 +706,7 @@ function Avatar({ color, initials }) {
         rounded-full
         bg-gradient-to-br
         ${color}
-        text-[7px]
+          border-b border-[#1f3446]
         font-bold
         text-white
       `}
@@ -851,6 +850,8 @@ export default function SupervisorDashboard() {
         return <Analisis />;
       case "Reportes":
         return <Reportes variant="dark" />;
+      case "Mantenimiento":
+        return <MantenimientoPredictivo />;
       case "Inicio":
       default:
         return (
@@ -879,7 +880,7 @@ export default function SupervisorDashboard() {
     <div
       className="
         min-h-screen
-        bg-[#181818]
+        bg-[#020d16]
         font-sans
         text-white
         antialiased

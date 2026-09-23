@@ -1,41 +1,125 @@
 @import "tailwindcss";
 
 :root {
-  --bg-deep: #020d16;
-  --bg-main: #071f2e;
-  --panel: #0d2437;
-  --panel-alt: #13293a;
-  --panel-soft: #173d4f;
-  --line: #1b2f3f;
-  --text: #eaf7ff;
-  --muted: #9bb5c9;
-  --cyan: #59d0f0;
-  --cyan-strong: #0f9ec7;
-  --cyan-soft: #3fc4ec;
-  --teal: #7fe0e8;
-  --button: #0d7ca3;
-  --warning: #d7a94a;
-  --success: #1f654a;
-  --shadow: rgba(2, 13, 22, 0.42);
-}
-
-html, body, #root {
-  margin: 0;
-  min-height: 100%;
-  background: var(--bg-deep);
-  color: var(--text);
-  font-family: Inter, "Segoe UI", sans-serif;
-}
-
-body {
-  min-height: 100vh;
-  background: var(--bg-deep);
+	font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+	color: #e6edf7;
+	background: #0b1220;
+	font-synthesis: none;
+	text-rendering: optimizeLegibility;
 }
 
 * {
-  box-sizing: border-box;
+	box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+	min-width: 320px;
+	min-height: 100%;
+	margin: 0;
+}
+
+body {
+	background: #0b1220;
+}
+
+button,
+input,
+select,
+textarea {
+	font: inherit;
 }
 
 ::selection {
-  background: rgba(89, 208, 240, 0.35);
+	color: #07101f;
+	background: #08b6d4;
+}
+
+/* Shared visual language for the older dashboard sections. */
+[class~="bg-white"] {
+	background-color: #172c3d !important;
+}
+
+[class~="bg-[#181818]"] {
+	background-color: #020d16 !important;
+}
+
+[class~="bg-[#202020]"],
+[class~="bg-[#242424]"],
+[class~="bg-[#292929]"],
+[class~="bg-[#1b2330]"],
+[class~="bg-[#f4f7fa]"],
+[class~="bg-[#f8fafc]"],
+[class~="bg-[#f5f7f9]"] {
+	background-color: #13293a !important;
+}
+
+[class*="border-[#333]"],
+[class*="border-[#dfe6ed]"],
+[class*="border-[#e8edf2]"],
+[class*="border-[#e1e7ed]"],
+[class*="border-[#d7dce4]"] {
+	border-color: rgba(148, 163, 184, 0.2) !important;
+}
+
+[class*="bg-green-100"],
+[class*="bg-green-50"] {
+	background-color: rgba(16, 185, 129, 0.16) !important;
+	color: #6ee7b7 !important;
+}
+
+[class*="bg-orange-50"] {
+	background-color: rgba(245, 158, 11, 0.16) !important;
+	color: #fcd34d !important;
+}
+
+[class*="bg-blue-50"] {
+	background-color: rgba(8, 182, 212, 0.16) !important;
+	color: #67e8f9 !important;
+}
+
+[class*="border-[#dfe6ed]"],
+[class*="border-[#e8edf2]"],
+[class*="border-[#e1e7ed]"],
+[class*="border-[#d7dce4]"] {
+	border-color: rgba(148, 163, 184, 0.2) !important;
+}
+
+[class*="text-[#111827]"],
+[class*="text-[#182235]"],
+[class*="text-[#344054]"],
+[class*="text-[#52627a]"],
+[class*="text-[#53657b]"],
+[class*="text-[#607086]"],
+[class*="text-[#718096]"],
+[class*="text-[#8190a5]"] {
+	color: #aab8ca !important;
+}
+
+[class*="bg-orange-500"] {
+	background-color: #d97706 !important;
+}
+
+[class*="text-orange-500"],
+[class*="text-orange-400"] {
+	color: #fbbf24 !important;
+}
+
+::-webkit-scrollbar {
+	width: 8px;
+	height: 8px;
+}
+
+::-webkit-scrollbar-track {
+	background: #0e1729;
+}
+
+::-webkit-scrollbar-thumb {
+	border-radius: 999px;
+	background: #334155;
+}
+
+::-webkit-scrollbar-thumb:hover {
+	background: #d97706;
 }
