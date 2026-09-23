@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   Search,
   Plus,
@@ -12,6 +13,10 @@ import {
   Package,
 } from "lucide-react";
 import LogoutButton from "../../components/LogoutButton";
+import Inventario from "../Compartido/Inventario";
+import Reportes from "../Compartido/Reportes";
+import Entradas from "./Entradas";
+import Salidas from "./Salidas";
 
 const movements = [
   {
@@ -99,10 +104,11 @@ const tasks = [
   },
 ];
 
-function SidebarItem({ icon: Icon, children, active = false }) {
+function SidebarItem({ icon: Icon, children, active = false, onClick }) {
   return (
     <button
       type="button"
+      onClick={onClick}
       className={`
         relative flex w-full items-center gap-3
         rounded-md px-3 py-[8px]
@@ -338,6 +344,8 @@ function TaskItem({ task }) {
 }
 
 export default function SgaControlDashboard() {
+  const [activeTab, setActiveTab] = useState("Inicio");
+  const content = { Inventario: <Inventario variant="light" />, Entradas: <Entradas />, Salidas: <Salidas />, Reportes: <Reportes variant="light" /> };
   return (
     <div
       className="
@@ -399,26 +407,27 @@ export default function SgaControlDashboard() {
           <nav className="px-4 py-2">
             <SidebarItem
               icon={LayoutGrid}
-              active
+              active={activeTab === "Inicio"}
+              onClick={() => setActiveTab("Inicio")}
             >
               Inicio
             </SidebarItem>
 
             <div className="mt-1">
-              <SidebarItem icon={Archive}>
+              <SidebarItem icon={Archive} active={activeTab === "Inventario"} onClick={() => setActiveTab("Inventario")}>
                 Inventario
               </SidebarItem>
             </div>
 
-            <SidebarItem icon={ArrowDownLeft}>
+            <SidebarItem icon={ArrowDownLeft} active={activeTab === "Entradas"} onClick={() => setActiveTab("Entradas")}>
               Entradas
             </SidebarItem>
 
-            <SidebarItem icon={ArrowUpRight}>
+            <SidebarItem icon={ArrowUpRight} active={activeTab === "Salidas"} onClick={() => setActiveTab("Salidas")}>
               Salidas
             </SidebarItem>
 
-            <SidebarItem icon={BarChart3}>
+            <SidebarItem icon={BarChart3} active={activeTab === "Reportes"} onClick={() => setActiveTab("Reportes")}>
               Reportes
             </SidebarItem>
           </nav>
@@ -513,7 +522,7 @@ export default function SgaControlDashboard() {
                 "
               >
                 <Plus size={12} strokeWidth={2.5} />
-                Registrar Entrada
+                {activeTab === "Inicio" ? "Registrar Entrada" : activeTab}
               </button>
 
               {/* Notification */}
@@ -575,6 +584,8 @@ export default function SgaControlDashboard() {
 
           {/* CONTENT */}
           <div className="mx-auto max-w-[1120px] px-5 py-5">
+            {activeTab !== "Inicio" && content[activeTab]}
+            {activeTab === "Inicio" && <>
 
             {/* ================================================= */}
             {/* STATS */}
@@ -620,6 +631,7 @@ export default function SgaControlDashboard() {
                 badgeColor="bg-[#fff0dc] text-[#f07817]"
               />
             </section>
+            </>}
 
             {/* ================================================= */}
             {/* BODY */}

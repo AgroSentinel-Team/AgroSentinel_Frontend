@@ -4,8 +4,8 @@ import LogoutButton from '../../components/LogoutButton';
 import Usuarios from './Usuarios';
 import GruposTrabajo from './GruposTrabajo';
 import Activos from './Activos';
-import Inventario from './Inventario';
-import Reportes from './Reportes';
+import Inventario from '../Compartido/Inventario';
+import Reportes from '../Compartido/Reportes';
 
 const navigation = [
   { label: 'Dashboard', icon: LayoutDashboard },
