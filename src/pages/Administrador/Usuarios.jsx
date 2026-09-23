@@ -1,0 +1,27 @@
+import { useMemo, useState } from 'react';
+import { CheckCircle2, Edit2, Plus, Search, Trash2, XCircle } from 'lucide-react';
+
+const initialUsers = [
+  { id: 1, name: 'Carlos Restrepo', role: 'Administrador', status: 'Activo', lastLogin: 'Hace 5 min' },
+  { id: 2, name: 'Juan Pérez', role: 'Técnico', status: 'Activo', lastLogin: 'Hace 1 hora' },
+  { id: 3, name: 'María Gómez', role: 'Operario de Máquina', status: 'Inactivo', lastLogin: 'Hace 2 días' },
+  { id: 4, name: 'Héctor Ortiz', role: 'Operario de Inventario', status: 'Activo', lastLogin: 'Hace 4 horas' },
+];
+
+export default function Usuarios() {
+  const [users, setUsers] = useState(initialUsers);
+  const [query, setQuery] = useState('');
+  const [editingUser, setEditingUser] = useState(null);
+  const [form, setForm] = useState({ name: '', role: 'Técnico', status: 'Activo' });
+  const filteredUsers = useMemo(() => users.filter((user) => `${user.name} ${user.role} ${user.status}`.toLowerCase().includes(query.toLowerCase())), [query, users]);
+  const openForm = (user = null) => { setEditingUser(user); setForm(user ? { name: user.name, role: user.role, status: user.status } : { name: '', role: 'Técnico', status: 'Activo' }); };
+  const saveUser = (event) => { event.preventDefault(); if (!form.name.trim()) return; setUsers((current) => editingUser ? current.map((user) => user.id === editingUser.id ? { ...user, ...form } : user) : [...current, { ...form, id: Date.now(), lastLogin: 'Nunca' }]); setEditingUser(null); setForm({ name: '', role: 'Técnico', status: 'Activo' }); };
+
+  return (
+    <section className="rounded-xl border border-white/10 bg-[#292929] p-5">
+      <div className="mb-5 flex flex-wrap items-center justify-between gap-3"><div><h2 className="text-[14px] font-semibold text-white">Gestión de Usuarios</h2><p className="mt-1 text-[10px] text-gray-400">Administra accesos y roles del equipo.</p></div><div className="flex flex-wrap items-center gap-3"><div className="relative"><Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar usuario..." className="rounded-md border border-white/10 bg-[#181818] py-2 pl-8 pr-3 text-[11px] text-white outline-none focus:border-blue-500" /></div><button type="button" onClick={() => openForm()} className="flex items-center gap-2 rounded-md bg-blue-600 px-3 py-2 text-[11px] font-medium text-white hover:bg-blue-500"><Plus size={14} /> Nuevo usuario</button></div></div>
+      <div className="overflow-x-auto"><table className="w-full min-w-[620px] text-left text-[11px]"><thead className="border-b border-white/10 text-gray-400"><tr><th className="pb-3 font-medium">Nombre</th><th className="pb-3 font-medium">Rol</th><th className="pb-3 font-medium">Estado</th><th className="pb-3 font-medium">Último acceso</th><th className="pb-3 text-right font-medium">Acciones</th></tr></thead><tbody className="divide-y divide-white/5">{filteredUsers.map((user) => <tr key={user.id} className="hover:bg-white/5"><td className="py-3 font-medium text-white">{user.name}</td><td className="py-3 text-gray-300">{user.role}</td><td className="py-3"><span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[9px] ${user.status === 'Activo' ? 'bg-green-500/10 text-green-400' : 'bg-red-500/10 text-red-400'}`}>{user.status === 'Activo' ? <CheckCircle2 size={10} /> : <XCircle size={10} />}{user.status}</span></td><td className="py-3 text-gray-400">{user.lastLogin}</td><td className="py-3 text-right"><button type="button" title="Editar" onClick={() => openForm(user)} className="mr-3 text-gray-400 hover:text-blue-400"><Edit2 size={14} /></button><button type="button" title="Eliminar" onClick={() => setUsers((current) => current.filter((item) => item.id !== user.id))} className="text-gray-400 hover:text-red-400"><Trash2 size={14} /></button></td></tr>)}</tbody></table>{!filteredUsers.length && <p className="py-8 text-center text-[11px] text-gray-400">No hay usuarios que coincidan con la búsqueda.</p>}</div>
+      {(editingUser !== null || form.name !== '') && <form onSubmit={saveUser} className="mt-5 grid gap-3 border-t border-white/10 pt-5 sm:grid-cols-[1.5fr_1fr_1fr_auto]"><input autoFocus value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} placeholder="Nombre completo" className="rounded-md border border-white/10 bg-[#181818] px-3 py-2 text-[11px] text-white outline-none focus:border-blue-500" /><select value={form.role} onChange={(event) => setForm({ ...form, role: event.target.value })} className="rounded-md border border-white/10 bg-[#181818] px-3 py-2 text-[11px] text-white"><option>Administrador</option><option>Técnico</option><option>Operario de Máquina</option><option>Operario de Inventario</option></select><select value={form.status} onChange={(event) => setForm({ ...form, status: event.target.value })} className="rounded-md border border-white/10 bg-[#181818] px-3 py-2 text-[11px] text-white"><option>Activo</option><option>Inactivo</option></select><button className="rounded-md bg-green-600 px-3 py-2 text-[11px] font-semibold text-white hover:bg-green-500">Guardar</button></form>}
+    </section>
+  );
+}
