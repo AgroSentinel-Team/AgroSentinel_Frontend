@@ -1,8 +1,7 @@
-import React, { useState } from 'react';
-import App from '../../App.jsx';
+import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
-import { User, Mail, Lock, EyeOff, Eye, Briefcase, ShieldCheck, XCircle } from 'lucide-react';
+import { User, Mail, Lock, EyeOff, Eye, Briefcase, XCircle } from 'lucide-react';
 
 export default function Registro() {
   const navigate = useNavigate();
