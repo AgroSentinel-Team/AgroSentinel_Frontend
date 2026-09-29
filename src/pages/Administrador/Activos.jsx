@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import {
 	AlertCircle,
+	Activity,
 	CheckCircle2,
 	ClipboardList,
 	FileText,
@@ -17,6 +18,7 @@ import {
 	deleteAsset,
 	getAssetResume,
 	getAssets,
+	getPredictiveHistory,
 } from '../../services/assetService';
 import CreateAssetForm from '../../components/CreateAssetForm';
 
@@ -44,6 +46,10 @@ function formatDate(value) {
 	return value ? value.split('-').reverse().join('/') : 'Sin registro';
 }
 
+function formatDateTime(value) {
+	return value ? new Intl.DateTimeFormat('es-CO', { dateStyle: 'short', timeStyle: 'medium' }).format(new Date(value)) : 'Sin registro';
+}
+
 function formatCurrency(value) {
 	if (value === null || value === undefined) return 'Sin registro';
 	return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(value);
@@ -61,6 +67,9 @@ export default function Activos() {
 	const [editingAsset, setEditingAsset] = useState(null);
 	const [resume, setResume] = useState(null);
 	const [resumeLoading, setResumeLoading] = useState(false);
+	const [predictiveHistory, setPredictiveHistory] = useState([]);
+	const [predictiveAsset, setPredictiveAsset] = useState(null);
+	const [predictiveLoading, setPredictiveLoading] = useState(false);
 
 	useEffect(() => {
 		let cancelled = false;
@@ -143,6 +152,21 @@ export default function Activos() {
 		}
 	};
 
+	const openPredictiveHistory = async (asset) => {
+		setPredictiveHistory([]);
+		setPredictiveAsset(asset);
+		setPredictiveLoading(true);
+		setModal('predictiveResume');
+		try {
+			setPredictiveHistory(await getPredictiveHistory(asset.id));
+		} catch (error) {
+			setFeedback(`No se pudo cargar la hoja de vida predictiva: ${describeError(error)}`);
+			setModal('');
+		} finally {
+			setPredictiveLoading(false);
+		}
+	};
+
 	return (
 		<section className="rounded-xl border border-white/10 bg-[#13293a] p-5">
 			<div className="mb-5 flex flex-wrap items-center justify-between gap-4">
@@ -209,6 +233,7 @@ export default function Activos() {
 									<td className="px-3 py-3">
 										<p className="font-medium text-white">{asset.name}</p>
 										<p className="mt-1 text-[10px] text-slate-400">{[asset.brand, asset.model, asset.serialNumber].filter(Boolean).join(' · ') || 'Sin ficha técnica'}</p>
+										{asset.hasMotor && <p className="mt-1 text-[10px] text-cyan-300">ID predictivo: {asset.predictiveId}</p>}
 									</td>
 									<td className="px-3 py-3 text-slate-300">{asset.categoryName || `ID ${asset.categoryId}`}</td>
 									<td className="px-3 py-3 text-slate-300">{asset.responsibleName || `ID ${asset.responsibleId}`}</td>
@@ -222,6 +247,7 @@ export default function Activos() {
 									<td className="px-3 py-3 text-right">
 										<div className="inline-flex items-center gap-3 text-slate-400">
 											<button type="button" title="Hoja de vida" aria-label={`Hoja de vida de ${asset.name}`} onClick={() => openResume(asset)} className="hover:text-cyan-300"><FileText size={15} /></button>
+											{asset.hasMotor && <button type="button" title="Hoja de vida predictivo" aria-label={`Hoja de vida predictivo de ${asset.name}`} onClick={() => openPredictiveHistory(asset)} className="hover:text-emerald-300"><Activity size={15} /></button>}
 											<button type="button" title="Editar" aria-label={`Editar ${asset.name}`} onClick={() => openEditForm(asset)} className="hover:text-cyan-300"><ClipboardList size={15} /></button>
 											{asset.isActive && <button type="button" title="Desactivar" aria-label={`Desactivar ${asset.name}`} onClick={() => handleDeactivate(asset)} className="hover:text-amber-300"><Power size={15} /></button>}
 											<button type="button" title="Eliminar lógicamente" aria-label={`Eliminar ${asset.name}`} onClick={() => handleDelete(asset)} className="hover:text-red-300"><Trash2 size={15} /></button>
@@ -271,6 +297,26 @@ export default function Activos() {
 								</div>
 							</>
 						)}
+					</div>
+				</div>
+			)}
+
+			{modal === 'predictiveResume' && (
+				<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-3 sm:p-6" role="presentation">
+					<div role="dialog" aria-modal="true" aria-labelledby="predictive-resume-title" className="max-h-[94vh] w-full max-w-4xl overflow-y-auto rounded-lg border border-white/10 bg-[#102637] p-5 shadow-2xl">
+						<div className="mb-5 flex items-start justify-between gap-3">
+							<div><h3 id="predictive-resume-title" className="text-[15px] font-semibold text-white">Hoja de vida predictivo</h3><p className="mt-1 text-[10px] text-slate-400">{predictiveAsset?.name} · {predictiveAsset?.predictiveId} · lecturas y resultados históricos.</p></div>
+							<button type="button" onClick={() => setModal('')} title="Cerrar" aria-label="Cerrar hoja de vida predictiva" className="text-slate-400 hover:text-white"><X size={18} /></button>
+						</div>
+						{predictiveLoading ? <p className="py-10 text-center text-[11px] text-slate-400">Cargando historial predictivo...</p> : predictiveHistory.length ? (
+							<div className="overflow-x-auto rounded-md border border-white/10">
+								<table className="w-full min-w-[920px] text-left text-[10px]">
+									<thead className="border-b border-white/10 bg-[#0b1d2a] text-slate-400"><tr><th className="px-3 py-3">Fecha</th><th className="px-3 py-3">Estado</th><th className="px-3 py-3">Confianza</th><th className="px-3 py-3">Temperatura</th><th className="px-3 py-3">Vibración</th><th className="px-3 py-3">Humedad</th><th className="px-3 py-3">Presión</th><th className="px-3 py-3">Consumo</th></tr></thead>
+										<tbody className="divide-y divide-white/5">{predictiveHistory.map((record) => <tr key={record.id}><td className="whitespace-nowrap px-3 py-3 text-slate-300">{formatDateTime(record.timestamp)}</td><td className={`px-3 py-3 font-medium ${record.predictionClass === 1 ? 'text-red-300' : 'text-emerald-300'}`}>{record.motorState}</td><td className="px-3 py-3 text-slate-300">{Math.round(record.confidence * 100)}%</td><td className="px-3 py-3 text-slate-300">{record.temperature} °C</td><td className="px-3 py-3 text-slate-300">{record.vibration} Hz</td><td className="px-3 py-3 text-slate-300">{record.humidity} %</td><td className="px-3 py-3 text-slate-300">{record.pressure} bar</td><td className="px-3 py-3 text-slate-300">{record.energyConsumption} kW</td></tr>)}</tbody>
+								</table>
+								{predictiveHistory.some((record) => record.affectedComponents) && <div className="border-t border-white/10 p-3 text-[10px] text-slate-300"><p className="mb-2 font-semibold text-white">Diagnósticos</p>{predictiveHistory.map((record) => <p key={record.id} className="mb-1"><span className="text-slate-400">{formatDateTime(record.timestamp)}:</span> {record.affectedComponents}</p>)}</div>}
+							</div>
+						) : <p className="rounded-md border border-white/10 p-4 text-[11px] text-slate-400">Este activo aún no tiene lecturas predictivas registradas.</p>}
 					</div>
 				</div>
 			)}

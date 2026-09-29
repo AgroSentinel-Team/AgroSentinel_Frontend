@@ -18,6 +18,7 @@ const EMPTY_FORM = {
 	location: '',
 	operationalStatus: 'OPERATIONAL',
 	isActive: true,
+	hasMotor: false,
 };
 
 const STATUS_LABELS = {
@@ -138,6 +139,13 @@ export default function CreateAssetForm({ asset = null, onCancel, onSaved }) {
 							<InputField label="Marca" name="brand" value={form.brand} onChange={changeForm} />
 							<InputField label="Modelo" name="model" value={form.model} onChange={changeForm} />
 							<InputField label="Número de serie" name="serialNumber" value={form.serialNumber} onChange={changeForm} />
+							<label className="block text-[11px] text-slate-300">Tiene motor
+								<select name="hasMotor" value={String(Boolean(form.hasMotor))} onChange={(event) => setForm((current) => ({ ...current, hasMotor: event.target.value === 'true' }))} className={fieldClass}>
+									<option value="false">No</option>
+									<option value="true">Sí</option>
+								</select>
+								{form.hasMotor && <span className="mt-1 block text-[10px] text-cyan-300">{asset?.predictiveId ? `ID predictivo: ${asset.predictiveId}` : 'El ID predictivo se asignará al guardar el activo.'}</span>}
+							</label>
 							<label className="block text-[11px] text-slate-300">Categoría *
 								<select name="categoryId" value={form.categoryId} onChange={changeForm} required disabled={loadingOptions || !categories.length} className={fieldClass}>
 									<option value="">{loadingOptions ? 'Cargando categorías...' : 'Selecciona una categoría'}</option>

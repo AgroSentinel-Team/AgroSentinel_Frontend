@@ -17,6 +17,7 @@ function createApi(baseURL) {
 
 const assetApi = createApi(`${API_ROOT}/assets`);
 const directoryApi = createApi(API_ROOT);
+const predictiveApi = createApi(API_ROOT);
 
 export const getAssets = async () => (await assetApi.get('')).data;
 
@@ -29,6 +30,10 @@ export const deactivateAsset = async (id) => (await assetApi.patch(`/${id}/deact
 export const deleteAsset = async (id) => assetApi.delete(`/${id}`);
 
 export const getAssetResume = async (id) => (await assetApi.get(`/${id}/resume`)).data;
+
+export const getPredictiveAssets = async () => (await predictiveApi.get('/predictive/assets')).data;
+
+export const getPredictiveHistory = async (id) => (await predictiveApi.get(`/predictive/assets/${id}/history`)).data;
 
 export const getCategories = async () => (await directoryApi.get('/categories')).data;
 
