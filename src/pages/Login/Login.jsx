@@ -1,5 +1,4 @@
-import React, { useState } from 'react';
-import App from '../../App.jsx';
+import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
 import { Mail, Lock, EyeOff, Eye, ShieldCheck, XCircle } from 'lucide-react';
@@ -23,6 +22,9 @@ export default function Login() {
       const response = await axios.post('http://localhost:8080/api/auth/login', { email, password });
       
       const { token, rol } = response.data;
+      if (typeof token !== 'string' || token.split('.').length !== 3) {
+        throw new Error('El servidor no devolvió un JWT válido. Reinicia el backend e inténtalo de nuevo.');
+      }
 
       // Guardamos credenciales reales en el navegador
       localStorage.setItem('token', token);
@@ -49,7 +51,10 @@ export default function Login() {
           setError('Rol no autorizado.');
       }
     } catch (err) {
-      setError(err.response?.data || 'Credenciales incorrectas o error de servidor.');
+      const message = typeof err.response?.data === 'string'
+        ? err.response.data
+        : err.response?.data?.message || err.message || 'Credenciales incorrectas o error de servidor.';
+      setError(message);
     } finally {
       setLoading(false);
     }

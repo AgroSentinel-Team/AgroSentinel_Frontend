@@ -33,7 +33,7 @@ function describeError(error) {
 		return 'Acceso denegado. Cierra sesión e inicia sesión de nuevo con una cuenta Administrador.';
 	}
 	if (error.response?.status === 401) {
-		return 'La sesión expiró. Inicia sesión de nuevo.';
+		return 'El servidor rechazó el token. La sesión permanece abierta; vuelve a iniciar sesión y reintenta.';
 	}
 	return error.response?.data?.detail
 		|| error.response?.data?.message
