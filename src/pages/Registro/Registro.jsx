@@ -108,7 +108,6 @@ export default function Registro() {
                             <option value="TECNICO" className="bg-slate-800">Técnico de Mantenimiento</option>
                             <option value="SUPERVISOR" className="bg-slate-800">Supervisor</option>
                             <option value="ALMACENISTA" className="bg-slate-800">Almacenista</option>
-                            <option value="ADMINISTRADOR" className="bg-slate-800">Administrador</option>
                             <option value="OPERATIVO_CAMPO" className="bg-slate-800">Usuario Operativo de Campo</option>
                         </select>
                     </div>
