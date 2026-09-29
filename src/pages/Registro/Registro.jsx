@@ -1,8 +1,7 @@
-import React, { useState } from 'react';
-import App from '../../App.jsx';
+import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
-import { User, Mail, Lock, EyeOff, Eye, Briefcase, ShieldCheck, XCircle } from 'lucide-react';
+import { User, Mail, Lock, EyeOff, Eye, Briefcase, XCircle } from 'lucide-react';
 
 export default function Registro() {
   const navigate = useNavigate();
@@ -108,7 +107,6 @@ export default function Registro() {
                             <option value="TECNICO" className="bg-slate-800">Técnico de Mantenimiento</option>
                             <option value="SUPERVISOR" className="bg-slate-800">Supervisor</option>
                             <option value="ALMACENISTA" className="bg-slate-800">Almacenista</option>
-                            <option value="ADMINISTRADOR" className="bg-slate-800">Administrador</option>
                             <option value="OPERATIVO_CAMPO" className="bg-slate-800">Usuario Operativo de Campo</option>
                         </select>
                     </div>
