@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import axios from 'axios';
+import { expireSession } from '../../services/sessionService';
 import {
   CheckCircle2,
   Clock3,
@@ -45,6 +46,7 @@ function fromApiUser(user) {
 }
 
 function getApiError(error) {
+  if (error.response?.status === 401) expireSession();
   const response = error.response?.data;
   return response?.detail || response?.message || (typeof response === 'string' ? response : 'No fue posible completar la operación.');
 }

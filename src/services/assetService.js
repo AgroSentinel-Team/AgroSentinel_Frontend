@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { expireSession } from './sessionService';
 
 const API_ROOT = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
 
@@ -7,11 +8,19 @@ function createApi(baseURL) {
 	api.interceptors.request.use((config) => {
 		const token = localStorage.getItem('token');
 		if (token && token.split('.').length !== 3) {
-			return Promise.reject(new Error('El token guardado no tiene formato JWT. La sesión se mantiene abierta.'));
+			expireSession();
+			return Promise.reject(new Error('La sesión finalizó. Inicia sesión de nuevo.'));
 		}
 		if (token) config.headers.Authorization = `Bearer ${token}`;
 		return config;
 	});
+	api.interceptors.response.use(
+		(response) => response,
+		(error) => {
+			if (error.response?.status === 401) expireSession();
+			return Promise.reject(error);
+		},
+	);
 	return api;
 }
 
