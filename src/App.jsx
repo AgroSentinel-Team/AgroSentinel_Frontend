@@ -13,6 +13,10 @@ import OperDashboard from './pages/Operativo/OperDashboard';
 function SessionExpiredNotice() {
   const navigate = useNavigate();
   const [sessionExpired, setSessionExpired] = useState(false);
+  const redirectToLogin = () => {
+    setSessionExpired(false);
+    navigate('/login', { replace: true });
+  };
 
   useEffect(() => {
     const handleSessionExpired = () => setSessionExpired(true);
@@ -22,7 +26,10 @@ function SessionExpiredNotice() {
 
   useEffect(() => {
     if (!sessionExpired) return undefined;
-    const redirectTimer = window.setTimeout(() => navigate('/login', { replace: true }), 1800);
+    const redirectTimer = window.setTimeout(() => {
+      setSessionExpired(false);
+      navigate('/login', { replace: true });
+    }, 1800);
     return () => window.clearTimeout(redirectTimer);
   }, [sessionExpired, navigate]);
 
@@ -35,7 +42,7 @@ function SessionExpiredNotice() {
         <p className="mt-2 text-sm text-slate-300">Serás redirigido al inicio de sesión.</p>
         <button
           type="button"
-          onClick={() => navigate('/login', { replace: true })}
+          onClick={redirectToLogin}
           className="mt-5 rounded-md bg-cyan-500 px-4 py-2 text-sm font-semibold text-slate-950 hover:bg-cyan-400"
         >
           Ir al inicio de sesión
