@@ -32,6 +32,7 @@ export default function Login() {
 
       // Redirección estricta según el rol de la base de datos
       switch (rol) {
+        case 'ADMIN':
         case 'ADMINISTRADOR':
           navigate('/admin/dashboard');
           break;
@@ -44,6 +45,7 @@ export default function Login() {
         case 'ALMACENISTA':
           navigate('/almacen/dashboard');
           break;
+        case 'OPERARIO_CAMPO':
         case 'OPERATIVO_CAMPO':
           navigate('/operativo/dashboard');
           break;

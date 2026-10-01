@@ -12,8 +12,9 @@ import LogoutButton from "../../components/LogoutButton";
 import OrdenesTrabajo from "./OrdenesTrabajo";
 import Maquinaria from "./Maquinaria";
 import MisReportes from "./MisReportes";
-import ReportarFalla from "./reportarFalla";
 import MantenimientoPredictivo from "../Compartido/MantenimientoPredictivo";
+import FailureReportModal from "../../components/FailureReportModal";
+import { canReportFailure } from "../../services/assetService";
 
 const navigation = [
   { label: "Mi Panel", icon: LayoutDashboard },
@@ -26,10 +27,10 @@ const navigation = [
 
 export default function OperDashboard() {
   const [activeTab, setActiveTab] = useState("Mi Panel");
+  const allowedToReport = canReportFailure();
 
   const contentMap = {
-    "Mi Panel": <DashboardHome />,
-    "Reportar Falla": <ReportarFalla />,
+    "Mi Panel": <DashboardHome onReportFailure={() => setActiveTab("Reportar Falla")} />,
     "Mis Reportes": <MisReportes />,
     Maquinaria: <Maquinaria />,
     "Órdenes de Trabajo": <OrdenesTrabajo />,
@@ -49,7 +50,7 @@ export default function OperDashboard() {
         </div>
 
         <nav className="space-y-2 px-3">
-          {navigation.map(({ label, icon: Icon }) => (
+          {navigation.filter(({ label }) => label !== "Reportar Falla" || allowedToReport).map(({ label, icon: Icon }) => (
             <button
               key={label}
               type="button"
@@ -89,13 +90,16 @@ export default function OperDashboard() {
           </div>
         </header>
 
-        <section className="p-7">{contentMap[activeTab]}</section>
+        <section className="p-7">
+          {contentMap[activeTab] || contentMap["Mi Panel"]}
+          {activeTab === "Reportar Falla" && allowedToReport && <FailureReportModal onClose={() => setActiveTab("Mi Panel")} />}
+        </section>
       </main>
     </div>
   );
 }
 
-function DashboardHome() {
+function DashboardHome({ onReportFailure }) {
   return (
     <>
       <div className="mb-6">
@@ -121,7 +125,7 @@ function DashboardHome() {
               </div>
             </div>
 
-            <button className="mt-4 w-full rounded-md bg-blue-600 py-2 text-[10px] font-semibold transition hover:bg-blue-700">
+            <button type="button" onClick={onReportFailure} className="mt-4 w-full rounded-md bg-blue-600 py-2 text-[10px] font-semibold transition hover:bg-blue-700">
               Reportar Nueva Falla
             </button>
           </div>

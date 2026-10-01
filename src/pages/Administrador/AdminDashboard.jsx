@@ -1,5 +1,5 @@
 ﻿import { useState } from 'react';
-import { Activity, BarChart3, Bell, LayoutDashboard, Package, Tractor, Users, UsersRound } from 'lucide-react';
+import { Activity, BarChart3, Bell, FileWarning, LayoutDashboard, Package, Tractor, Users, UsersRound } from 'lucide-react';
 import LogoutButton from '../../components/LogoutButton';
 import Usuarios from './Usuarios';
 import GruposTrabajo from './GruposTrabajo';
@@ -7,12 +7,14 @@ import Activos from './Activos';
 import Inventario from '../Compartido/Inventario';
 import Reportes from '../Compartido/Reportes';
 import MantenimientoPredictivo from '../Compartido/MantenimientoPredictivo';
+import ReporteFallas from './ReporteFallas';
 
 const navigation = [
   { label: 'Dashboard', icon: LayoutDashboard },
   { label: 'Usuarios', icon: Users },
   { label: 'Grupos de Trabajo', icon: UsersRound },
   { label: 'Activos', icon: Tractor },
+  { label: 'Reporte de Fallas', icon: FileWarning },
   { label: 'Inventario', icon: Package },
   { label: 'Reportes', icon: BarChart3 },
   { label: 'Mantenimiento', icon: Activity },
@@ -226,6 +228,7 @@ export default function AdminDashboard() {
     Usuarios: <Usuarios />,
     'Grupos de Trabajo': <GruposTrabajo />,
     Activos: <Activos />,
+    'Reporte de Fallas': <ReporteFallas />,
     Inventario: <Inventario />,
     Reportes: <Reportes />,
     Mantenimiento: <MantenimientoPredictivo />,

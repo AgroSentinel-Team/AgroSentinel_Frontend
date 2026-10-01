@@ -3,8 +3,8 @@ import { expireSession } from './sessionService';
 
 const API_ROOT = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
 
-function createApi(baseURL) {
-	const api = axios.create({ baseURL, headers: { 'Content-Type': 'application/json' } });
+function createApi(baseURL, json = true) {
+	const api = axios.create({ baseURL, ...(json ? { headers: { 'Content-Type': 'application/json' } } : {}) });
 	api.interceptors.request.use((config) => {
 		const token = localStorage.getItem('token');
 		if (token && token.split('.').length !== 3) {
@@ -27,6 +27,7 @@ function createApi(baseURL) {
 const assetApi = createApi(`${API_ROOT}/assets`);
 const directoryApi = createApi(API_ROOT);
 const predictiveApi = createApi(API_ROOT);
+const failureReportApi = createApi(`${API_ROOT}/failure-reports`, false);
 
 export const getAssets = async () => (await assetApi.get('')).data;
 
@@ -49,3 +50,14 @@ export const getCategories = async () => (await directoryApi.get('/categories'))
 export const createCategory = async (category) => (await directoryApi.post('/categories', category)).data;
 
 export const getUsers = async () => (await directoryApi.get('/users')).data;
+
+export const getFailureReportAssets = async () => (await failureReportApi.get('/assets')).data;
+
+export const getFailureReports = async () => (await failureReportApi.get('')).data;
+
+export const createFailureReport = async (formData) => (await failureReportApi.post('', formData)).data;
+
+export const canReportFailure = () => {
+	const role = (localStorage.getItem('rol') ?? '').toUpperCase().replace(/^ROLE_/, '');
+	return ['ADMIN', 'ADMINISTRADOR', 'OPERARIO_CAMPO', 'OPERATIVO_CAMPO'].includes(role);
+};

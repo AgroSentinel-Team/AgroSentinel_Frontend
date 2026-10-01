@@ -10,6 +10,27 @@ import TecDashboard from './pages/Tecnico/TecDashboard';
 import AlmacenDashboard from './pages/Almacenista/AlmacenDashboard';
 import OperDashboard from './pages/Operativo/OperDashboard';
 
+function hasUnexpiredToken(token) {
+  if (!token || token.split('.').length !== 3) return false;
+  try {
+    const payload = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+    const paddedPayload = payload.padEnd(Math.ceil(payload.length / 4) * 4, '=');
+    const claims = JSON.parse(atob(paddedPayload));
+    return typeof claims.exp === 'number' && claims.exp * 1000 > Date.now();
+  } catch {
+    return false;
+  }
+}
+
+function ProtectedRoute({ allowedRoles, children }) {
+  const token = localStorage.getItem('token');
+  const role = (localStorage.getItem('rol') ?? '').toUpperCase().replace(/^ROLE_/, '');
+  if (!hasUnexpiredToken(token) || !allowedRoles.includes(role)) {
+    return <Navigate to="/login" replace />;
+  }
+  return children;
+}
+
 function SessionExpiredNotice() {
   const navigate = useNavigate();
   const [sessionExpired, setSessionExpired] = useState(false);
@@ -60,11 +81,11 @@ export default function App() {
         <Route path="/" element={<Navigate to="/login" replace />} />
         <Route path="/login" element={<Login />} />
         <Route path="/registro" element={<Registro />} />
-        <Route path="/admin/dashboard" element={<AdminDashboard />} />
-        <Route path="/supervisor/dashboard" element={<SuperDashboard />} />
-        <Route path="/tecnico/dashboard" element={<TecDashboard />} />
-        <Route path="/almacen/dashboard" element={<AlmacenDashboard />} />
-        <Route path="/operativo/dashboard" element={<OperDashboard />} />
+        <Route path="/admin/dashboard" element={<ProtectedRoute allowedRoles={['ADMIN', 'ADMINISTRADOR']}><AdminDashboard /></ProtectedRoute>} />
+        <Route path="/supervisor/dashboard" element={<ProtectedRoute allowedRoles={['SUPERVISOR']}><SuperDashboard /></ProtectedRoute>} />
+        <Route path="/tecnico/dashboard" element={<ProtectedRoute allowedRoles={['TECNICO']}><TecDashboard /></ProtectedRoute>} />
+        <Route path="/almacen/dashboard" element={<ProtectedRoute allowedRoles={['ALMACENISTA']}><AlmacenDashboard /></ProtectedRoute>} />
+        <Route path="/operativo/dashboard" element={<ProtectedRoute allowedRoles={['OPERARIO_CAMPO', 'OPERATIVO_CAMPO']}><OperDashboard /></ProtectedRoute>} />
       </Routes>
     </BrowserRouter>
   );
