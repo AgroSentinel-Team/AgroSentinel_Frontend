@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
-import { SESSION_EXPIRED_EVENT } from './services/sessionService';
+import { hasUnexpiredToken, SESSION_EXPIRED_EVENT } from './services/sessionService';
 
 import Login from './pages/Login/Login';
 import Registro from './pages/Registro/Registro';
@@ -9,18 +9,7 @@ import SuperDashboard from './pages/Supervisor/SuperDashboard';
 import TecDashboard from './pages/Tecnico/TecDashboard';
 import AlmacenDashboard from './pages/Almacenista/AlmacenDashboard';
 import OperDashboard from './pages/Operativo/OperDashboard';
-
-function hasUnexpiredToken(token) {
-  if (!token || token.split('.').length !== 3) return false;
-  try {
-    const payload = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
-    const paddedPayload = payload.padEnd(Math.ceil(payload.length / 4) * 4, '=');
-    const claims = JSON.parse(atob(paddedPayload));
-    return typeof claims.exp === 'number' && claims.exp * 1000 > Date.now();
-  } catch {
-    return false;
-  }
-}
+import PreventiveMaintenance from './pages/Compartido/PreventiveMaintenance';
 
 function ProtectedRoute({ allowedRoles, children }) {
   const token = localStorage.getItem('token');
@@ -84,6 +73,8 @@ export default function App() {
         <Route path="/admin/dashboard" element={<ProtectedRoute allowedRoles={['ADMIN', 'ADMINISTRADOR']}><AdminDashboard /></ProtectedRoute>} />
         <Route path="/supervisor/dashboard" element={<ProtectedRoute allowedRoles={['SUPERVISOR']}><SuperDashboard /></ProtectedRoute>} />
         <Route path="/tecnico/dashboard" element={<ProtectedRoute allowedRoles={['TECNICO']}><TecDashboard /></ProtectedRoute>} />
+        <Route path="/admin/mantenimiento-preventivo" element={<ProtectedRoute allowedRoles={['ADMIN', 'ADMINISTRADOR']}><PreventiveMaintenance /></ProtectedRoute>} />
+        <Route path="/tecnico/mantenimiento-preventivo" element={<ProtectedRoute allowedRoles={['TECNICO']}><PreventiveMaintenance /></ProtectedRoute>} />
         <Route path="/almacen/dashboard" element={<ProtectedRoute allowedRoles={['ALMACENISTA']}><AlmacenDashboard /></ProtectedRoute>} />
         <Route path="/operativo/dashboard" element={<ProtectedRoute allowedRoles={['OPERARIO_CAMPO', 'OPERATIVO_CAMPO']}><OperDashboard /></ProtectedRoute>} />
       </Routes>

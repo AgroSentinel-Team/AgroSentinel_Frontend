@@ -1,28 +1,6 @@
-import axios from 'axios';
-import { expireSession } from './sessionService';
+import { API_ROOT, createApi } from './apiClient';
 
-const API_ROOT = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
-
-function createApi(baseURL, json = true) {
-	const api = axios.create({ baseURL, ...(json ? { headers: { 'Content-Type': 'application/json' } } : {}) });
-	api.interceptors.request.use((config) => {
-		const token = localStorage.getItem('token');
-		if (token && token.split('.').length !== 3) {
-			expireSession();
-			return Promise.reject(new Error('La sesión finalizó. Inicia sesión de nuevo.'));
-		}
-		if (token) config.headers.Authorization = `Bearer ${token}`;
-		return config;
-	});
-	api.interceptors.response.use(
-		(response) => response,
-		(error) => {
-			if (error.response?.status === 401) expireSession();
-			return Promise.reject(error);
-		},
-	);
-	return api;
-}
+export { API_ROOT };
 
 const assetApi = createApi(`${API_ROOT}/assets`);
 const directoryApi = createApi(API_ROOT);

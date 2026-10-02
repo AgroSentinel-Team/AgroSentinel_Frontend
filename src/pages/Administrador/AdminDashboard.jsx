@@ -1,5 +1,5 @@
-﻿import { useState } from 'react';
-import { Activity, BarChart3, Bell, FileWarning, LayoutDashboard, Package, Tractor, Users, UsersRound } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Activity, BarChart3, Bell, ClipboardCheck, FileWarning, LayoutDashboard, Package, Tractor, Users, UsersRound } from 'lucide-react';
 import LogoutButton from '../../components/LogoutButton';
 import Usuarios from './Usuarios';
 import GruposTrabajo from './GruposTrabajo';
@@ -7,7 +7,9 @@ import Activos from './Activos';
 import Inventario from '../Compartido/Inventario';
 import Reportes from '../Compartido/Reportes';
 import MantenimientoPredictivo from '../Compartido/MantenimientoPredictivo';
+import PreventiveMaintenance from '../Compartido/PreventiveMaintenance';
 import ReporteFallas from './ReporteFallas';
+import { OPEN_PREVENTIVE_SCHEDULE_EVENT } from '../../services/preventiveMaintenanceNavigation';
 
 const navigation = [
   { label: 'Dashboard', icon: LayoutDashboard },
@@ -18,6 +20,7 @@ const navigation = [
   { label: 'Inventario', icon: Package },
   { label: 'Reportes', icon: BarChart3 },
   { label: 'Mantenimiento', icon: Activity },
+  { label: 'Mantenimiento Preventivo', icon: ClipboardCheck },
 ];
 
 const stats = [
@@ -223,6 +226,17 @@ function DashboardHome() {
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState('Dashboard');
   const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [predictivePrefill, setPredictivePrefill] = useState(null);
+
+  useEffect(() => {
+    const openPreventiveSchedule = (event) => {
+      setPredictivePrefill(event.detail);
+      setActiveTab('Mantenimiento Preventivo');
+    };
+    window.addEventListener(OPEN_PREVENTIVE_SCHEDULE_EVENT, openPreventiveSchedule);
+    return () => window.removeEventListener(OPEN_PREVENTIVE_SCHEDULE_EVENT, openPreventiveSchedule);
+  }, []);
+
   const content = {
     Dashboard: <DashboardHome />,
     Usuarios: <Usuarios />,
@@ -232,6 +246,12 @@ export default function AdminDashboard() {
     Inventario: <Inventario />,
     Reportes: <Reportes />,
     Mantenimiento: <MantenimientoPredictivo />,
+    'Mantenimiento Preventivo': (
+      <PreventiveMaintenance
+        predictivePrefill={predictivePrefill}
+        onPredictivePrefillConsumed={() => setPredictivePrefill(null)}
+      />
+    ),
   };
 
   return (

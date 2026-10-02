@@ -15,6 +15,7 @@ function describeError(error) {
 export default function CreateCategoryForm({ onCreated, onCancel }) {
 	const [name, setName] = useState('');
 	const [description, setDescription] = useState('');
+	const [maintenanceFrequencyDays, setMaintenanceFrequencyDays] = useState('90');
 	const [error, setError] = useState('');
 	const [saving, setSaving] = useState(false);
 
@@ -23,7 +24,11 @@ export default function CreateCategoryForm({ onCreated, onCancel }) {
 		setSaving(true);
 		setError('');
 		try {
-			const category = await createCategory({ name: name.trim(), description: description.trim() });
+			const category = await createCategory({
+				name: name.trim(),
+				description: description.trim(),
+				maintenanceFrequencyDays: Number(maintenanceFrequencyDays),
+			});
 			onCreated(category);
 		} catch (requestError) {
 			setError(describeError(requestError));
@@ -50,6 +55,10 @@ export default function CreateCategoryForm({ onCreated, onCancel }) {
 					<label className="block text-[11px] text-slate-300">
 						Descripción
 						<textarea rows="3" maxLength="500" value={description} onChange={(event) => setDescription(event.target.value)} className={fieldClass} />
+					</label>
+					<label className="block text-[11px] text-slate-300">
+						Frecuencia de mantenimiento preventivo (días) *
+						<input type="number" min="1" max="3650" required value={maintenanceFrequencyDays} onChange={(event) => setMaintenanceFrequencyDays(event.target.value)} className={fieldClass} />
 					</label>
 					{error && <p role="alert" className="rounded-md border border-red-400/20 bg-red-400/10 p-3 text-[11px] text-red-200">{error}</p>}
 					<div className="flex justify-end gap-2 border-t border-white/10 pt-4">

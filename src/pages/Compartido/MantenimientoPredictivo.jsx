@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Activity, AlertTriangle, CheckCircle2, Clock3, Gauge, Wrench, RefreshCcw } from 'lucide-react';
 import { getPredictiveAssets } from '../../services/assetService';
+import { requestPreventiveSchedule } from '../../services/preventiveMaintenanceNavigation';
 
 const riskStyles = {
   Alto: 'border-red-400/30 bg-red-500/10 text-red-300',
@@ -43,6 +44,9 @@ export default function MantenimientoPredictivo() {
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
+  const canSchedule = ['ADMIN', 'ADMINISTRADOR'].includes(
+    (localStorage.getItem('rol') ?? '').toUpperCase().replace(/^ROLE_/, ''),
+  );
 
   const cargarEquipos = async () => {
     setLoading(true);
@@ -91,7 +95,25 @@ export default function MantenimientoPredictivo() {
 
   const scheduleMaintenance = () => {
     if (!selected) return;
-    setMessage(`Mantenimiento preventivo programado para ${selected.name}.`);
+    const record = selected.record;
+    const predictiveRisk = record.predictionClass === 1 ? 'Alto' : 'Bajo';
+    const measurements = [
+      `Riesgo predictivo: ${predictiveRisk}`,
+      `Falla o señal detectada: ${record.affectedComponents || 'Sin detalle'}`,
+      `Confianza del modelo: ${selected.confidence}%`,
+      `Temperatura: ${record.temperature} °C`,
+      `Vibración: ${record.vibration} Hz`,
+      `Presión: ${record.pressure} bar`,
+      `Consumo: ${record.energyConsumption} kW`,
+      `Ubicación: ${selected.location}`,
+    ];
+    requestPreventiveSchedule({
+      assetId: selected.assetId,
+      assetName: selected.name,
+      risk: predictiveRisk,
+      confidence: selected.confidence,
+      predictiveContext: measurements.join('\n'),
+    });
   };
 
   if (loading && equipment.length === 0) {
@@ -199,7 +221,7 @@ export default function MantenimientoPredictivo() {
 
             <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-1">
               <button type="button" disabled={!selected.record} onClick={acknowledgeAlert} className="rounded-lg border border-amber-400/40 bg-amber-50 px-3 py-2.5 text-[10px] font-bold uppercase tracking-[0.08em] text-slate-950 transition hover:bg-amber-400 disabled:opacity-50">Reconocer alerta</button>
-              <button type="button" disabled={!selected.record} onClick={scheduleMaintenance} className="rounded-lg border border-emerald-400/40 bg-emerald-600 px-3 py-2.5 text-[10px] font-bold uppercase tracking-[0.08em] text-white transition hover:bg-emerald-500 disabled:opacity-50">Programar mantenimiento</button>
+              {canSchedule && <button type="button" disabled={!selected.record} onClick={scheduleMaintenance} className="rounded-lg border border-emerald-400/40 bg-emerald-600 px-3 py-2.5 text-[10px] font-bold uppercase tracking-[0.08em] text-white transition hover:bg-emerald-500 disabled:opacity-50">Programar mantenimiento</button>}
             </div>
           </aside>
         )}

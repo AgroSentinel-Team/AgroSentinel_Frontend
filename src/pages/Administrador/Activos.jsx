@@ -20,12 +20,20 @@ import {
 	getAssets,
 	getPredictiveHistory,
 } from '../../services/assetService';
+import { getPreventiveMaintenanceEvidence } from '../../services/preventiveMaintenanceService';
 import CreateAssetForm from '../../components/CreateAssetForm';
 
 const STATUS_LABELS = {
 	OPERATIONAL: 'Operativo',
 	IN_REPAIR: 'En reparación',
 	OBSOLETE: 'Obsoleto',
+};
+
+const MAINTENANCE_STATUS_LABELS = {
+	SCHEDULED: 'Programado',
+	COMPLETED: 'Completado',
+	PARTIALLY_COMPLETED: 'Parcialmente completado',
+	URGENT_CORRECTIVE: 'Requiere correctivo urgente',
 };
 
 function describeError(error) {
@@ -70,6 +78,11 @@ export default function Activos() {
 	const [predictiveHistory, setPredictiveHistory] = useState([]);
 	const [predictiveAsset, setPredictiveAsset] = useState(null);
 	const [predictiveLoading, setPredictiveLoading] = useState(false);
+	const [maintenanceEvidencePreview, setMaintenanceEvidencePreview] = useState('');
+
+	useEffect(() => () => {
+		if (maintenanceEvidencePreview) URL.revokeObjectURL(maintenanceEvidencePreview);
+	}, [maintenanceEvidencePreview]);
 
 	useEffect(() => {
 		let cancelled = false;
@@ -149,6 +162,15 @@ export default function Activos() {
 			setModal('');
 		} finally {
 			setResumeLoading(false);
+		}
+	};
+
+	const openMaintenanceEvidence = async (url) => {
+		try {
+			const evidence = await getPreventiveMaintenanceEvidence(url);
+			setMaintenanceEvidencePreview(URL.createObjectURL(evidence));
+		} catch (error) {
+			setFeedback(`No se pudo abrir la evidencia: ${describeError(error)}`);
 		}
 	};
 
@@ -285,13 +307,43 @@ export default function Activos() {
 									<h4 className="mb-3 flex items-center gap-2 text-[11px] font-semibold text-white"><Wrench size={14} className="text-cyan-300" />Historial de mantenimiento</h4>
 									{resume.maintenanceHistory.length ? (
 										<div className="space-y-2">
-											{resume.maintenanceHistory.map((item) => (
-												<article key={item.id} className="grid gap-2 rounded-md border border-white/10 bg-[#0b1d2a] p-3 sm:grid-cols-[120px_1fr_auto]">
-													<div><p className="text-[10px] text-slate-400">{formatDate(item.maintenanceDate)}</p><p className="mt-1 text-[10px] font-medium text-cyan-300">{item.type === 'PREVENTIVE' ? 'Preventivo' : 'Correctivo'}</p></div>
-													<div><p className="text-[11px] text-white">{item.tasksDescription || 'Sin descripción de tareas'}</p><p className="mt-1 text-[10px] text-slate-400">Proveedor: {item.provider || 'Sin registro'} · Próxima recomendada: {formatDate(item.nextRecommendedDate)}</p></div>
-													<p className="text-[11px] text-slate-200">{formatCurrency(item.cost)}</p>
-												</article>
-											))}
+											{resume.maintenanceHistory.map((item) => {
+												const statusClass = item.status === 'COMPLETED'
+													? 'border-emerald-400/30 bg-emerald-500/10 text-emerald-300'
+													: item.status === 'URGENT_CORRECTIVE'
+														? 'border-red-400/30 bg-red-500/10 text-red-300'
+														: item.status === 'PARTIALLY_COMPLETED'
+															? 'border-amber-400/30 bg-amber-500/10 text-amber-300'
+															: 'border-cyan-400/30 bg-cyan-500/10 text-cyan-300';
+												return (
+													<article key={item.id} className="rounded-md border border-white/10 bg-[#0b1d2a] p-3">
+														<div className="flex flex-wrap items-start justify-between gap-3">
+															<div>
+																<p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-slate-400">{item.type === 'PREVENTIVE' ? 'Mantenimiento preventivo' : 'Mantenimiento correctivo'}</p>
+																<p className="mt-1 text-[11px] font-medium text-white">{item.status === 'SCHEDULED' ? 'Trabajo planificado' : 'Trabajo realizado'}</p>
+															</div>
+															<span className={`rounded-full border px-2 py-1 text-[9px] font-semibold ${statusClass}`}>{MAINTENANCE_STATUS_LABELS[item.status] || 'Completado'}</span>
+														</div>
+														<dl className="mt-3 grid gap-x-5 gap-y-2 border-t border-white/5 pt-3 text-[10px] sm:grid-cols-2 lg:grid-cols-3">
+															<div><dt className="text-slate-500">Fecha programada</dt><dd className="mt-0.5 text-slate-200">{formatDateTime(item.scheduledAt || item.maintenanceDate)}</dd></div>
+															<div><dt className="text-slate-500">Fecha de ejecución</dt><dd className="mt-0.5 text-slate-200">{item.executedAt ? formatDateTime(item.executedAt) : 'Pendiente'}</dd></div>
+															<div><dt className="text-slate-500">Técnico responsable</dt><dd className="mt-0.5 text-slate-200">{item.technicianName || 'Sin asignar'}</dd></div>
+														</dl>
+														<div className="mt-3 rounded-md border border-white/5 bg-[#102637] p-3">
+															<p className="text-[9px] font-semibold uppercase tracking-[0.1em] text-slate-500">{item.status === 'SCHEDULED' ? 'Plan de trabajo' : 'Detalle del trabajo y observaciones'}</p>
+															<p className="mt-1 whitespace-pre-wrap text-[10px] leading-relaxed text-slate-200">{item.tasksDescription || 'Sin descripción de tareas'}</p>
+															{item.replacedParts && <p className="mt-2 text-[10px] text-slate-300"><span className="text-slate-500">Repuestos: </span>{item.replacedParts}</p>}
+														</div>
+														<div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-[9px] text-slate-400">
+															{item.nextRecommendedDate && <span>Próximo mantenimiento: {formatDate(item.nextRecommendedDate)}</span>}
+															{item.provider && <span>Proveedor: {item.provider}</span>}
+															{item.cost !== null && item.cost !== undefined && <span>Costo: {formatCurrency(item.cost)}</span>}
+															{item.signedAt && <span>Firma digital: {formatDateTime(item.signedAt)}</span>}
+														</div>
+														{item.evidences?.length > 0 && <div className="mt-3 flex flex-wrap gap-2 border-t border-white/5 pt-3">{item.evidences.map((url) => <button key={url} type="button" onClick={() => openMaintenanceEvidence(url)} className="rounded-md border border-cyan-400/20 px-2 py-1 text-[9px] text-cyan-200 hover:bg-cyan-400/10">Ver evidencia</button>)}</div>}
+													</article>
+												);
+											})}
 										</div>
 									) : <p className="rounded-md border border-white/10 p-4 text-[11px] text-slate-400">Este activo aún no tiene mantenimientos registrados.</p>}
 								</div>
@@ -318,6 +370,13 @@ export default function Activos() {
 							</div>
 						) : <p className="rounded-md border border-white/10 p-4 text-[11px] text-slate-400">Este activo aún no tiene lecturas predictivas registradas.</p>}
 					</div>
+				</div>
+			)}
+
+			{maintenanceEvidencePreview && (
+				<div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/85 p-4" role="dialog" aria-modal="true" aria-label="Evidencia del mantenimiento" onClick={() => setMaintenanceEvidencePreview('')}>
+					<button type="button" onClick={() => setMaintenanceEvidencePreview('')} aria-label="Cerrar evidencia" className="absolute right-5 top-5 text-white"><X size={22} /></button>
+					<img src={maintenanceEvidencePreview} alt="Evidencia del mantenimiento preventivo" className="max-h-[90vh] max-w-full rounded-lg object-contain" />
 				</div>
 			)}
 		</section>

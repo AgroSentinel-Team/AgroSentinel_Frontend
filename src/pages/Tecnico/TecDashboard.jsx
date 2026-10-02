@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ShieldCheck,
   Home,
@@ -6,6 +6,7 @@ import {
   History,
   SlidersHorizontal,
   Activity,
+  ClipboardCheck,
 } from "lucide-react";
 import LogoutButton from "../../components/LogoutButton";
 import MiPanel from "./MiPanel";
@@ -13,6 +14,8 @@ import OrdenesAsignadas from "./OrdenesAsignadas";
 import Historial from "./Historial";
 import InventarioRepuestos from "./InventarioRepuestos";
 import MantenimientoPredictivo from "../Compartido/MantenimientoPredictivo";
+import PreventiveMaintenance from "../Compartido/PreventiveMaintenance";
+import { OPEN_PREVENTIVE_SCHEDULE_EVENT } from "../../services/preventiveMaintenanceNavigation";
 
 function SidebarItem({ icon: Icon, children, active = false, onClick }) {
   return (
@@ -39,6 +42,16 @@ function SidebarItem({ icon: Icon, children, active = false, onClick }) {
 
 export default function TechnicianPanel() {
   const [activeTab, setActiveTab] = useState("Mi Panel");
+  const [predictivePrefill, setPredictivePrefill] = useState(null);
+
+  useEffect(() => {
+    const openPreventiveSchedule = (event) => {
+      setPredictivePrefill(event.detail);
+      setActiveTab("Mantenimiento Preventivo");
+    };
+    window.addEventListener(OPEN_PREVENTIVE_SCHEDULE_EVENT, openPreventiveSchedule);
+    return () => window.removeEventListener(OPEN_PREVENTIVE_SCHEDULE_EVENT, openPreventiveSchedule);
+  }, []);
 
   const contentMap = {
     "Mi Panel": <MiPanel />,
@@ -46,6 +59,12 @@ export default function TechnicianPanel() {
     Historial: <Historial />,
     "Inventario Repuestos": <InventarioRepuestos />,
     Mantenimiento: <MantenimientoPredictivo />,
+    "Mantenimiento Preventivo": (
+      <PreventiveMaintenance
+        predictivePrefill={predictivePrefill}
+        onPredictivePrefillConsumed={() => setPredictivePrefill(null)}
+      />
+    ),
   };
 
   return (
@@ -79,6 +98,9 @@ export default function TechnicianPanel() {
 
             <SidebarItem icon={Activity} active={activeTab === "Mantenimiento"} onClick={() => setActiveTab("Mantenimiento")}>
               Mantenimiento
+            </SidebarItem>
+            <SidebarItem icon={ClipboardCheck} active={activeTab === "Mantenimiento Preventivo"} onClick={() => setActiveTab("Mantenimiento Preventivo")}>
+              Mantenimiento Preventivo
             </SidebarItem>
           </nav>
         </aside>
