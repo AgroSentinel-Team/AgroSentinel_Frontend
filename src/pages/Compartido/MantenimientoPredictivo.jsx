@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Activity, AlertTriangle, CheckCircle2, Clock3, Gauge, Wrench, RefreshCcw } from 'lucide-react';
-import { getPredictiveAssets } from '../../services/assetService';
+import { getPredictiveAssets, savePredictiveFeedback } from '../../services/assetService';
 import { requestPreventiveSchedule } from '../../services/preventiveMaintenanceNavigation';
+
+const FAILURE_TYPES = ['Normal', 'Vibration Issue', 'Overheating', 'Pressure Drop', 'Electrical Fault'];
 
 const riskStyles = {
   Alto: 'border-red-400/30 bg-red-500/10 text-red-300',
@@ -21,14 +23,32 @@ function mapPredictiveAssets(data) {
   return data.map((asset) => {
     const record = asset.latestRecord;
     const isAlert = record?.predictionClass === 1;
-    const confidence = record ? Math.round(record.confidence * 100) : 0;
+
+    // 1. Confianza real que entrega el modelo (qué tan seguro está de la predicción)
+    const rawValue = record?.confidence != null ? Number(record.confidence) : 0;
+    const confidencePct = rawValue > 1 ? Math.round(rawValue) : Math.round(rawValue * 100);
+
+    // 2. Estado de salud del motor para la barra visual:
+    // Si hay alerta de falla, la salud física del motor se reduce drásticamente de forma proporcional a la confianza.
+    // Si opera con normalidad, la salud es el inverso de la confianza de falla (o un porcentaje alto de estabilidad).
+    let healthValue;
+    if (!record) {
+      healthValue = 0;
+    } else if (isAlert) {
+      // Si va a fallar, la barra de salud refleja el margen restante (ej. 100% confianza de falla = 0% a 15% de salud)
+      healthValue = Math.max(5, 100 - confidencePct);
+    } else {
+      // Si está normal, la salud es óptima
+      healthValue = 100;
+    }
 
     return {
       id: asset.machineId,
       assetId: asset.assetId,
       name: [asset.name, asset.brand, asset.model].filter(Boolean).join(' '),
       location: asset.location || 'Sin ubicación',
-      confidence,
+      confidence: confidencePct,
+      health: healthValue,
       risk: !record ? 'Sin datos' : isAlert ? 'Alto' : 'Bajo',
       nextService: !record ? 'Sin lecturas' : isAlert ? 'Inmediato' : 'Según plan preventivo',
       signal: record?.affectedComponents || 'Sin lecturas registradas',
@@ -47,6 +67,8 @@ export default function MantenimientoPredictivo() {
   const canSchedule = ['ADMIN', 'ADMINISTRADOR'].includes(
     (localStorage.getItem('rol') ?? '').toUpperCase().replace(/^ROLE_/, ''),
   );
+  const [feedbackDraft, setFeedbackDraft] = useState(null);
+  const [feedbackSaving, setFeedbackSaving] = useState(false);
 
   const cargarEquipos = async () => {
     setLoading(true);
@@ -81,6 +103,9 @@ export default function MantenimientoPredictivo() {
   }, []);
 
   const selected = equipment.find((item) => item.id === selectedId) || equipment[0];
+  const feedbackValue = feedbackDraft?.recordId === selected?.record?.id
+    ? feedbackDraft.value
+    : selected?.record?.fallaRealConfirmada || selected?.record?.tipoFallaPredicha || '';
   
   const visibleEquipment = useMemo(
     () => filter === 'Todos' ? equipment : equipment.filter((item) => item.risk === filter),
@@ -116,6 +141,30 @@ export default function MantenimientoPredictivo() {
     });
   };
 
+  const saveFeedback = async (fallaRealConfirmada) => {
+    if (!selected?.record?.id || !fallaRealConfirmada || feedbackSaving) return;
+    setFeedbackSaving(true);
+    setMessage('');
+    setLoadError('');
+    try {
+      const updatedRecord = await savePredictiveFeedback(selected.record.id, fallaRealConfirmada);
+      setEquipment((current) => current.map((item) => item.id === selected.id
+        ? { ...item, record: updatedRecord }
+        : item));
+      setFeedbackDraft({ recordId: updatedRecord.id, value: updatedRecord.fallaRealConfirmada });
+      setMessage('La falla real quedó guardada para futuras evaluaciones del modelo.');
+    } catch (error) {
+      setLoadError(
+        error.response?.data?.message
+        || error.response?.data?.detail
+        || error.message
+        || 'No fue posible guardar la validación de la predicción.',
+      );
+    } finally {
+      setFeedbackSaving(false);
+    }
+  };
+
   if (loading && equipment.length === 0) {
     return <div className="p-10 text-center text-emerald-300 font-bold">Cargando telemetría de sensores...</div>;
   }
@@ -148,7 +197,7 @@ export default function MantenimientoPredictivo() {
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         <Metric label="Equipos monitoreados" value={equipment.length} icon={Gauge} tone="text-emerald-300" />
         <Metric label="Alertas activas" value={equipment.filter((item) => item.risk === 'Alto' || item.risk === 'Medio').length} icon={AlertTriangle} tone="text-amber-300" />
-        <Metric label="Confianza media" value={equipment.some((item) => item.record) ? `${Math.round(equipment.filter((item) => item.record).reduce((total, item) => total + item.confidence, 0) / equipment.filter((item) => item.record).length)}%` : 'Sin lecturas'} icon={Activity} tone="text-cyan-300" />
+        <Metric label="Confianza media IA" value={equipment.some((item) => item.record) ? `${Math.round(equipment.filter((item) => item.record).reduce((total, item) => total + item.confidence, 0) / equipment.filter((item) => item.record).length)}%` : 'Sin lecturas'} icon={Activity} tone="text-cyan-300" />
       </div>
 
       {loadError && <div role="alert" className="rounded-md border border-red-400/20 bg-red-400/10 px-3 py-2 text-[11px] text-red-200">{loadError}</div>}
@@ -183,10 +232,20 @@ export default function MantenimientoPredictivo() {
                   </div>
                   <span className={`rounded-full border px-2 py-1 text-[9px] font-semibold ${riskStyles[item.risk]}`}>{item.risk}</span>
                 </div>
-                <div className="mt-3 flex items-center gap-3">
-                  <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-slate-700"><div className={`h-full rounded-full ${healthStyles[item.risk]}`} style={{ width: `${item.confidence}%` }} /></div>
-                  <span className="text-[10px] font-semibold text-slate-300">{item.record ? `${item.confidence}% confianza` : 'Sin lecturas'}</span>
+
+                {/* SEPARACIÓN VISUAL: Barra de Estado de Salud del Motor vs Confianza de Falla de la IA */}
+                <div className="mt-3 space-y-1.5">
+                  <div className="flex items-center justify-between text-[9px] text-slate-400">
+                    <span>Estado de salud del motor</span>
+                    <span className="font-semibold text-slate-300">{item.record ? `${item.confidence}% confianza de predicción (IA)` : 'Sin lecturas'}</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-slate-700">
+                      <div className={`h-full rounded-full ${healthStyles[item.risk]}`} style={{ width: `${item.health}%` }} />
+                    </div>
+                  </div>
                 </div>
+
               </button>
             ))}
           </div>
@@ -213,11 +272,62 @@ export default function MantenimientoPredictivo() {
             </div>
 
             <div className="mt-4 rounded-lg border border-amber-400/20 bg-amber-500/10 p-3">
-              <div className="flex items-center gap-2 text-amber-300"><Clock3 size={14} /><span className="text-[10px] font-semibold uppercase tracking-[0.12em]">Recomendación MLOps</span></div>
+              <div className="flex items-center gap-2 text-amber-300"><Clock3 size5={14} /><span className="text-[10px] font-semibold uppercase tracking-[0.12em]">Recomendación MLOps</span></div>
               <p className="mt-2 text-[11px] leading-relaxed text-amber-100">
                 {!selected.record ? 'Este motor todavía no tiene lecturas predictivas registradas.' : selected.risk === 'Alto' ? 'Detener equipo inmediatamente. El modelo detecta una falla inminente en los componentes listados en la señal.' : 'El modelo indica operación normal. Continuar con los ciclos de mantenimiento preventivo regulares.'}
               </p>
             </div>
+
+            {selected.record && (
+              <div className="mt-4 space-y-3 rounded-lg border border-cyan-400/20 bg-cyan-500/5 p-3">
+                <div>
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-cyan-200">Validación del técnico</p>
+                  <p className="mt-1 text-[10px] text-slate-300">
+                    Predicción IA: {selected.record.tipoFallaPredicha || 'No disponible'}
+                  </p>
+                  {selected.record.fallaRealConfirmada && (
+                    <p className="mt-1 text-[10px] text-emerald-300">
+                      Falla confirmada: {selected.record.fallaRealConfirmada}
+                    </p>
+                  )}
+                </div>
+                <label className="block text-[10px] text-slate-300" htmlFor="confirmed-failure">
+                  Si la inspección indica otra falla, selecciónala:
+                </label>
+                <select
+                  id="confirmed-failure"
+                  value={feedbackValue}
+                  onChange={(event) => setFeedbackDraft({
+                    recordId: selected.record.id,
+                    value: event.target.value,
+                  })}
+                  className="w-full rounded-lg border border-[#30485a] bg-[#0d1f2d] px-3 py-2 text-[11px] text-white"
+                >
+                  <option value="">Selecciona la falla real</option>
+                  {[...new Set([...FAILURE_TYPES, selected.record.tipoFallaPredicha].filter(Boolean))].map((failureType) => (
+                    <option key={failureType} value={failureType}>{failureType}</option>
+                  ))}
+                </select>
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                  <button
+                    type="button"
+                    disabled={feedbackSaving || !selected.record.tipoFallaPredicha}
+                    onClick={() => saveFeedback(selected.record.tipoFallaPredicha)}
+                    className="rounded-lg border border-cyan-400/40 bg-cyan-700 px-3 py-2 text-[10px] font-bold text-white transition hover:bg-cyan-600 disabled:opacity-50"
+                  >
+                    {feedbackSaving ? 'Guardando...' : 'Confirmar predicción IA'}
+                  </button>
+                  <button
+                    type="button"
+                    disabled={feedbackSaving || !feedbackValue}
+                    onClick={() => saveFeedback(feedbackValue)}
+                    className="rounded-lg border border-emerald-400/40 bg-emerald-600 px-3 py-2 text-[10px] font-bold text-white transition hover:bg-emerald-500 disabled:opacity-50"
+                  >
+                    {feedbackSaving ? 'Guardando...' : 'Guardar falla real'}
+                  </button>
+                </div>
+              </div>
+            )}
 
             <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-1">
               <button type="button" disabled={!selected.record} onClick={acknowledgeAlert} className="rounded-lg border border-amber-400/40 bg-amber-50 px-3 py-2.5 text-[10px] font-bold uppercase tracking-[0.08em] text-slate-950 transition hover:bg-amber-400 disabled:opacity-50">Reconocer alerta</button>

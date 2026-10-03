@@ -23,6 +23,9 @@ export const getPredictiveAssets = async () => (await predictiveApi.get('/predic
 
 export const getPredictiveHistory = async (id) => (await predictiveApi.get(`/predictive/assets/${id}/history`)).data;
 
+export const savePredictiveFeedback = async (id, fallaRealConfirmada) =>
+    (await predictiveApi.put(`/predictive/records/${id}/feedback`, { fallaRealConfirmada })).data;
+
 export const getCategories = async () => (await directoryApi.get('/categories')).data;
 
 export const createCategory = async (category) => (await directoryApi.post('/categories', category)).data;
