@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
-import { Activity, BarChart3, Bell, ClipboardCheck, FileWarning, LayoutDashboard, Package, Tractor, Users, UsersRound } from 'lucide-react';
+import { Activity, ArrowDownLeft, ArrowUpRight, BarChart3, Bell, ClipboardCheck, FileWarning, LayoutDashboard, Package, Tractor, Users, UsersRound } from 'lucide-react';
 import LogoutButton from '../../components/LogoutButton';
 import Usuarios from './Usuarios';
 import GruposTrabajo from './GruposTrabajo';
 import Activos from './Activos';
 import Inventario from '../Compartido/Inventario';
+import Entradas from '../Compartido/Entradas';
+import Salidas from '../Compartido/Salidas';
 import Reportes from '../Compartido/Reportes';
 import MantenimientoPredictivo from '../Compartido/MantenimientoPredictivo';
 import PreventiveMaintenance from '../Compartido/PreventiveMaintenance';
@@ -18,6 +20,8 @@ const navigation = [
   { label: 'Activos', icon: Tractor },
   { label: 'Reporte de Fallas', icon: FileWarning },
   { label: 'Inventario', icon: Package },
+  { label: 'Entradas', icon: ArrowDownLeft },
+  { label: 'Salidas', icon: ArrowUpRight },
   { label: 'Reportes', icon: BarChart3 },
   { label: 'Mantenimiento', icon: Activity },
   { label: 'Mantenimiento Preventivo', icon: ClipboardCheck },
@@ -244,6 +248,8 @@ export default function AdminDashboard() {
     Activos: <Activos />,
     'Reporte de Fallas': <ReporteFallas />,
     Inventario: <Inventario />,
+    Entradas: <Entradas />,
+    Salidas: <Salidas />,
     Reportes: <Reportes />,
     Mantenimiento: <MantenimientoPredictivo />,
     'Mantenimiento Preventivo': (

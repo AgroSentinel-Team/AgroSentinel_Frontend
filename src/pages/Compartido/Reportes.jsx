@@ -1,11 +1,127 @@
-import { useState } from 'react';
-import { BarChart3, CheckCircle2, Download, FileText } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { BarChart3, Download } from 'lucide-react';
+import { getInventoryItems, getInventoryMovements } from '../../services/inventoryService';
 
-const reports = ['Rendimiento de Cosecha', 'Uso de Maquinaria', 'Gastos de Inventario'];
+function csvCell(value) {
+  return `"${String(value ?? '').replaceAll('"', '""')}"`;
+}
+
+function downloadCsv(filename, headers, rows) {
+  const content = [headers, ...rows].map((row) => row.map(csvCell).join(';')).join('\r\n');
+  const blob = new Blob(['\uFEFF', content], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  link.click();
+  window.setTimeout(() => URL.revokeObjectURL(url), 0);
+}
+
+function getErrorMessage(error) {
+  return error.response?.data?.detail
+    || error.response?.data?.message
+    || error.message
+    || 'No se pudieron cargar los datos del reporte.';
+}
 
 export default function Reportes({ variant = 'dark' }) {
   const dark = variant === 'dark';
-  const [downloaded, setDownloaded] = useState('');
-  const download = (report, format) => { setDownloaded(`${report} · ${format}`); window.setTimeout(() => setDownloaded(''), 2500); };
-  return <section className="space-y-4"><div><h2 className={`text-[14px] font-semibold ${dark ? 'text-white' : 'text-[#182235]'}`}>Reportes y Analíticas</h2><p className={`mt-1 text-[10px] ${dark ? 'text-gray-400' : 'text-[#718096]'}`}>Descarga los indicadores operativos de AgroSentinel.</p></div>{downloaded && <div className="flex items-center gap-2 rounded-md bg-green-500/10 px-3 py-2 text-[10px] text-green-500"><CheckCircle2 size={14} /> Preparando {downloaded}...</div>}<div className="grid grid-cols-1 gap-4 sm:grid-cols-3">{reports.map((report) => <article key={report} className={`rounded-xl border p-5 shadow-sm ${dark ? 'border-white/10 bg-[#292929]' : 'border-[#dfe6ed] bg-white'}`}><div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-orange-500/10 text-orange-500"><BarChart3 size={24} /></div><h3 className={`text-[12px] font-medium ${dark ? 'text-white' : 'text-[#182235]'}`}>{report}</h3><p className={`mb-4 mt-1 text-[9px] ${dark ? 'text-gray-400' : 'text-[#718096]'}`}>Actualizado hoy · 23 Septiembre 2026</p><div className="flex gap-2"><button type="button" onClick={() => download(report, 'PDF')} className="flex flex-1 items-center justify-center gap-1 rounded bg-black/5 py-2 text-[10px] text-gray-500 hover:bg-black/10"><FileText size={12} /> PDF</button><button type="button" onClick={() => download(report, 'Excel')} className="flex flex-1 items-center justify-center gap-1 rounded bg-black/5 py-2 text-[10px] text-gray-500 hover:bg-black/10"><Download size={12} /> Excel</button></div></article>)}</div></section>;
+  const [items, setItems] = useState([]);
+  const [movements, setMovements] = useState([]);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let active = true;
+    Promise.all([getInventoryItems(), getInventoryMovements()])
+      .then(([inventory, history]) => {
+        if (!active) return;
+        setItems(inventory);
+        setMovements(history);
+      })
+      .catch((loadError) => {
+        if (active) setError(getErrorMessage(loadError));
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => { active = false; };
+  }, []);
+
+  const exportInventory = () => {
+    downloadCsv(
+      'agrosentinel-inventario.csv',
+      ['ID', 'Producto', 'Categoría', 'Stock actual', 'Unidad', 'Stock mínimo', 'Estado'],
+      items.map((item) => [
+        item.id,
+        item.item,
+        item.category,
+        item.stock,
+        item.unit,
+        item.minimum,
+        Number(item.stock) < Number(item.minimum) ? 'Bajo stock' : 'Suficiente',
+      ]),
+    );
+  };
+
+  const exportMovements = () => {
+    downloadCsv(
+      'agrosentinel-movimientos.csv',
+      ['ID movimiento', 'ID producto', 'Producto', 'Tipo', 'Cantidad', 'Unidad', 'Responsable', 'Rol', 'Motivo', 'Fecha'],
+      movements.map((movement) => [
+        movement.id,
+        movement.itemId,
+        movement.itemName,
+        movement.tipo,
+        movement.cantidad,
+        movement.itemUnit,
+        movement.responsable,
+        movement.rol,
+        movement.motivo,
+        new Date(movement.fecha).toLocaleString(),
+      ]),
+    );
+  };
+
+  const titleClass = dark ? 'text-white' : 'text-[#182235]';
+  const muted = dark ? 'text-gray-400' : 'text-[#718096]';
+  const reports = [
+    {
+      title: 'Inventario actual',
+      description: `${items.length} productos · existencias, unidades y alertas de stock.`,
+      action: exportInventory,
+    },
+    {
+      title: 'Historial de movimientos',
+      description: `${movements.length} entradas y salidas registradas con responsable y fecha.`,
+      action: exportMovements,
+    },
+  ];
+
+  return (
+    <section className="space-y-4">
+      <div>
+        <h2 className={`text-[14px] font-semibold ${titleClass}`}>Reportes de almacén</h2>
+        <p className={`mt-1 text-[10px] ${muted}`}>Descarga reportes con datos actuales del inventario y sus movimientos.</p>
+      </div>
+      {error && <p role="alert" className="rounded-md bg-red-500/10 px-3 py-2 text-xs text-red-500">{error}</p>}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        {reports.map((report) => (
+          <article key={report.title} className={`rounded-xl border p-5 shadow-sm ${dark ? 'border-white/10 bg-[#292929]' : 'border-[#dfe6ed] bg-white'}`}>
+            <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-orange-500/10 text-orange-500"><BarChart3 size={24} /></div>
+            <h3 className={`text-[12px] font-medium ${titleClass}`}>{report.title}</h3>
+            <p className={`mb-4 mt-1 text-[9px] ${muted}`}>{loading ? 'Cargando datos...' : report.description}</p>
+            <button
+              type="button"
+              disabled={loading || Boolean(error)}
+              onClick={report.action}
+              className="flex w-full items-center justify-center gap-1 rounded bg-black/5 py-2 text-[10px] text-gray-500 hover:bg-black/10 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <Download size={12} /> Descargar CSV para Excel
+            </button>
+          </article>
+        ))}
+      </div>
+    </section>
+  );
 }

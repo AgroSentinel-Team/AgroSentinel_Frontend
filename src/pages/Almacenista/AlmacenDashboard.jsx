@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Search,
   Plus,
@@ -9,7 +9,6 @@ import {
   ArrowUpRight,
   BarChart3,
   SlidersHorizontal,
-  Check,
   Package,
 } from "lucide-react";
 import LogoutButton from "../../components/LogoutButton";
@@ -17,92 +16,11 @@ import Inventario from "../Compartido/Inventario";
 import Reportes from "../Compartido/Reportes";
 import Entradas from "../Compartido/Entradas";
 import Salidas from "../Compartido/Salidas";
-
-const movements = [
-  {
-    product: "Pintura Acrílica Mate Azul",
-    sku: "SKU-3829-IA",
-    type: "Entrada",
-    quantity: "450",
-    unit: "uds",
-    date: "24/10 09:30",
-    status: "Completado",
-    statusType: "success",
-  },
-  {
-    product: 'Rodillo Profesional Fibra 9"',
-    sku: "SKU-9182-RD",
-    type: "Salida",
-    quantity: "120",
-    unit: "uds",
-    date: "24/10 09:12",
-    status: "En Proceso",
-    statusType: "progress",
-  },
-  {
-    product: "Cinta Adhesiva Alta Tracción",
-    sku: "SKU-4412-CA",
-    type: "Entrada",
-    quantity: "1,200",
-    unit: "uds",
-    date: "24/10 08:45",
-    status: "Completado",
-    statusType: "success",
-  },
-  {
-    product: "Disolvente Industrial Standard",
-    sku: "SKU-0922-DI",
-    type: "Salida",
-    quantity: "30",
-    unit: "uds",
-    date: "23/10 17:10",
-    status: "Demorado",
-    statusType: "danger",
-  },
-  {
-    product: 'Brocha Cerdas Naturales 3"',
-    sku: "SKU-8841-BR",
-    type: "Entrada",
-    quantity: "500",
-    unit: "uds",
-    date: "23/10 15:30",
-    status: "Completado",
-    statusType: "success",
-  },
-  {
-    product: "Plástico de Burbujas Embalaje",
-    sku: "SKU-2091-PL",
-    type: "Salida",
-    quantity: "15",
-    unit: "rollos",
-    date: "23/10 14:15",
-    status: "Completado",
-    statusType: "success",
-  },
-];
-
-const tasks = [
-  {
-    text: "Verificar palet de entrada #ENT-841",
-    checked: false,
-  },
-  {
-    text: "Auditar estantería B-14 (Químicos)",
-    checked: false,
-  },
-  {
-    text: "Preparar lote de despacho #SAL-339",
-    checked: true,
-  },
-  {
-    text: "Reponer stock crítico de brochas",
-    checked: false,
-  },
-  {
-    text: "Revisar precintos de seguridad sector C",
-    checked: true,
-  },
-];
+import InventoryTasks from "../../components/InventoryTasks";
+import {
+  getInventoryItems,
+  getInventoryMovements,
+} from "../../services/inventoryService";
 
 function SidebarItem({ icon: Icon, children, active = false, onClick }) {
   return (
@@ -145,18 +63,25 @@ function StatCard({
   suffix,
   badge,
   badgeColor,
+  onClick,
 }) {
   return (
-    <div
-      className="
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={!onClick}
+      className={`
         flex h-[74px]
+        w-full
         flex-col justify-between
         rounded-lg
         border border-[#dfe6ed]
         bg-white
         px-3.5 py-3
+        text-left
         shadow-[0_1px_3px_rgba(15,23,42,0.04)]
-      "
+        ${onClick ? "cursor-pointer transition hover:border-orange-300 hover:shadow-md" : "cursor-default"}
+      `}
     >
       <div className="flex items-center justify-between">
         <span
@@ -191,7 +116,7 @@ function StatCard({
           {suffix}
         </span>
       </div>
-    </div>
+    </button>
   );
 }
 
@@ -217,7 +142,7 @@ function StatusBadge({ status, type }) {
 }
 
 function MovementType({ type }) {
-  const isEntry = type === "Entrada";
+  const isEntry = type === "entrada";
 
   return (
     <div className="flex items-center gap-1.5">
@@ -243,6 +168,8 @@ function MovementType({ type }) {
 }
 
 function MovementRow({ movement }) {
+  const date = new Date(movement.fecha);
+
   return (
     <div
       className="
@@ -258,93 +185,94 @@ function MovementRow({ movement }) {
       {/* Producto */}
       <div className="min-w-0">
         <p className="truncate text-[9px] font-semibold text-[#182235]">
-          {movement.product}
+          {movement.itemName}
         </p>
 
         <p className="mt-[1px] text-[7px] text-[#8190a5]">
-          {movement.sku}
+          ID: {movement.itemId}
         </p>
       </div>
 
       {/* Tipo */}
-      <MovementType type={movement.type} />
+      <MovementType type={movement.tipo} />
 
       {/* Cantidad */}
       <div className="text-[8px] font-medium text-[#182235]">
-        {movement.quantity}{" "}
+        {Number(movement.cantidad).toLocaleString()}{" "}
         <span className="font-normal text-[#607086]">
-          {movement.unit}
+          {movement.itemUnit || ""}
         </span>
       </div>
 
       {/* Fecha */}
       <div className="font-mono text-[7px] text-[#53657b]">
-        {movement.date}
+        {Number.isNaN(date.getTime()) ? "—" : date.toLocaleString()}
       </div>
 
       {/* Estado */}
       <div>
         <StatusBadge
-          status={movement.status}
-          type={movement.statusType}
+          status="Completado"
+          type="success"
         />
       </div>
     </div>
   );
 }
 
-function TaskItem({ task }) {
-  return (
-    <div
-      className="
-        flex min-h-[30px]
-        items-center gap-2
-        rounded-md
-        border border-[#e1e7ed]
-        bg-white
-        px-2
-      "
-    >
-      <div
-        className={`
-          flex h-[13px] w-[13px]
-          shrink-0 items-center justify-center
-          rounded-[2px]
-          border
-          ${
-            task.checked
-              ? "border-green-500 bg-green-50"
-              : "border-[#91a0b2] bg-white"
-          }
-        `}
-      >
-        {task.checked && (
-          <Check
-            size={9}
-            strokeWidth={3}
-            className="text-green-600"
-          />
-        )}
-      </div>
-
-      <span
-        className={`
-          truncate text-[8px]
-          ${
-            task.checked
-              ? "text-[#8190a5] line-through"
-              : "text-[#293548]"
-          }
-        `}
-      >
-        {task.text}
-      </span>
-    </div>
-  );
-}
-
 export default function SgaControlDashboard() {
   const [activeTab, setActiveTab] = useState("Inicio");
+  const [movements, setMovements] = useState([]);
+  const [inventoryItems, setInventoryItems] = useState([]);
+  const [dashboardDataLoaded, setDashboardDataLoaded] = useState(false);
+  const [movementFilter, setMovementFilter] = useState("todos");
+  const [movementError, setMovementError] = useState("");
+  const [alertsOpen, setAlertsOpen] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    Promise.all([getInventoryMovements(), getInventoryItems()])
+      .then(([history, items]) => {
+        if (active) {
+          setMovements(history);
+          setInventoryItems(items);
+          setDashboardDataLoaded(true);
+          setMovementError("");
+        }
+      })
+      .catch((error) => {
+        if (active) {
+          setMovementError(
+            error.response?.data?.detail
+              || error.response?.data?.message
+              || error.message
+              || "No se pudo cargar el historial.",
+          );
+        }
+      });
+    return () => { active = false; };
+  }, [activeTab]);
+
+  const today = new Date().toLocaleDateString();
+  const todaysEntries = movements.filter((movement) => (
+    movement.tipo === "entrada" && new Date(movement.fecha).toLocaleDateString() === today
+  )).length;
+  const todaysExits = movements.filter((movement) => (
+    movement.tipo === "salida" && new Date(movement.fecha).toLocaleDateString() === today
+  )).length;
+  const lowStockCount = inventoryItems.filter((item) => (
+    Number(item.stock) < Number(item.minimum)
+  )).length;
+  const lowStockItems = inventoryItems.filter((item) => (
+    Number(item.stock) < Number(item.minimum)
+  ));
+  const visibleMovements = useMemo(
+    () => movements
+      .filter((movement) => movementFilter === "todos" || movement.tipo === movementFilter)
+      .slice(0, 6),
+    [movements, movementFilter],
+  );
+
   const content = { Inventario: <Inventario />, Entradas: <Entradas />, Salidas: <Salidas />, Reportes: <Reportes /> };
   return (
     <div
@@ -508,6 +436,7 @@ export default function SgaControlDashboard() {
               {/* Register */}
               <button
                 type="button"
+                onClick={() => setActiveTab("Entradas")}
                 className="
                   flex h-[27px]
                   items-center gap-1.5
@@ -523,34 +452,65 @@ export default function SgaControlDashboard() {
                 "
               >
                 <Plus size={12} strokeWidth={2.5} />
-                {activeTab === "Inicio" ? "Registrar Entrada" : activeTab}
+                Registrar Entrada
               </button>
 
               {/* Notification */}
-              <button
-                type="button"
-                className="
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setAlertsOpen((open) => !open)}
+                  aria-label={`Alertas de stock bajo: ${lowStockCount}`}
+                  aria-expanded={alertsOpen}
+                  className="
                   relative flex h-[28px] w-[28px]
                   items-center justify-center
                   rounded-full
                   border border-[#e3e8ee]
                   bg-white
-                "
-              >
-                <Bell
-                  size={13}
-                  className="text-[#344054]"
-                />
-
-                <span
-                  className="
-                    absolute right-[6px] top-[5px]
-                    h-[4px] w-[4px]
-                    rounded-full
-                    bg-orange-500
                   "
-                />
-              </button>
+                >
+                  <Bell size={13} className="text-[#344054]" />
+                  {lowStockCount > 0 && (
+                    <span className="absolute -right-1 -top-1 flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-red-500 px-0.5 text-[7px] font-bold text-white">
+                      {lowStockCount}
+                    </span>
+                  )}
+                </button>
+                {alertsOpen && (
+                  <div className="absolute right-0 top-9 z-50 w-72 rounded-lg border border-[#dfe6ed] bg-white p-3 shadow-xl">
+                    <div className="mb-2 flex items-start justify-between gap-2">
+                      <div>
+                        <h3 className="text-[11px] font-semibold text-[#182235]">Alertas de inventario</h3>
+                        <p className="mt-1 text-[8px] text-[#718096]">Se activa si el stock está por debajo del mínimo configurado.</p>
+                      </div>
+                      <button type="button" onClick={() => setAlertsOpen(false)} aria-label="Cerrar alertas" className="text-[9px] text-[#718096] hover:text-[#182235]">Cerrar</button>
+                    </div>
+                    {lowStockItems.length === 0 ? (
+                      <p className="rounded bg-green-50 px-2.5 py-2 text-[9px] text-green-700">
+                        {dashboardDataLoaded ? "No hay productos bajo el mínimo." : "Cargando inventario..."}
+                      </p>
+                    ) : (
+                      <ul className="max-h-52 space-y-1.5 overflow-y-auto">
+                        {lowStockItems.map((item) => (
+                          <li key={item.id}>
+                            <button
+                              type="button"
+                              onClick={() => { setAlertsOpen(false); setActiveTab("Inventario"); }}
+                              className="w-full rounded border border-red-100 bg-red-50 px-2.5 py-2 text-left hover:bg-red-100"
+                            >
+                              <span className="block truncate text-[9px] font-semibold text-[#182235]">{item.item}</span>
+                              <span className="mt-0.5 block text-[8px] text-red-700">
+                                Stock {item.stock} {item.unit} · mínimo {item.minimum} {item.unit}
+                              </span>
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                )}
+              </div>
 
               {/* Avatar */}
               <div className="flex items-center gap-2">
@@ -601,35 +561,36 @@ export default function SgaControlDashboard() {
               "
             >
               <StatCard
-                title="PRODUCTOS EN STOCK"
-                value="2,847"
-                suffix="unidades"
-                badge="Estable"
+                title="PRODUCTOS EN INVENTARIO"
+                value={dashboardDataLoaded ? inventoryItems.length.toLocaleString() : "—"}
+                suffix="productos"
+                badge="Actual"
                 badgeColor="bg-[#d9f7e5] text-[#18a957]"
               />
 
               <StatCard
-                title="ENTRADAS PENDIENTES"
-                value="12"
-                suffix="recepciones"
+                title="ENTRADAS DE HOY"
+                value={dashboardDataLoaded ? todaysEntries.toLocaleString() : "—"}
+                suffix="movimientos"
                 badge="Hoy"
                 badgeColor="bg-[#edf4ff] text-[#3677df]"
               />
 
               <StatCard
-                title="SALIDAS DEL DÍA"
-                value="34"
-                suffix="lotes"
-                badge="92% Listo"
+                title="SALIDAS DE HOY"
+                value={dashboardDataLoaded ? todaysExits.toLocaleString() : "—"}
+                suffix="movimientos"
+                badge="Hoy"
                 badgeColor="bg-[#eaf1ff] text-[#2563eb]"
               />
 
               <StatCard
                 title="ALERTAS STOCK BAJO"
-                value="5"
+                value={dashboardDataLoaded ? lowStockCount.toLocaleString() : "—"}
                 suffix="productos"
-                badge="Revisar"
+                badge={dashboardDataLoaded ? (lowStockCount > 0 ? "Revisar" : "Todo bien") : "Cargando"}
                 badgeColor="bg-[#fff0dc] text-[#f07817]"
+                onClick={() => setAlertsOpen(true)}
               />
             </section>
             </>}
@@ -682,6 +643,10 @@ export default function SgaControlDashboard() {
 
                   <button
                     type="button"
+                    onClick={() => setMovementFilter((filter) => (
+                      filter === "todos" ? "entrada" : filter === "entrada" ? "salida" : "todos"
+                    ))}
+                    aria-label={`Filtro actual: ${movementFilter}. Cambiar filtro`}
                     className="
                       flex items-center gap-1.5
                       rounded-md
@@ -694,7 +659,7 @@ export default function SgaControlDashboard() {
                     "
                   >
                     <SlidersHorizontal size={9} />
-                    Filtros
+                    {movementFilter === "todos" ? "Todos" : movementFilter === "entrada" ? "Entradas" : "Salidas"}
                   </button>
                 </div>
 
@@ -721,55 +686,29 @@ export default function SgaControlDashboard() {
 
                 {/* Rows */}
                 <div>
-                  {movements.map((movement) => (
+                  {movementError && (
+                    <p role="alert" className="px-3 py-4 text-center text-[9px] text-red-600">
+                      {movementError}
+                    </p>
+                  )}
+                  {!movementError && visibleMovements.map((movement) => (
                     <MovementRow
-                      key={movement.sku}
+                      key={movement.id}
                       movement={movement}
                     />
                   ))}
+                  {!movementError && visibleMovements.length === 0 && (
+                    <p className="px-3 py-6 text-center text-[9px] text-[#8190a5]">
+                      No hay movimientos registrados.
+                    </p>
+                  )}
                 </div>
               </div>
 
               {/* ================================================= */}
               {/* TASKS */}
 
-              <div
-                className="
-                  overflow-hidden
-                  rounded-lg
-                  border border-[#dfe6ed]
-                  bg-white
-                  shadow-[0_1px_3px_rgba(15,23,42,0.04)]
-                "
-              >
-                <div
-                  className="
-                    flex h-[55px]
-                    items-center justify-between
-                    border-b border-[#e5eaf0]
-                    px-3
-                  "
-                >
-                  <div>
-                    <h2 className="text-[12px] font-bold text-[#182235]">
-                      Tareas del turno
-                    </h2>
-                    <p className="mt-1 text-[7px] text-[#8190a5]">
-                      Actividades pendientes del almacén
-                    </p>
-                  </div>
-
-                  <span className="rounded bg-[#fff0dc] px-1.5 py-1 text-[7px] font-semibold text-[#f07817]">
-                    {tasks.filter((task) => !task.checked).length} pendientes
-                  </span>
-                </div>
-
-                <div className="space-y-2 p-3">
-                  {tasks.map((task) => (
-                    <TaskItem key={task.text} task={task} />
-                  ))}
-                </div>
-              </div>
+              <InventoryTasks variant="light" />
             </section>
           </div>
         </main>
