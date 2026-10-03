@@ -103,7 +103,8 @@ export default function MantenimientoPredictivo() {
   }, []);
 
   const selected = equipment.find((item) => item.id === selectedId) || equipment[0];
-  const feedbackValue = feedbackDraft?.recordId === selected?.record?.id
+  const feedbackValue = feedbackDraft?.recordId != null
+    && feedbackDraft.recordId === selected?.record?.id
     ? feedbackDraft.value
     : selected?.record?.fallaRealConfirmada || selected?.record?.tipoFallaPredicha || '';
   
