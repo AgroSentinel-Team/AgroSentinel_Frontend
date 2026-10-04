@@ -194,7 +194,7 @@ export default function Activos() {
 			<div className="mb-5 flex flex-wrap items-center justify-between gap-4">
 				<div>
 					<h2 className="text-[14px] font-semibold text-white">Gestión de Activos</h2>
-					<p className="mt-1 text-[10px] text-slate-400">Ficha técnica, asignación y estado operativo.</p>
+					<p className="mt-1 text-[11px] text-slate-400">Ficha técnica, asignación y estado operativo.</p>
 				</div>
 				<div className="flex flex-wrap items-center gap-2">
 					<button type="button" title="Recargar activos" aria-label="Recargar activos" onClick={reloadAssets} className="rounded-md border border-white/10 p-2 text-slate-300 hover:border-cyan-400 hover:text-cyan-300">
@@ -254,14 +254,14 @@ export default function Activos() {
 								<tr key={asset.id} className="hover:bg-white/[0.03]">
 									<td className="px-3 py-3">
 										<p className="font-medium text-white">{asset.name}</p>
-										<p className="mt-1 text-[10px] text-slate-400">{[asset.brand, asset.model, asset.serialNumber].filter(Boolean).join(' · ') || 'Sin ficha técnica'}</p>
-										{asset.hasMotor && <p className="mt-1 text-[10px] text-cyan-300">ID predictivo: {asset.predictiveId}</p>}
+										<p className="mt-1 text-[11px] text-slate-400">{[asset.brand, asset.model, asset.serialNumber].filter(Boolean).join(' · ') || 'Sin ficha técnica'}</p>
+										{asset.hasMotor && <p className="mt-1 text-[11px] text-cyan-300">ID predictivo: {asset.predictiveId}</p>}
 									</td>
 									<td className="px-3 py-3 text-slate-300">{asset.categoryName || `ID ${asset.categoryId}`}</td>
 									<td className="px-3 py-3 text-slate-300">{asset.responsibleName || `ID ${asset.responsibleId}`}</td>
 									<td className="px-3 py-3 text-slate-300">{asset.location || 'Sin ubicación'}</td>
 									<td className="px-3 py-3">
-										<span className={`inline-flex items-center gap-1.5 rounded-full px-2 py-1 text-[9px] ${asset.isActive ? 'bg-emerald-400/10 text-emerald-300' : 'bg-slate-400/10 text-slate-400'}`}>
+										<span className={`inline-flex items-center gap-1.5 rounded-full px-2 py-1 text-[11px] ${asset.isActive ? 'bg-emerald-400/10 text-emerald-300' : 'bg-slate-400/10 text-slate-400'}`}>
 											{asset.isActive ? <CheckCircle2 size={11} /> : <Power size={11} />}
 											{asset.isActive ? STATUS_LABELS[asset.operationalStatus] || asset.operationalStatus : 'Desactivado'}
 										</span>
@@ -289,19 +289,19 @@ export default function Activos() {
 				<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-3 sm:p-6" role="presentation">
 					<div role="dialog" aria-modal="true" aria-labelledby="asset-resume-title" className="max-h-[94vh] w-full max-w-3xl overflow-y-auto rounded-lg border border-white/10 bg-[#102637] p-5 shadow-2xl">
 						<div className="mb-5 flex items-start justify-between gap-3">
-							<div><h3 id="asset-resume-title" className="text-[15px] font-semibold text-white">Hoja de vida del activo</h3><p className="mt-1 text-[10px] text-slate-400">Ficha, responsable e historial de mantenimiento.</p></div>
+							<div><h3 id="asset-resume-title" className="text-[15px] font-semibold text-white">Hoja de vida del activo</h3><p className="mt-1 text-[11px] text-slate-400">Ficha, responsable e historial de mantenimiento.</p></div>
 							<button type="button" onClick={() => setModal('')} title="Cerrar" aria-label="Cerrar hoja de vida" className="text-slate-400 hover:text-white"><X size={18} /></button>
 						</div>
 						{resumeLoading ? <p className="py-10 text-center text-[11px] text-slate-400">Cargando hoja de vida...</p> : resume && (
 							<>
 								<div className="grid gap-x-6 gap-y-4 border-b border-white/10 pb-5 sm:grid-cols-2">
-									<div><p className="text-[10px] text-slate-400">Activo</p><p className="mt-1 text-[13px] font-medium text-white">{resume.asset.name}</p><p className="mt-1 text-[10px] text-slate-300">{[resume.asset.brand, resume.asset.model, resume.asset.serialNumber].filter(Boolean).join(' · ')}</p></div>
-									<div><p className="text-[10px] text-slate-400">Categoría / responsable</p><p className="mt-1 text-[11px] text-white">{resume.asset.categoryName} / {resume.asset.responsibleName}</p></div>
-									<div><p className="text-[10px] text-slate-400">Ubicación / estado</p><p className="mt-1 text-[11px] text-white">{resume.asset.location || 'Sin ubicación'} / {STATUS_LABELS[resume.asset.operationalStatus] || resume.asset.operationalStatus} / {resume.asset.isActive ? 'Activo' : 'Desactivado'}</p></div>
-									<div><p className="text-[10px] text-slate-400">Adquisición / costo</p><p className="mt-1 text-[11px] text-white">{formatDate(resume.asset.acquisitionDate)} / {formatCurrency(resume.asset.acquisitionCost)}</p></div>
-									<div><p className="text-[10px] text-slate-400">Proveedor</p><p className="mt-1 text-[11px] text-white">{resume.asset.provider || 'Sin registro'}</p></div>
-									<div><p className="text-[10px] text-slate-400">Vencimiento de garantía</p><p className="mt-1 text-[11px] text-white">{formatDate(resume.asset.warrantyExpirationDate)}</p></div>
-									<div className="sm:col-span-2"><p className="text-[10px] text-slate-400">Especificaciones adicionales</p><pre className="mt-1 whitespace-pre-wrap break-words font-sans text-[11px] text-white">{resume.asset.extraSpecifications || 'Sin registro'}</pre></div>
+									<div><p className="text-[11px] text-slate-400">Activo</p><p className="mt-1 text-[13px] font-medium text-white">{resume.asset.name}</p><p className="mt-1 text-[11px] text-slate-300">{[resume.asset.brand, resume.asset.model, resume.asset.serialNumber].filter(Boolean).join(' · ')}</p></div>
+									<div><p className="text-[11px] text-slate-400">Categoría / responsable</p><p className="mt-1 text-[11px] text-white">{resume.asset.categoryName} / {resume.asset.responsibleName}</p></div>
+									<div><p className="text-[11px] text-slate-400">Ubicación / estado</p><p className="mt-1 text-[11px] text-white">{resume.asset.location || 'Sin ubicación'} / {STATUS_LABELS[resume.asset.operationalStatus] || resume.asset.operationalStatus} / {resume.asset.isActive ? 'Activo' : 'Desactivado'}</p></div>
+									<div><p className="text-[11px] text-slate-400">Adquisición / costo</p><p className="mt-1 text-[11px] text-white">{formatDate(resume.asset.acquisitionDate)} / {formatCurrency(resume.asset.acquisitionCost)}</p></div>
+									<div><p className="text-[11px] text-slate-400">Proveedor</p><p className="mt-1 text-[11px] text-white">{resume.asset.provider || 'Sin registro'}</p></div>
+									<div><p className="text-[11px] text-slate-400">Vencimiento de garantía</p><p className="mt-1 text-[11px] text-white">{formatDate(resume.asset.warrantyExpirationDate)}</p></div>
+									<div className="sm:col-span-2"><p className="text-[11px] text-slate-400">Especificaciones adicionales</p><pre className="mt-1 whitespace-pre-wrap break-words font-sans text-[11px] text-white">{resume.asset.extraSpecifications || 'Sin registro'}</pre></div>
 								</div>
 								<div className="pt-5">
 									<h4 className="mb-3 flex items-center gap-2 text-[11px] font-semibold text-white"><Wrench size={14} className="text-cyan-300" />Historial de mantenimiento</h4>
@@ -319,28 +319,28 @@ export default function Activos() {
 													<article key={item.id} className="rounded-md border border-white/10 bg-[#0b1d2a] p-3">
 														<div className="flex flex-wrap items-start justify-between gap-3">
 															<div>
-																<p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-slate-400">{item.type === 'PREVENTIVE' ? 'Mantenimiento preventivo' : 'Mantenimiento correctivo'}</p>
+																<p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-slate-400">{item.type === 'PREVENTIVE' ? 'Mantenimiento preventivo' : 'Mantenimiento correctivo'}</p>
 																<p className="mt-1 text-[11px] font-medium text-white">{item.status === 'SCHEDULED' ? 'Trabajo planificado' : 'Trabajo realizado'}</p>
 															</div>
-															<span className={`rounded-full border px-2 py-1 text-[9px] font-semibold ${statusClass}`}>{MAINTENANCE_STATUS_LABELS[item.status] || 'Completado'}</span>
+															<span className={`rounded-full border px-2 py-1 text-[11px] font-semibold ${statusClass}`}>{MAINTENANCE_STATUS_LABELS[item.status] || 'Completado'}</span>
 														</div>
-														<dl className="mt-3 grid gap-x-5 gap-y-2 border-t border-white/5 pt-3 text-[10px] sm:grid-cols-2 lg:grid-cols-3">
+														<dl className="mt-3 grid gap-x-5 gap-y-2 border-t border-white/5 pt-3 text-[11px] sm:grid-cols-2 lg:grid-cols-3">
 															<div><dt className="text-slate-500">Fecha programada</dt><dd className="mt-0.5 text-slate-200">{formatDateTime(item.scheduledAt || item.maintenanceDate)}</dd></div>
 															<div><dt className="text-slate-500">Fecha de ejecución</dt><dd className="mt-0.5 text-slate-200">{item.executedAt ? formatDateTime(item.executedAt) : 'Pendiente'}</dd></div>
 															<div><dt className="text-slate-500">Técnico responsable</dt><dd className="mt-0.5 text-slate-200">{item.technicianName || 'Sin asignar'}</dd></div>
 														</dl>
 														<div className="mt-3 rounded-md border border-white/5 bg-[#102637] p-3">
-															<p className="text-[9px] font-semibold uppercase tracking-[0.1em] text-slate-500">{item.status === 'SCHEDULED' ? 'Plan de trabajo' : 'Detalle del trabajo y observaciones'}</p>
-															<p className="mt-1 whitespace-pre-wrap text-[10px] leading-relaxed text-slate-200">{item.tasksDescription || 'Sin descripción de tareas'}</p>
-															{item.replacedParts && <p className="mt-2 text-[10px] text-slate-300"><span className="text-slate-500">Repuestos: </span>{item.replacedParts}</p>}
+															<p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-slate-500">{item.status === 'SCHEDULED' ? 'Plan de trabajo' : 'Detalle del trabajo y observaciones'}</p>
+															<p className="mt-1 whitespace-pre-wrap text-[11px] leading-relaxed text-slate-200">{item.tasksDescription || 'Sin descripción de tareas'}</p>
+															{item.replacedParts && <p className="mt-2 text-[11px] text-slate-300"><span className="text-slate-500">Repuestos: </span>{item.replacedParts}</p>}
 														</div>
-														<div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-[9px] text-slate-400">
+														<div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-[11px] text-slate-400">
 															{item.nextRecommendedDate && <span>Próximo mantenimiento: {formatDate(item.nextRecommendedDate)}</span>}
 															{item.provider && <span>Proveedor: {item.provider}</span>}
 															{item.cost !== null && item.cost !== undefined && <span>Costo: {formatCurrency(item.cost)}</span>}
 															{item.signedAt && <span>Firma digital: {formatDateTime(item.signedAt)}</span>}
 														</div>
-														{item.evidences?.length > 0 && <div className="mt-3 flex flex-wrap gap-2 border-t border-white/5 pt-3">{item.evidences.map((url) => <button key={url} type="button" onClick={() => openMaintenanceEvidence(url)} className="rounded-md border border-cyan-400/20 px-2 py-1 text-[9px] text-cyan-200 hover:bg-cyan-400/10">Ver evidencia</button>)}</div>}
+														{item.evidences?.length > 0 && <div className="mt-3 flex flex-wrap gap-2 border-t border-white/5 pt-3">{item.evidences.map((url) => <button key={url} type="button" onClick={() => openMaintenanceEvidence(url)} className="rounded-md border border-cyan-400/20 px-2 py-1 text-[11px] text-cyan-200 hover:bg-cyan-400/10">Ver evidencia</button>)}</div>}
 													</article>
 												);
 											})}
@@ -357,16 +357,16 @@ export default function Activos() {
 				<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-3 sm:p-6" role="presentation">
 					<div role="dialog" aria-modal="true" aria-labelledby="predictive-resume-title" className="max-h-[94vh] w-full max-w-4xl overflow-y-auto rounded-lg border border-white/10 bg-[#102637] p-5 shadow-2xl">
 						<div className="mb-5 flex items-start justify-between gap-3">
-							<div><h3 id="predictive-resume-title" className="text-[15px] font-semibold text-white">Hoja de vida predictivo</h3><p className="mt-1 text-[10px] text-slate-400">{predictiveAsset?.name} · {predictiveAsset?.predictiveId} · lecturas y resultados históricos.</p></div>
+							<div><h3 id="predictive-resume-title" className="text-[15px] font-semibold text-white">Hoja de vida predictivo</h3><p className="mt-1 text-[11px] text-slate-400">{predictiveAsset?.name} · {predictiveAsset?.predictiveId} · lecturas y resultados históricos.</p></div>
 							<button type="button" onClick={() => setModal('')} title="Cerrar" aria-label="Cerrar hoja de vida predictiva" className="text-slate-400 hover:text-white"><X size={18} /></button>
 						</div>
 						{predictiveLoading ? <p className="py-10 text-center text-[11px] text-slate-400">Cargando historial predictivo...</p> : predictiveHistory.length ? (
 							<div className="overflow-x-auto rounded-md border border-white/10">
-								<table className="w-full min-w-[920px] text-left text-[10px]">
+								<table className="w-full min-w-[920px] text-left text-[11px]">
 									<thead className="border-b border-white/10 bg-[#0b1d2a] text-slate-400"><tr><th className="px-3 py-3">Fecha</th><th className="px-3 py-3">Estado</th><th className="px-3 py-3">Confianza</th><th className="px-3 py-3">Temperatura</th><th className="px-3 py-3">Vibración</th><th className="px-3 py-3">Humedad</th><th className="px-3 py-3">Presión</th><th className="px-3 py-3">Consumo</th></tr></thead>
 										<tbody className="divide-y divide-white/5">{predictiveHistory.map((record) => <tr key={record.id}><td className="whitespace-nowrap px-3 py-3 text-slate-300">{formatDateTime(record.timestamp)}</td><td className={`px-3 py-3 font-medium ${record.predictionClass === 1 ? 'text-red-300' : 'text-emerald-300'}`}>{record.motorState}</td><td className="px-3 py-3 text-slate-300">{Math.round(record.confidence * 100)}%</td><td className="px-3 py-3 text-slate-300">{record.temperature} °C</td><td className="px-3 py-3 text-slate-300">{record.vibration} Hz</td><td className="px-3 py-3 text-slate-300">{record.humidity} %</td><td className="px-3 py-3 text-slate-300">{record.pressure} bar</td><td className="px-3 py-3 text-slate-300">{record.energyConsumption} kW</td></tr>)}</tbody>
 								</table>
-								{predictiveHistory.some((record) => record.affectedComponents) && <div className="border-t border-white/10 p-3 text-[10px] text-slate-300"><p className="mb-2 font-semibold text-white">Diagnósticos</p>{predictiveHistory.map((record) => <p key={record.id} className="mb-1"><span className="text-slate-400">{formatDateTime(record.timestamp)}:</span> {record.affectedComponents}</p>)}</div>}
+								{predictiveHistory.some((record) => record.affectedComponents) && <div className="border-t border-white/10 p-3 text-[11px] text-slate-300"><p className="mb-2 font-semibold text-white">Diagnósticos</p>{predictiveHistory.map((record) => <p key={record.id} className="mb-1"><span className="text-slate-400">{formatDateTime(record.timestamp)}:</span> {record.affectedComponents}</p>)}</div>}
 							</div>
 						) : <p className="rounded-md border border-white/10 p-4 text-[11px] text-slate-400">Este activo aún no tiene lecturas predictivas registradas.</p>}
 					</div>

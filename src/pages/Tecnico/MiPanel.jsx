@@ -32,13 +32,13 @@ const orders = [
 
 function StatCard({ title, value, label, labelColor }) {
   return (
-    <div className="h-[76px] rounded-xl border border-white/10 bg-[#292929] px-4 py-3">
+    <div className="h-[76px] rounded-xl border border-[#2d4055] bg-[#172c3d] px-4 py-3">
       <div className="flex h-full items-end justify-between">
         <div>
-          <p className="text-[8px] uppercase text-gray-400">{title}</p>
+          <p className="text-[11px] uppercase text-gray-400">{title}</p>
           <p className="mt-1 text-[22px] font-bold leading-none text-white">{value}</p>
         </div>
-        <span className={`mb-[2px] text-[8px] font-medium ${labelColor}`}>{label}</span>
+        <span className={`mb-[2px] text-[11px] font-medium ${labelColor}`}>{label}</span>
       </div>
     </div>
   );
@@ -46,26 +46,26 @@ function StatCard({ title, value, label, labelColor }) {
 
 function OrderRow({ order }) {
   return (
-    <div className="flex min-h-[47px] items-center rounded-md border border-white/[0.07] bg-[#2c2c2c] px-2.5 py-1.5">
+    <div className="flex min-h-[47px] items-center rounded-md border border-[#30485a] bg-[#102a3d] px-2.5 py-1.5">
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
-          <span className="text-[9px] font-semibold text-blue-400">{order.id}</span>
-          <span className="text-[10px] font-medium text-gray-200">- {order.machine}</span>
+          <span className="text-[11px] font-semibold text-blue-400">{order.id}</span>
+          <span className="text-[11px] font-medium text-gray-200">- {order.machine}</span>
         </div>
 
-        <p className="mt-[2px] truncate text-[8px] text-gray-500">{order.description}</p>
+        <p className="mt-[2px] truncate text-[11px] text-gray-500">{order.description}</p>
       </div>
 
       <div className="ml-3 flex shrink-0 items-center gap-2">
-        <span className={`rounded px-2 py-1 text-[7px] font-medium ${order.priorityClass}`}>
+        <span className={`rounded px-2 py-1 text-[11px] font-medium ${order.priorityClass}`}>
           Prioridad: {order.priority}
         </span>
 
-        <span className={`rounded px-2 py-1 text-[7px] font-medium ${order.statusClass}`}>
+        <span className={`rounded px-2 py-1 text-[11px] font-medium ${order.statusClass}`}>
           {order.status}
         </span>
 
-        <button type="button" className="rounded bg-blue-600 px-3 py-[5px] text-[8px] font-medium text-white transition hover:bg-blue-500">
+        <button type="button" className="rounded bg-blue-600 px-3 py-[5px] text-[11px] font-medium text-white transition hover:bg-blue-500">
           Iniciar
         </button>
       </div>
@@ -76,9 +76,9 @@ function OrderRow({ order }) {
 export default function MiPanel() {
   return (
     <div className="space-y-4">
-      <section className="rounded-xl border border-white/[0.06] bg-[#292929] px-4 py-4">
+      <section className="rounded-xl border border-[#2d4055] bg-[#13293a] px-4 py-4">
         <h1 className="text-[16px] font-semibold text-white">Bienvenido de nuevo, Héctor Fabio</h1>
-        <p className="mt-1 text-[9px] text-gray-400">
+        <p className="mt-1 text-[11px] text-gray-400">
           Usted tiene 4 órdenes de trabajo pendientes para hoy. El estado del clima en Cali Valle es propicio para labores mecánicas de campo.
         </p>
       </section>
@@ -89,10 +89,10 @@ export default function MiPanel() {
         <StatCard title="COMPLETADAS HOY" value="3" label="Buen ritmo" labelColor="text-cyan-400" />
       </section>
 
-      <section className="rounded-xl border border-white/[0.06] bg-[#292929] p-4">
+      <section className="rounded-xl border border-[#2d4055] bg-[#13293a] p-4">
         <div className="mb-3 flex items-center justify-between">
           <h2 className="text-[13px] font-semibold text-white">Órdenes de Trabajo Asignadas</h2>
-          <span className="inline-flex items-center gap-1 rounded-full bg-orange-500/10 px-2 py-1 text-[7px] font-semibold text-orange-300">
+          <span className="inline-flex items-center gap-1 rounded-full bg-orange-500/10 px-2 py-1 text-[11px] font-semibold text-orange-300">
             <AlertCircle size={10} />
             4 pendientes
           </span>

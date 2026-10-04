@@ -9,20 +9,20 @@ const history = [
 
 export default function Historial() {
   return (
-    <section className="rounded-xl border border-white/[0.06] bg-[#292929] p-4">
+    <section className="rounded-xl border border-[#2d4055] bg-[#13293a] p-4">
       <div className="mb-4 flex items-center gap-3">
         <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-500/15 text-emerald-400">
           <CalendarClock size={16} />
         </div>
         <div>
           <h2 className="text-[13px] font-semibold text-white">Historial de Mantenimientos</h2>
-          <p className="text-[9px] text-gray-400">Registro de trabajos finalizados y revisiones previas</p>
+          <p className="text-[11px] text-gray-400">Registro de trabajos finalizados y revisiones previas</p>
         </div>
       </div>
 
       <div className="overflow-x-auto">
-        <table className="min-w-full text-left text-[10px] text-gray-300">
-          <thead className="border-b border-white/10 bg-[#1f232d] text-[8px] uppercase tracking-[0.12em] text-gray-400">
+        <table className="min-w-full text-left text-[11px] text-gray-300">
+          <thead className="border-b border-[#2d4055] bg-[#102a3d] text-[11px] uppercase tracking-[0.12em] text-slate-400">
             <tr>
               <th className="px-3 py-3">Orden</th>
               <th className="px-3 py-3">Máquina</th>
@@ -33,13 +33,13 @@ export default function Historial() {
           </thead>
           <tbody>
             {history.map((item) => (
-              <tr key={item.id} className="border-b border-white/10 last:border-b-0 hover:bg-white/5">
+              <tr key={item.id} className="border-b border-[#2d4055] last:border-b-0 hover:bg-white/5">
                 <td className="px-3 py-3 font-semibold text-blue-400">{item.id}</td>
                 <td className="px-3 py-3 text-white">{item.machine}</td>
                 <td className="px-3 py-3 text-gray-400">{item.service}</td>
                 <td className="px-3 py-3 text-gray-400">{item.date}</td>
                 <td className="px-3 py-3">
-                  <span className="inline-flex items-center gap-1 rounded bg-emerald-500/15 px-2 py-1 text-[8px] font-semibold text-emerald-300">
+                  <span className="inline-flex items-center gap-1 rounded bg-emerald-500/15 px-2 py-1 text-[11px] font-semibold text-emerald-300">
                     <CheckCircle2 size={10} />
                     {item.result}
                   </span>

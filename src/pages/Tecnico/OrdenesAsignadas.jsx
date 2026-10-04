@@ -21,7 +21,7 @@ const statusClass = {
 
 export default function OrdenesAsignadas() {
   return (
-    <section className="space-y-4 rounded-xl border border-white/[0.06] bg-[#292929] p-4">
+    <section className="space-y-4 rounded-xl border border-[#2d4055] bg-[#13293a] p-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-500/15 text-blue-400">
@@ -29,43 +29,43 @@ export default function OrdenesAsignadas() {
           </div>
           <div>
             <h2 className="text-[13px] font-semibold text-white">Órdenes de Trabajo Asignadas</h2>
-            <p className="text-[9px] text-gray-400">Seguimiento de mantenimientos y reparaciones del día</p>
+            <p className="text-[11px] text-gray-400">Seguimiento de mantenimientos y reparaciones del día</p>
           </div>
         </div>
 
-        <button type="button" className="rounded-md bg-blue-600 px-3 py-2 text-[10px] font-semibold text-white transition hover:bg-blue-500">
+        <button type="button" className="rounded-md bg-blue-600 px-3 py-2 text-[11px] font-semibold text-white transition hover:bg-blue-500">
           Nueva Revisión
         </button>
       </div>
 
       <div className="space-y-2">
         {orders.map((order) => (
-          <div key={order.id} className="rounded-md border border-white/[0.08] bg-[#2c2c2c] p-3">
+          <div key={order.id} className="rounded-md border border-[#30485a] bg-[#102a3d] p-3">
             <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="text-[9px] font-semibold text-blue-400">{order.id}</span>
-                  <span className="text-[10px] font-medium text-white">{order.machine}</span>
+                  <span className="text-[11px] font-semibold text-blue-400">{order.id}</span>
+                  <span className="text-[11px] font-medium text-white">{order.machine}</span>
                 </div>
-                <p className="mt-1 text-[8px] text-gray-400">{order.description}</p>
+                <p className="mt-1 text-[11px] text-gray-400">{order.description}</p>
               </div>
 
               <div className="flex flex-wrap items-center gap-2">
-                <span className={`rounded px-2 py-1 text-[7px] font-medium ${priorityClass[order.priority]}`}>
+                <span className={`rounded px-2 py-1 text-[11px] font-medium ${priorityClass[order.priority]}`}>
                   {order.priority}
                 </span>
 
-                <span className={`rounded px-2 py-1 text-[7px] font-medium ${statusClass[order.status]}`}>
+                <span className={`rounded px-2 py-1 text-[11px] font-medium ${statusClass[order.status]}`}>
                   {order.status}
                 </span>
 
-                <button type="button" className="rounded bg-blue-600 px-3 py-1.5 text-[8px] font-medium text-white hover:bg-blue-500">
+                <button type="button" className="rounded bg-blue-600 px-3 py-1.5 text-[11px] font-medium text-white hover:bg-blue-500">
                   {order.status === 'Completada' ? 'Ver detalle' : 'Iniciar'}
                 </button>
               </div>
             </div>
 
-            <div className="mt-2 flex flex-wrap items-center gap-4 text-[7px] text-gray-400">
+            <div className="mt-2 flex flex-wrap items-center gap-4 text-[11px] text-gray-400">
               <span className="inline-flex items-center gap-1"><Clock3 size={10} /> {order.date}</span>
               <span className="inline-flex items-center gap-1"><CheckCircle2 size={10} /> Responsable: {order.owner}</span>
             </div>

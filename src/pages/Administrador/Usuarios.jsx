@@ -26,7 +26,7 @@ const roles = [
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
 
 const emptyForm = { name: '', email: '', role: 'TECNICO', password: '' };
-const inputClass = 'w-full rounded-md border border-white/10 bg-[#181818] px-3 py-2.5 text-sm text-white outline-none transition placeholder:text-gray-500 focus:border-blue-500';
+const inputClass = 'w-full rounded-md border border-[#36556f] bg-[#102a3d] px-3 py-2.5 text-sm text-white outline-none transition placeholder:text-slate-400 focus:border-cyan-400';
 
 function getRoleLabel(role) {
   return roles.find((item) => item.value === role)?.label ?? role;
@@ -179,7 +179,7 @@ export default function Usuarios() {
 
   if (!isAdministrator) {
     return (
-      <section className="rounded-lg border border-red-500/20 bg-[#242424] p-8 text-center">
+      <section className="rounded-lg border border-red-500/20 bg-[#13293a] p-8 text-center">
         <ShieldCheck className="mx-auto text-red-400" size={28} />
         <h2 className="mt-3 text-base font-semibold text-white">Acceso restringido</h2>
         <p className="mt-1 text-sm text-gray-400">Este panel está disponible únicamente para administradores.</p>
@@ -188,7 +188,7 @@ export default function Usuarios() {
   }
 
   return (
-    <section className="rounded-lg border border-white/10 bg-[#292929] p-4 text-white sm:p-6">
+    <section className="rounded-xl border border-[#2d4055] bg-[#13293a] p-4 text-white sm:p-6">
       <div className="mb-5 flex flex-wrap items-center justify-between gap-4">
         <div>
           <h2 className="text-base font-semibold">Gestión de usuarios</h2>
@@ -221,7 +221,7 @@ export default function Usuarios() {
 
       <div className="overflow-x-auto rounded-md border border-white/10">
         <table className="w-full min-w-[850px] text-left text-sm">
-          <thead className="bg-[#202020] text-xs uppercase text-gray-400">
+          <thead className="border-b border-[#2d4055] bg-[#102a3d] text-xs uppercase text-slate-400">
             <tr>
               <th scope="col" className="px-4 py-3 font-medium">Nombre</th>
               <th scope="col" className="px-4 py-3 font-medium">Correo electrónico</th>
@@ -244,7 +244,7 @@ export default function Usuarios() {
                     value={user.role}
                     onChange={(event) => handleRoleChange(user.id, event.target.value)}
                     disabled={busyUserId === user.id}
-                    className="max-w-[220px] rounded-md border border-white/10 bg-[#202020] px-2 py-1.5 text-xs text-gray-200 outline-none focus:border-blue-500"
+                    className="max-w-[220px] rounded-md border border-[#36556f] bg-[#102a3d] px-2 py-1.5 text-xs text-gray-200 outline-none focus:border-cyan-400"
                   >
                     {roles.map((role) => <option key={role.value} value={role.value}>{role.label}</option>)}
                   </select>
@@ -302,7 +302,7 @@ export default function Usuarios() {
 
       {isFormOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4" onMouseDown={(event) => { if (event.target === event.currentTarget) closeForm(); }}>
-          <form onSubmit={handleSaveUser} aria-labelledby="user-form-title" className="w-full max-w-lg rounded-lg border border-white/10 bg-[#252525] p-5 shadow-2xl sm:p-6">
+          <form onSubmit={handleSaveUser} aria-labelledby="user-form-title" className="w-full max-w-lg rounded-xl border border-[#36556f] bg-[#13293a] p-5 shadow-2xl sm:p-6">
             <div className="mb-5 flex items-start justify-between gap-4">
               <div>
                 <h3 id="user-form-title" className="text-base font-semibold">{editingUser ? 'Editar usuario' : 'Nuevo usuario'}</h3>

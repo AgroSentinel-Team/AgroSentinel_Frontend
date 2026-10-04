@@ -107,8 +107,8 @@ export default function Reportes({ variant = 'dark' }) {
       {error && <p role="alert" className="rounded-md bg-red-500/10 px-3 py-2 text-xs text-red-500">{error}</p>}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         {reports.map((report) => (
-          <article key={report.title} className={`rounded-xl border p-5 shadow-sm ${dark ? 'border-white/10 bg-[#292929]' : 'border-[#dfe6ed] bg-white'}`}>
-            <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-orange-500/10 text-orange-500"><BarChart3 size={24} /></div>
+          <article key={report.title} className={`rounded-xl border p-5 shadow-sm ${dark ? 'border-[#2d4055] bg-[#13293a]' : 'border-[#dfe6ed] bg-white'}`}>
+            <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-blue-500/15 text-blue-300"><BarChart3 size={24} /></div>
             <h3 className={`text-[12px] font-medium ${titleClass}`}>{report.title}</h3>
             <p className={`mb-4 mt-1 text-[9px] ${muted}`}>{loading ? 'Cargando datos...' : report.description}</p>
             <button

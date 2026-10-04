@@ -5,10 +5,10 @@ import { getFailureReports } from '../../services/assetService';
 
 const PRIORITY_LABELS = { BAJA: 'Baja', MEDIA: 'Media', ALTA: 'Alta', CRITICA: 'Crítica' };
 const PRIORITY_TONES = {
-	BAJA: 'text-slate-300',
-	MEDIA: 'text-cyan-200',
-	ALTA: 'text-amber-200',
-	CRITICA: 'text-red-200',
+	BAJA: 'border-emerald-400/20 bg-emerald-400/10 text-emerald-200',
+	MEDIA: 'border-orange-400/20 bg-orange-400/10 text-orange-200',
+	ALTA: 'border-red-400/20 bg-red-400/10 text-red-200',
+	CRITICA: 'border-red-400/20 bg-red-400/10 text-red-200',
 };
 const STATUS_LABELS = { PENDIENTE: 'Pendiente', EN_REVISION: 'En revisión', RESUELTO: 'Resuelto' };
 
@@ -48,7 +48,7 @@ export default function ReporteFallas() {
 			<div className="mb-5 flex flex-wrap items-center justify-between gap-3">
 				<div>
 					<h2 className="text-[14px] font-semibold text-white">Reporte de Fallas</h2>
-					<p className="mt-1 text-[10px] text-slate-400">Reportes registrados en el sistema.</p>
+					<p className="mt-1 text-[11px] text-slate-400">Reportes registrados en el sistema.</p>
 				</div>
 				<div className="flex items-center gap-2">
 					<button type="button" onClick={refreshReports} title="Actualizar reportes" aria-label="Actualizar reportes" className="rounded-md border border-white/10 p-2 text-slate-300 hover:border-cyan-400 hover:text-cyan-300"><RefreshCw size={15} /></button>
@@ -68,10 +68,15 @@ export default function ReporteFallas() {
 						<tbody className="divide-y divide-white/5">
 							{reports.map((report) => (
 								<tr key={report.id} className="align-top hover:bg-white/[0.03]">
-									<td className="max-w-lg px-3 py-3"><p className="font-medium text-white">{report.assetName}</p><p className="mt-1 text-cyan-200">{report.tipoFalla}</p><p className="mt-1 whitespace-pre-wrap text-[10px] text-slate-400">{report.descripcion}</p>{report.evidenciaUrl && <p className="mt-1 text-[10px] text-slate-500">Evidencia adjunta</p>}</td>
+									<td className="max-w-lg px-3 py-3"><p className="font-medium text-white">{report.assetName}</p><p className="mt-1 text-cyan-200">{report.tipoFalla}</p><p className="mt-1 whitespace-pre-wrap text-[11px] text-slate-400">{report.descripcion}</p>{report.evidenciaUrl && <p className="mt-1 text-[11px] text-slate-500">Evidencia adjunta</p>}</td>
 									<td className="px-3 py-3 text-slate-300">{report.userName || `ID ${report.userId}`}</td>
 									<td className="whitespace-nowrap px-3 py-3 text-slate-300">{formatDate(report.fechaReporte)}</td>
-									<td className={`px-3 py-3 font-medium ${PRIORITY_TONES[report.prioridad] || 'text-slate-300'}`}>{PRIORITY_LABELS[report.prioridad] || report.prioridad}</td>
+									<td className="px-3 py-3">
+										<span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-semibold ${PRIORITY_TONES[report.prioridad] || 'border-slate-400/20 bg-slate-400/10 text-slate-300'}`}>
+											<AlertTriangle size={13} />
+											{PRIORITY_LABELS[report.prioridad] || report.prioridad}
+										</span>
+									</td>
 									<td className="px-3 py-3 text-slate-300">{STATUS_LABELS[report.estado] || report.estado}</td>
 								</tr>
 							))}

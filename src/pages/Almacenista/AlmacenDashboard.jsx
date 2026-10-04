@@ -29,13 +29,13 @@ function SidebarItem({ icon: Icon, children, active = false, onClick }) {
       onClick={onClick}
       className={`
         relative flex w-full items-center gap-3
-        rounded-md px-3 py-[8px]
-        text-left text-[10px]
-        transition-colors
+        rounded-md px-3 py-2.5
+        text-left text-[11px]
+        transition
         ${
           active
-            ? "bg-[#1c283d] text-white"
-            : "text-slate-400 hover:bg-white/5 hover:text-white"
+            ? "bg-[#143c50] text-cyan-200 shadow-[inset_0_1px_0_rgba(125,211,252,0.1)]"
+            : "text-slate-300 hover:bg-[#143c50] hover:text-white"
         }
       `}
     >
@@ -49,7 +49,7 @@ function SidebarItem({ icon: Icon, children, active = false, onClick }) {
             absolute right-3
             h-3 w-[3px]
             rounded-full
-            bg-orange-500
+            bg-cyan-400
           "
         />
       )}
@@ -71,26 +71,25 @@ function StatCard({
       onClick={onClick}
       disabled={!onClick}
       className={`
-        flex h-[74px]
+        flex h-[82px]
         w-full
         flex-col justify-between
-        rounded-lg
-        border border-[#dfe6ed]
-        bg-white
-        px-3.5 py-3
+        rounded-xl
+        border border-[#2d4055]
+        bg-[#172c3d]
+        px-4 py-4
         text-left
-        shadow-[0_1px_3px_rgba(15,23,42,0.04)]
-        ${onClick ? "cursor-pointer transition hover:border-orange-300 hover:shadow-md" : "cursor-default"}
+        ${onClick ? "cursor-pointer transition hover:border-cyan-400/50 hover:bg-[#1a3245]" : "cursor-default"}
       `}
     >
       <div className="flex items-center justify-between">
         <span
           className="
-            text-[8px]
+            text-[11px]
             font-medium
             uppercase
             tracking-wide
-            text-[#52627a]
+            text-slate-400
           "
         >
           {title}
@@ -98,8 +97,8 @@ function StatCard({
 
         <span
           className={`
-            rounded px-1.5 py-[2px]
-            text-[7px] font-semibold
+            rounded-md px-2 py-1
+            text-[12px] font-semibold
             ${badgeColor}
           `}
         >
@@ -108,11 +107,11 @@ function StatCard({
       </div>
 
       <div className="flex items-baseline gap-1">
-        <span className="text-[23px] font-bold leading-none text-[#111827]">
+        <span className="text-[28px] font-bold leading-none text-white">
           {value}
         </span>
 
-        <span className="text-[8px] text-[#718096]">
+        <span className="text-[11px] text-slate-400">
           {suffix}
         </span>
       </div>
@@ -122,17 +121,17 @@ function StatCard({
 
 function StatusBadge({ status, type }) {
   const styles = {
-    success: "bg-[#d7f7e4] text-[#159447]",
-    progress: "bg-[#e4efff] text-[#2563eb]",
-    danger: "bg-[#ffe0e0] text-[#e34b4b]",
+    success: "border border-emerald-400/30 bg-[#1a382d] text-emerald-300",
+    progress: "border border-cyan-400/30 bg-[#173d4f] text-cyan-300",
+    danger: "border border-red-400/30 bg-[#40272d] text-red-300",
   };
 
   return (
     <span
       className={`
-        inline-flex rounded
+        inline-flex rounded-md
         px-2 py-[3px]
-        text-[7px] font-semibold
+        text-[11px] font-semibold
         ${styles[type]}
       `}
     >
@@ -150,17 +149,17 @@ function MovementType({ type }) {
         <ArrowDownLeft
           size={11}
           strokeWidth={2.5}
-          className="text-green-500"
+          className="text-emerald-400"
         />
       ) : (
         <ArrowUpRight
           size={11}
           strokeWidth={2.5}
-          className="text-blue-500"
+          className="text-cyan-400"
         />
       )}
 
-      <span className="text-[8px] text-[#344054]">
+      <span className="text-[12px] text-slate-300">
         {type}
       </span>
     </div>
@@ -176,19 +175,19 @@ function MovementRow({ movement }) {
         grid
         grid-cols-[1.8fr_.65fr_.55fr_.65fr_.6fr]
         items-center
-        border-b border-[#e8edf2]
-        px-2.5
-        py-[6px]
+        border-b border-[#2d4055]
+        px-3
+        py-2.5
         last:border-b-0
       "
     >
       {/* Producto */}
       <div className="min-w-0">
-        <p className="truncate text-[9px] font-semibold text-[#182235]">
+        <p className="truncate text-[13px] font-semibold text-white">
           {movement.itemName}
         </p>
 
-        <p className="mt-[1px] text-[7px] text-[#8190a5]">
+        <p className="mt-1 text-[12px] text-slate-400">
           ID: {movement.itemId}
         </p>
       </div>
@@ -197,15 +196,15 @@ function MovementRow({ movement }) {
       <MovementType type={movement.tipo} />
 
       {/* Cantidad */}
-      <div className="text-[8px] font-medium text-[#182235]">
+      <div className="text-[12px] font-medium text-slate-200">
         {Number(movement.cantidad).toLocaleString()}{" "}
-        <span className="font-normal text-[#607086]">
+        <span className="font-normal text-slate-400">
           {movement.itemUnit || ""}
         </span>
       </div>
 
       {/* Fecha */}
-      <div className="font-mono text-[7px] text-[#53657b]">
+      <div className="font-mono text-[12px] text-slate-400">
         {Number.isNaN(date.getTime()) ? "—" : date.toLocaleString()}
       </div>
 
@@ -280,10 +279,10 @@ export default function SgaControlDashboard() {
         min-h-screen
         bg-[#020d16]
         font-sans
-        text-[#182235]
+        text-white
       "
     >
-      <div className="flex min-h-screen">
+      <div className="flex min-h-screen w-full overflow-hidden bg-[#020d16]">
 
         {/* ================================================= */}
         {/* SIDEBAR */}
@@ -291,7 +290,7 @@ export default function SgaControlDashboard() {
 
         <aside
           className="
-            hidden w-[181px]
+            hidden w-[190px]
             shrink-0
             border-r border-[#1b2f3f]
             bg-[#0d1f2d]
@@ -301,17 +300,18 @@ export default function SgaControlDashboard() {
           {/* Logo */}
           <div
             className="
-              flex h-[59px]
-              items-center gap-2.5
+              flex h-[58px]
+              items-center gap-2
+              border-b border-[#1b2f3f]
               px-4
             "
           >
             <div
               className="
-                flex h-[27px] w-[27px]
+                flex h-[26px] w-[26px]
                 items-center justify-center
                 rounded-md
-                bg-orange-500
+                bg-[#0f9ec7]
               "
             >
               <Package
@@ -322,18 +322,18 @@ export default function SgaControlDashboard() {
             </div>
 
             <div>
-              <p className="text-[13px] font-bold leading-none text-white">
+              <p className="text-[14px] font-semibold leading-none text-cyan-300">
                 SGA CONTROL
               </p>
 
-              <p className="mt-1 text-[7px] uppercase tracking-wide text-slate-400">
+              <p className="mt-1 text-[11px] uppercase tracking-[0.12em] text-slate-400">
                 ALMACÉN CENTRAL
               </p>
             </div>
           </div>
 
           {/* Menu */}
-          <nav className="px-4 py-2">
+          <nav className="space-y-1 px-3 py-4">
             <SidebarItem
               icon={LayoutGrid}
               active={activeTab === "Inicio"}
@@ -362,22 +362,22 @@ export default function SgaControlDashboard() {
           </nav>
 
           {/* Occupancy */}
-          <div className="mx-4 mt-8 border-t border-white/10 pt-4">
+          <div className="mx-4 mt-8 border-t border-[#1b2f3f] pt-4">
             <div className="flex justify-between">
-              <span className="text-[7px] uppercase text-slate-400">
+              <span className="text-[11px] uppercase tracking-[0.12em] text-slate-400">
                 OCUPACIÓN TOTAL
               </span>
 
-              <span className="text-[7px] font-semibold text-white">
+              <span className="text-[11px] font-semibold text-white">
                 78%
               </span>
             </div>
 
             <div className="mt-2 h-[4px] overflow-hidden rounded-full bg-[#344158]">
-              <div className="h-full w-[78%] bg-orange-500" />
+              <div className="h-full w-[78%] bg-cyan-400" />
             </div>
 
-            <p className="mt-2 text-[7px] text-slate-400">
+            <p className="mt-2 text-[11px] text-slate-400">
               Ubicaciones libres: 342
             </p>
           </div>
@@ -387,13 +387,14 @@ export default function SgaControlDashboard() {
         {/* MAIN */}
         {/* ================================================= */}
 
-        <main className="min-w-0 flex-1">
+        <main className="flex min-w-0 flex-1 flex-col bg-[#020d16]">
 
           {/* HEADER */}
           <header
             className="
-              flex h-[59px]
+              flex min-h-[58px]
               items-center justify-between
+              gap-3
               border-b border-[#1f3446]
               bg-[#0d2437]
               px-5
@@ -402,17 +403,20 @@ export default function SgaControlDashboard() {
             {/* Search */}
             <div
               className="
-                flex h-[29px]
+                flex h-[32px]
                 w-[215px]
                 items-center gap-2
                 rounded-md
+                border border-[#36556f]
                 bg-[#102a3d]
                 px-2.5
+                transition
+                focus-within:border-cyan-400
               "
             >
               <Search
                 size={13}
-                className="text-[#64748b]"
+                className="text-slate-400"
               />
 
               <input
@@ -421,34 +425,33 @@ export default function SgaControlDashboard() {
                 className="
                   w-full
                   bg-transparent
-                  text-[8px]
-                  text-[#334155]
+                  text-[11px]
+                  text-white
                   outline-none
-                  placeholder:text-[#8190a5]
+                  placeholder:text-slate-400
                 "
               />
             </div>
 
             {/* Header right */}
             <div className="flex items-center gap-3">
-              <LogoutButton className="text-[#52627a] hover:bg-[#f1f4f7] hover:text-[#182235]" />
+              <LogoutButton className="text-slate-300 hover:bg-[#1d3d52] hover:text-white" />
 
               {/* Register */}
               <button
                 type="button"
                 onClick={() => setActiveTab("Entradas")}
                 className="
-                  flex h-[27px]
+                  flex h-[30px]
                   items-center gap-1.5
                   rounded-md
-                  bg-[#0f9ec7]
+                  bg-blue-600
                   px-3
-                  text-[9px]
+                  text-[11px]
                   font-semibold
                   text-white
-                  shadow-sm
                   transition
-                  hover:bg-orange-600
+                  hover:bg-blue-500
                 "
               >
                 <Plus size={12} strokeWidth={2.5} />
@@ -463,31 +466,32 @@ export default function SgaControlDashboard() {
                   aria-label={`Alertas de stock bajo: ${lowStockCount}`}
                   aria-expanded={alertsOpen}
                   className="
-                  relative flex h-[28px] w-[28px]
+                  relative flex h-8 w-8
                   items-center justify-center
-                  rounded-full
-                  border border-[#e3e8ee]
-                  bg-white
+                  rounded-md
+                  border border-[#36556f]
+                  bg-[#102a3d]
+                  text-slate-300 transition hover:bg-[#1d3d52] hover:text-white
                   "
                 >
-                  <Bell size={13} className="text-[#344054]" />
+                  <Bell size={15} />
                   {lowStockCount > 0 && (
-                    <span className="absolute -right-1 -top-1 flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-red-500 px-0.5 text-[7px] font-bold text-white">
+                    <span className="absolute -right-1 -top-1 flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-red-500 px-0.5 text-[11px] font-bold text-white">
                       {lowStockCount}
                     </span>
                   )}
                 </button>
                 {alertsOpen && (
-                  <div className="absolute right-0 top-9 z-50 w-72 rounded-lg border border-[#dfe6ed] bg-white p-3 shadow-xl">
+                  <div className="absolute right-0 top-9 z-50 w-72 rounded-xl border border-[#36556f] bg-[#13293a] p-4 shadow-xl">
                     <div className="mb-2 flex items-start justify-between gap-2">
                       <div>
-                        <h3 className="text-[11px] font-semibold text-[#182235]">Alertas de inventario</h3>
-                        <p className="mt-1 text-[8px] text-[#718096]">Se activa si el stock está por debajo del mínimo configurado.</p>
+                        <h3 className="text-[14px] font-semibold text-white">Alertas de inventario</h3>
+                        <p className="mt-1 text-[11px] text-slate-300">Se activa si el stock está por debajo del mínimo configurado.</p>
                       </div>
-                      <button type="button" onClick={() => setAlertsOpen(false)} aria-label="Cerrar alertas" className="text-[9px] text-[#718096] hover:text-[#182235]">Cerrar</button>
+                      <button type="button" onClick={() => setAlertsOpen(false)} aria-label="Cerrar alertas" className="text-[11px] text-slate-400 hover:text-white">Cerrar</button>
                     </div>
                     {lowStockItems.length === 0 ? (
-                      <p className="rounded bg-green-50 px-2.5 py-2 text-[9px] text-green-700">
+                      <p className="rounded-lg border border-emerald-400/30 bg-[#1a382d] px-3 py-2 text-[11px] text-emerald-300">
                         {dashboardDataLoaded ? "No hay productos bajo el mínimo." : "Cargando inventario..."}
                       </p>
                     ) : (
@@ -497,10 +501,10 @@ export default function SgaControlDashboard() {
                             <button
                               type="button"
                               onClick={() => { setAlertsOpen(false); setActiveTab("Inventario"); }}
-                              className="w-full rounded border border-red-100 bg-red-50 px-2.5 py-2 text-left hover:bg-red-100"
+                              className="w-full rounded-lg border border-red-400/30 bg-[#40272d] px-3 py-2 text-left transition hover:bg-[#503039]"
                             >
-                              <span className="block truncate text-[9px] font-semibold text-[#182235]">{item.item}</span>
-                              <span className="mt-0.5 block text-[8px] text-red-700">
+                              <span className="block truncate text-[11px] font-semibold text-white">{item.item}</span>
+                              <span className="mt-0.5 block text-[11px] text-red-300">
                                 Stock {item.stock} {item.unit} · mínimo {item.minimum} {item.unit}
                               </span>
                             </button>
@@ -519,10 +523,12 @@ export default function SgaControlDashboard() {
                     flex h-[27px] w-[27px]
                     items-center justify-center
                     rounded-full
+                    border border-cyan-300/60
                     bg-gradient-to-br
-                    from-slate-400
-                    to-slate-700
-                    text-[8px]
+                    from-cyan-400
+                    via-blue-500
+                    to-indigo-700
+                    text-[11px]
                     font-bold
                     text-white
                   "
@@ -531,11 +537,11 @@ export default function SgaControlDashboard() {
                 </div>
 
                 <div className="hidden leading-tight sm:block">
-                  <p className="text-[8px] font-semibold text-[#182235]">
+                  <p className="text-[11px] font-medium text-white">
                     Martín Gómez
                   </p>
 
-                  <p className="text-[7px] text-[#7b8798]">
+                  <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-cyan-300">
                     Almacenista Turno A
                   </p>
                 </div>
@@ -544,7 +550,7 @@ export default function SgaControlDashboard() {
           </header>
 
           {/* CONTENT */}
-          <div className="mx-auto max-w-[1120px] px-5 py-5">
+          <div className="flex-1 overflow-y-auto p-4 md:p-5">
             {activeTab !== "Inicio" && content[activeTab]}
             {activeTab === "Inicio" && <>
 
@@ -565,7 +571,7 @@ export default function SgaControlDashboard() {
                 value={dashboardDataLoaded ? inventoryItems.length.toLocaleString() : "—"}
                 suffix="productos"
                 badge="Actual"
-                badgeColor="bg-[#d9f7e5] text-[#18a957]"
+                badgeColor="border border-emerald-400/30 bg-[#1a382d] text-emerald-300"
               />
 
               <StatCard
@@ -573,7 +579,7 @@ export default function SgaControlDashboard() {
                 value={dashboardDataLoaded ? todaysEntries.toLocaleString() : "—"}
                 suffix="movimientos"
                 badge="Hoy"
-                badgeColor="bg-[#edf4ff] text-[#3677df]"
+                badgeColor="border border-cyan-400/30 bg-[#173d4f] text-cyan-300"
               />
 
               <StatCard
@@ -581,7 +587,7 @@ export default function SgaControlDashboard() {
                 value={dashboardDataLoaded ? todaysExits.toLocaleString() : "—"}
                 suffix="movimientos"
                 badge="Hoy"
-                badgeColor="bg-[#eaf1ff] text-[#2563eb]"
+                badgeColor="border border-cyan-400/30 bg-[#173d4f] text-cyan-300"
               />
 
               <StatCard
@@ -589,7 +595,7 @@ export default function SgaControlDashboard() {
                 value={dashboardDataLoaded ? lowStockCount.toLocaleString() : "—"}
                 suffix="productos"
                 badge={dashboardDataLoaded ? (lowStockCount > 0 ? "Revisar" : "Todo bien") : "Cargando"}
-                badgeColor="bg-[#fff0dc] text-[#f07817]"
+                badgeColor="border border-amber-400/30 bg-[#3e3625] text-amber-300"
                 onClick={() => setAlertsOpen(true)}
               />
             </section>
@@ -616,27 +622,26 @@ export default function SgaControlDashboard() {
               <div
                 className="
                   overflow-hidden
-                  rounded-lg
-                  border border-[#dfe6ed]
-                  bg-white
-                  shadow-[0_1px_3px_rgba(15,23,42,0.04)]
+                  rounded-xl
+                  border border-[#2d4055]
+                  bg-[#13293a]
                 "
               >
                 {/* Title */}
                 <div
                   className="
-                    flex h-[55px]
+                    flex min-h-[60px]
                     items-center justify-between
-                    border-b border-[#e5eaf0]
-                    px-3
+                    border-b border-[#2d4055]
+                    px-4
                   "
                 >
                   <div>
-                    <h2 className="text-[12px] font-bold text-[#182235]">
+                    <h2 className="text-[16px] font-semibold text-white">
                       Últimos Movimientos
                     </h2>
 
-                    <p className="mt-1 text-[7px] text-[#8190a5]">
+                    <p className="mt-1 text-[12px] text-slate-400">
                       Historial de recepciones y despachos recientes en planta
                     </p>
                   </div>
@@ -650,15 +655,15 @@ export default function SgaControlDashboard() {
                     className="
                       flex items-center gap-1.5
                       rounded-md
-                      border border-[#e0e6ec]
-                      bg-white
-                      px-2 py-1.5
-                      text-[7px]
+                      border border-[#36556f]
+                      bg-[#102a3d]
+                      px-3 py-2
+                      text-[12px]
                       font-medium
-                      text-[#44546a]
+                      text-slate-300 transition hover:bg-[#1d3d52] hover:text-white
                     "
                   >
-                    <SlidersHorizontal size={9} />
+                    <SlidersHorizontal size={12} />
                     {movementFilter === "todos" ? "Todos" : movementFilter === "entrada" ? "Entradas" : "Salidas"}
                   </button>
                 </div>
@@ -668,13 +673,15 @@ export default function SgaControlDashboard() {
                   className="
                     grid
                     grid-cols-[1.8fr_.65fr_.55fr_.65fr_.6fr]
-                    bg-[#f8fafc]
-                    px-2.5
-                    py-[7px]
-                    text-[7px]
+                    border-b border-[#2d4055]
+                    bg-[#102a3d]
+                    px-3
+                    py-2.5
+                    text-[12px]
                     font-medium
                     uppercase
-                    text-[#607086]
+                    tracking-[0.08em]
+                    text-slate-400
                   "
                 >
                   <span>Producto</span>
@@ -687,7 +694,7 @@ export default function SgaControlDashboard() {
                 {/* Rows */}
                 <div>
                   {movementError && (
-                    <p role="alert" className="px-3 py-4 text-center text-[9px] text-red-600">
+                    <p role="alert" className="px-3 py-4 text-center text-[12px] text-red-300">
                       {movementError}
                     </p>
                   )}
@@ -698,7 +705,7 @@ export default function SgaControlDashboard() {
                     />
                   ))}
                   {!movementError && visibleMovements.length === 0 && (
-                    <p className="px-3 py-6 text-center text-[9px] text-[#8190a5]">
+                    <p className="px-3 py-6 text-center text-[12px] text-slate-400">
                       No hay movimientos registrados.
                     </p>
                   )}
@@ -708,7 +715,7 @@ export default function SgaControlDashboard() {
               {/* ================================================= */}
               {/* TASKS */}
 
-              <InventoryTasks variant="light" />
+              <InventoryTasks variant="dark" />
             </section>
           </div>
         </main>
