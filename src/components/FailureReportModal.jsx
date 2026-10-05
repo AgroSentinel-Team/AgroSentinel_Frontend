@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { AlertTriangle, ImagePlus, LoaderCircle, Search, X } from 'lucide-react';
-import { createFailureReport, getFailureReportAssets } from '../services/assetService';
+import { createFailureReport, getFailureReportAssets, getFailureReportGroups } from '../services/assetService';
 
 const PRIORITIES = [
 	{ value: 'BAJA', label: 'Baja' },
@@ -25,11 +25,26 @@ export default function FailureReportModal({ onClose, onSaved }) {
 	const [assets, setAssets] = useState([]);
 	const [assetsLoading, setAssetsLoading] = useState(true);
 	const [assetError, setAssetError] = useState('');
+	const [groups, setGroups] = useState([]);
+	const [groupsLoading, setGroupsLoading] = useState(true);
+	const [groupError, setGroupError] = useState('');
 	const [query, setQuery] = useState('');
-	const [form, setForm] = useState({ assetId: '', tipoFalla: '', prioridad: 'MEDIA', descripcion: '' });
+	const [form, setForm] = useState({ assetId: '', groupId: '', tipoFalla: '', prioridad: 'MEDIA', descripcion: '' });
 	const [evidence, setEvidence] = useState(null);
 	const [submitError, setSubmitError] = useState('');
 	const [submitting, setSubmitting] = useState(false);
+	const isAdministrator = (() => {
+		const role = (localStorage.getItem('rol') ?? '').toUpperCase().replace(/^ROLE_/, '');
+		try {
+			const roles = JSON.parse(localStorage.getItem('roles') ?? '[]');
+			return ['ADMIN', 'ADMINISTRADOR'].includes(role)
+				|| (Array.isArray(roles) && roles.some((item) =>
+					['ADMIN', 'ADMINISTRADOR'].includes((item ?? '').toUpperCase().replace(/^ROLE_/, '')),
+				));
+		} catch {
+			return ['ADMIN', 'ADMINISTRADOR'].includes(role);
+		}
+	})();
 
 	useEffect(() => {
 		let cancelled = false;
@@ -37,6 +52,17 @@ export default function FailureReportModal({ onClose, onSaved }) {
 			.then((data) => { if (!cancelled) setAssets(data); })
 			.catch((error) => { if (!cancelled) setAssetError(describeError(error)); })
 			.finally(() => { if (!cancelled) setAssetsLoading(false); });
+		getFailureReportGroups()
+			.then((data) => {
+				if (cancelled) return;
+				const activeGroups = data.filter((group) => group.active);
+				setGroups(activeGroups);
+				if (activeGroups.length === 1) {
+					setForm((current) => ({ ...current, groupId: String(activeGroups[0].id) }));
+				}
+			})
+			.catch((error) => { if (!cancelled) setGroupError(describeError(error)); })
+			.finally(() => { if (!cancelled) setGroupsLoading(false); });
 		return () => { cancelled = true; };
 	}, []);
 
@@ -62,11 +88,28 @@ export default function FailureReportModal({ onClose, onSaved }) {
 
 	const handleSubmit = async (event) => {
 		event.preventDefault();
+		if (groupsLoading) {
+			setSubmitError('Espera a que carguen los grupos de trabajo.');
+			return;
+		}
+		if (groupError) {
+			setSubmitError(`No se pudieron cargar los grupos: ${groupError}`);
+			return;
+		}
+		if ((isAdministrator || groups.length > 1) && !form.groupId) {
+			setSubmitError('Selecciona el grupo o zona al que corresponde la falla.');
+			return;
+		}
+		if (groups.length === 0) {
+			setSubmitError('No hay un grupo de trabajo activo disponible para asignar la falla.');
+			return;
+		}
 		setSubmitting(true);
 		setSubmitError('');
 		const payload = new FormData();
 		payload.append('data', new Blob([JSON.stringify({
 			assetId: Number(form.assetId),
+			groupId: form.groupId ? Number(form.groupId) : null,
 			tipoFalla: form.tipoFalla.trim(),
 			prioridad: form.prioridad,
 			descripcion: form.descripcion.trim(),
@@ -119,6 +162,34 @@ export default function FailureReportModal({ onClose, onSaved }) {
 						{!assetsLoading && !assetError && filteredAssets.length === 0 && <p className="mt-2 text-[10px] text-slate-400">No hay activos que coincidan con la búsqueda.</p>}
 					</div>
 
+					{(isAdministrator || groups.length !== 1 || groupsLoading || groupError) && (
+						<div>
+							<label htmlFor="failure-group" className="mb-1 block text-[10px] font-medium text-slate-300">
+								Grupo o zona de atención{isAdministrator || groups.length > 1 ? ' *' : ''}
+							</label>
+							<select
+								id="failure-group"
+								name="groupId"
+								required={isAdministrator || groups.length > 1}
+								value={form.groupId}
+								onChange={updateField}
+								disabled={groupsLoading || Boolean(groupError) || groups.length === 0}
+								className={inputClass}
+							>
+								<option value="">
+									{groupsLoading ? 'Cargando grupos...' : groups.length ? 'Selecciona un grupo' : 'No hay grupos activos'}
+								</option>
+								{groups.map((group) => (
+									<option key={group.id} value={group.id}>{group.name}</option>
+								))}
+							</select>
+							{groupError && <p className="mt-2 text-[10px] text-red-200" role="alert">No se pudieron cargar los grupos: {groupError}</p>}
+							{!groupsLoading && !groupError && groups.length === 0 && (
+								<p className="mt-2 text-[10px] text-red-200" role="alert">No hay un grupo activo disponible para asignar esta falla.</p>
+							)}
+						</div>
+					)}
+
 					<div className="grid gap-4 sm:grid-cols-2">
 						<div>
 							<label htmlFor="failure-type" className="mb-1 block text-[10px] font-medium text-slate-300">Tipo de falla</label>
@@ -150,7 +221,7 @@ export default function FailureReportModal({ onClose, onSaved }) {
 					{submitError && <p role="alert" className="rounded-md border border-red-400/20 bg-red-400/10 p-3 text-[10px] text-red-200">{submitError}</p>}
 					<div className="flex justify-end gap-2 border-t border-white/10 pt-4">
 						<button type="button" disabled={submitting} onClick={onClose} className="rounded-md border border-white/10 px-3 py-2 text-[10px] font-medium text-slate-300 hover:bg-white/5 disabled:opacity-50">Cancelar</button>
-						<button type="submit" disabled={submitting || assetsLoading || Boolean(assetError) || !assets.length} className="inline-flex items-center gap-2 rounded-md bg-cyan-600 px-3 py-2 text-[10px] font-semibold text-white hover:bg-cyan-500 disabled:cursor-not-allowed disabled:opacity-50">
+						<button type="submit" disabled={submitting || assetsLoading || Boolean(assetError) || !assets.length || groupsLoading || Boolean(groupError) || groups.length === 0} className="inline-flex items-center gap-2 rounded-md bg-cyan-600 px-3 py-2 text-[10px] font-semibold text-white hover:bg-cyan-500 disabled:cursor-not-allowed disabled:opacity-50">
 							{submitting && <LoaderCircle size={13} className="animate-spin" />}{submitting ? 'Enviando...' : 'Enviar reporte'}
 						</button>
 					</div>

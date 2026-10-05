@@ -37,7 +37,7 @@ export default function Login() {
           : responseData.message || 'Credenciales incorrectas o error de servidor.');
       }
 
-      const { token, rol } = responseData;
+      const { token, rol, nombre, roles = [] } = responseData;
       if (typeof token !== 'string' || token.split('.').length !== 3) {
         throw new Error('El servidor no devolvió un JWT válido. Reinicia el backend e inténtalo de nuevo.');
       }
@@ -45,9 +45,15 @@ export default function Login() {
       // Guardamos credenciales reales en el navegador
       localStorage.setItem('token', token);
       localStorage.setItem('rol', rol);
+      localStorage.setItem('nombre', nombre || '');
+      localStorage.setItem('roles', JSON.stringify(roles));
 
-      // Redirección estricta según el rol de la base de datos
-      switch (rol) {
+      const effectiveRoles = new Set([...roles, rol].map((item) =>
+        (item ?? '').toUpperCase().replace(/^ROLE_/, ''),
+      ));
+      if (effectiveRoles.has('TECNICO')) {
+        navigate('/tecnico/dashboard');
+      } else switch (rol) {
         case 'ADMIN':
         case 'ADMINISTRADOR':
           navigate('/admin/dashboard');

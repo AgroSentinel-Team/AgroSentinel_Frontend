@@ -38,6 +38,8 @@ export const getFailureReports = async () => (await failureReportApi.get('')).da
 
 export const createFailureReport = async (formData) => (await failureReportApi.post('', formData)).data;
 
+export const getFailureReportGroups = async () => (await directoryApi.get('/work-groups/options')).data;
+
 export const canReportFailure = () => {
 	const role = (localStorage.getItem('rol') ?? '').toUpperCase().replace(/^ROLE_/, '');
 	return ['ADMIN', 'ADMINISTRADOR', 'OPERARIO_CAMPO', 'OPERATIVO_CAMPO'].includes(role);

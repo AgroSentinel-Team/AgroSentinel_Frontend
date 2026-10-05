@@ -63,13 +63,19 @@ export default function ReporteFallas() {
 				<div className="rounded-md border border-white/10 p-8 text-center text-[11px] text-slate-400"><AlertTriangle size={20} className="mx-auto mb-2 text-slate-500" />Aún no hay reportes de fallas.</div>
 			) : !error && (
 				<div className="overflow-x-auto rounded-md border border-white/10">
-					<table className="w-full min-w-[850px] text-left text-[11px]">
-						<thead className="border-b border-white/10 bg-[#0b1d2a] text-slate-400"><tr><th className="px-3 py-3 font-medium">Activo / Falla</th><th className="px-3 py-3 font-medium">Reportado por</th><th className="px-3 py-3 font-medium">Fecha</th><th className="px-3 py-3 font-medium">Prioridad</th><th className="px-3 py-3 font-medium">Estado</th></tr></thead>
+					<table className="w-full min-w-[980px] text-left text-[11px]">
+						<thead className="border-b border-white/10 bg-[#0b1d2a] text-slate-400"><tr><th className="px-3 py-3 font-medium">Activo / Falla</th><th className="px-3 py-3 font-medium">Reportado por</th><th className="px-3 py-3 font-medium">Grupo / Zona</th><th className="px-3 py-3 font-medium">Técnico asignado</th><th className="px-3 py-3 font-medium">Fecha</th><th className="px-3 py-3 font-medium">Prioridad</th><th className="px-3 py-3 font-medium">Estado</th></tr></thead>
 						<tbody className="divide-y divide-white/5">
 							{reports.map((report) => (
 								<tr key={report.id} className="align-top hover:bg-white/[0.03]">
 									<td className="max-w-lg px-3 py-3"><p className="font-medium text-white">{report.assetName}</p><p className="mt-1 text-cyan-200">{report.tipoFalla}</p><p className="mt-1 whitespace-pre-wrap text-[11px] text-slate-400">{report.descripcion}</p>{report.evidenciaUrl && <p className="mt-1 text-[11px] text-slate-500">Evidencia adjunta</p>}</td>
 									<td className="px-3 py-3 text-slate-300">{report.userName || `ID ${report.userId}`}</td>
+									<td className="px-3 py-3 text-slate-300">{report.groupName || 'Sin grupo'}</td>
+									<td className="px-3 py-3">
+										<span className={report.assignedTechnicianName ? 'font-medium text-cyan-200' : 'text-amber-300'}>
+											{report.assignedTechnicianName || 'Sin técnico asignado'}
+										</span>
+									</td>
 									<td className="whitespace-nowrap px-3 py-3 text-slate-300">{formatDate(report.fechaReporte)}</td>
 									<td className="px-3 py-3">
 										<span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-semibold ${PRIORITY_TONES[report.prioridad] || 'border-slate-400/20 bg-slate-400/10 text-slate-300'}`}>

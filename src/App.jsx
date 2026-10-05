@@ -11,10 +11,23 @@ import AlmacenDashboard from './pages/Almacenista/AlmacenDashboard';
 import OperDashboard from './pages/Operativo/OperDashboard';
 import PreventiveMaintenance from './pages/Compartido/PreventiveMaintenance';
 
+function getStoredRoles() {
+  try {
+    const roles = JSON.parse(localStorage.getItem('roles') ?? '[]');
+    return Array.isArray(roles) ? roles : [];
+  } catch {
+    return [];
+  }
+}
+
 function ProtectedRoute({ allowedRoles, children }) {
   const token = localStorage.getItem('token');
   const role = (localStorage.getItem('rol') ?? '').toUpperCase().replace(/^ROLE_/, '');
-  if (!hasUnexpiredToken(token) || !allowedRoles.includes(role)) {
+  const storedRoles = getStoredRoles();
+  const effectiveRoles = new Set([role, ...storedRoles].map((item) =>
+    (item ?? '').toUpperCase().replace(/^ROLE_/, ''),
+  ));
+  if (!hasUnexpiredToken(token) || !allowedRoles.some((allowedRole) => effectiveRoles.has(allowedRole))) {
     return <Navigate to="/login" replace />;
   }
   return children;

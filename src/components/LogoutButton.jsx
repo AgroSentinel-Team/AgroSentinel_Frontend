@@ -7,6 +7,8 @@ export default function LogoutButton({ className = "" }) {
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("rol");
+    localStorage.removeItem("roles");
+    localStorage.removeItem("nombre");
     navigate("/login", { replace: true });
   };
 

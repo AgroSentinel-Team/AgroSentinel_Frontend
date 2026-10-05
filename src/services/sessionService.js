@@ -15,6 +15,8 @@ export function hasUnexpiredToken(token) {
 export function expireSession() {
 	localStorage.removeItem('token');
 	localStorage.removeItem('rol');
+	localStorage.removeItem('roles');
+	localStorage.removeItem('nombre');
 	window.dispatchEvent(new Event(SESSION_EXPIRED_EVENT));
 }
 
