@@ -15,7 +15,7 @@ function getErrorMessage(error) {
     || 'No se pudo cargar el inventario.';
 }
 
-export default function Inventario({ variant = 'dark' }) {
+export default function Inventario({ variant = 'dark', groupId, groupName, scoped = false }) {
   const dark = variant === 'dark';
   const [inventory, setInventory] = useState([]);
   const [query, setQuery] = useState('');
@@ -25,7 +25,7 @@ export default function Inventario({ variant = 'dark' }) {
 
   useEffect(() => {
     let active = true;
-    getInventoryItems()
+    getInventoryItems(groupId, scoped)
       .then((items) => {
         if (active) setInventory(items);
       })
@@ -36,7 +36,7 @@ export default function Inventario({ variant = 'dark' }) {
         if (active) setLoading(false);
       });
     return () => { active = false; };
-  }, [reloadKey]);
+  }, [reloadKey, groupId, scoped]);
 
   const retryLoading = () => {
     setLoading(true);
@@ -57,7 +57,7 @@ export default function Inventario({ variant = 'dark' }) {
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className={`text-[14px] font-semibold ${text}`}>Inventario</h2>
-          <p className={`mt-1 text-[10px] ${muted}`}>Las alertas se activan cuando el stock actual queda por debajo del mínimo.</p>
+          <p className={`mt-1 text-[10px] ${muted}`}>{groupName ? `Existencias independientes de ${groupName}.` : scoped ? 'Bodega central · existencias sin grupo asignado.' : 'Las alertas se activan cuando el stock actual queda por debajo del mínimo.'}</p>
         </div>
         <label className={`relative rounded-md ${dark ? 'bg-[#102a3d]' : 'bg-[#f5f7f9]'}`}>
           <Search size={14} className={`absolute left-3 top-1/2 -translate-y-1/2 ${muted}`} />

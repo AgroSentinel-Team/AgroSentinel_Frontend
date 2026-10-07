@@ -38,12 +38,12 @@ export default function CreateCategoryForm({ onCreated, onCancel }) {
 	};
 
 	return (
-		<div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/75 p-4" role="presentation">
+		<div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/75 p-4" role="presentation">
 			<div role="dialog" aria-modal="true" aria-labelledby="category-form-title" className="w-full max-w-md rounded-lg border border-white/10 bg-[#102637] p-5 shadow-2xl">
 				<div className="mb-5 flex items-start justify-between gap-3">
 					<div>
 						<h3 id="category-form-title" className="text-[15px] font-semibold text-white">Nueva categoría</h3>
-						<p className="mt-1 text-[10px] text-slate-400">La categoría quedará activa para asignarla a activos.</p>
+						<p className="mt-1 text-[10px] text-slate-400">La categoría quedará activa para seleccionarla en los formularios.</p>
 					</div>
 					<button type="button" onClick={onCancel} title="Cerrar" aria-label="Cerrar formulario de categoría" className="text-slate-400 hover:text-white"><X size={18} /></button>
 				</div>

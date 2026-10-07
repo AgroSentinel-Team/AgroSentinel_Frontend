@@ -1,40 +1,41 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   LayoutDashboard,
   FileWarning,
   FileText,
   Tractor,
-  ClipboardList,
   AlertTriangle,
   Activity,
+  CheckCircle2,
+  RefreshCw,
+  Wrench,
 } from "lucide-react";
 import LogoutButton from "../../components/LogoutButton";
-import OrdenesTrabajo from "./OrdenesTrabajo";
 import Maquinaria from "./Maquinaria";
 import MisReportes from "./MisReportes";
 import MantenimientoPredictivo from "../Compartido/MantenimientoPredictivo";
 import FailureReportModal from "../../components/FailureReportModal";
-import { canReportFailure } from "../../services/assetService";
+import { canReportFailure, getAssignedAssets, getFailureReports } from "../../services/assetService";
+import { getCurrentUser } from "../../services/technicianService";
 
 const navigation = [
   { label: "Mi Panel", icon: LayoutDashboard },
   { label: "Reportar Falla", icon: FileWarning },
   { label: "Mis Reportes", icon: FileText },
   { label: "Maquinaria", icon: Tractor },
-  { label: "Órdenes de Trabajo", icon: ClipboardList },
   { label: "Mantenimiento", icon: Activity },
 ];
 
 export default function OperDashboard() {
   const [activeTab, setActiveTab] = useState("Mi Panel");
   const allowedToReport = canReportFailure();
+  const userName = localStorage.getItem("nombre") || "";
 
   const contentMap = {
-    "Mi Panel": <DashboardHome onReportFailure={() => setActiveTab("Reportar Falla")} />,
+    "Mi Panel": <DashboardHome onReportFailure={() => setActiveTab("Reportar Falla")} onOpenReports={() => setActiveTab("Mis Reportes")} onOpenMachinery={() => setActiveTab("Maquinaria")} />,
     "Mis Reportes": <MisReportes />,
     Maquinaria: <Maquinaria />,
-    "Órdenes de Trabajo": <OrdenesTrabajo />,
-    Mantenimiento: <MantenimientoPredictivo />,
+    Mantenimiento: <MantenimientoPredictivo assignedOnly />,
   };
 
   return (
@@ -80,7 +81,7 @@ export default function OperDashboard() {
             <LogoutButton className="text-gray-300 hover:bg-white/10 hover:text-white" />
 
             <div className="text-right">
-              <p className="text-[11px] font-semibold">Esteban Bertrano</p>
+              <p className="text-[11px] font-semibold">{userName || "Operario"}</p>
               <p className="text-[8px] text-gray-400">OPERARIO DE MAQUINARIA</p>
             </div>
 
@@ -99,103 +100,172 @@ export default function OperDashboard() {
   );
 }
 
-function DashboardHome({ onReportFailure }) {
+function DashboardHome({ onReportFailure, onOpenReports, onOpenMachinery }) {
+  const [reports, setReports] = useState([]);
+  const [assets, setAssets] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [reportCountByMonth, setReportCountByMonth] = useState([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    Promise.all([getCurrentUser(), getFailureReports(), getAssignedAssets()])
+      .then(([user, userReports, assignedAssets]) => {
+        if (cancelled) return;
+        setReports(userReports.filter((report) => report.userId === user.id));
+        setAssets(assignedAssets);
+        setReportCountByMonth(buildMonthlyReportCounts(userReports.filter((report) => report.userId === user.id)));
+      })
+      .catch((requestError) => {
+        if (!cancelled) setError(requestError.response?.data?.detail || requestError.message || "No se pudo cargar la información del panel.");
+      })
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
+  }, [refreshKey]);
+
+  const openReports = reports.filter((report) => report.estado !== "RESUELTO").length;
+  const machinesInRepair = assets.filter((asset) => asset.operationalStatus === "IN_REPAIR").length;
+  const operationalMachines = assets.filter((asset) => asset.operationalStatus === "OPERATIONAL").length;
+
   return (
     <>
-      <div className="mb-6">
-        <h1 className="text-xl font-bold">¡Hola, Esteban!</h1>
-        <p className="mt-1 text-xs text-gray-400">
-          Reporte novedades de los equipos agrícolas asignados hoy.
-        </p>
+      <div className="mb-6 flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-xl font-bold">Mi Panel</h1>
+          <p className="mt-1 text-xs text-gray-400">Resumen de tu maquinaria asignada y los reportes que has realizado.</p>
+        </div>
+        <button type="button" title="Actualizar panel" aria-label="Actualizar panel" onClick={() => { setLoading(true); setError(""); setRefreshKey((key) => key + 1); }} className="rounded-md border border-white/10 p-2 text-slate-300 hover:border-cyan-400 hover:text-cyan-300"><RefreshCw size={15} /></button>
       </div>
 
-      <div className="grid grid-cols-1 gap-5 lg:grid-cols-[1.6fr_1fr]">
-        <div className="space-y-5">
-          <div className="rounded-xl border border-blue-600 bg-[#202020] p-4">
-            <div className="flex gap-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-600/20">
-                <AlertTriangle size={18} className="text-blue-500" />
-              </div>
-
-              <div>
-                <h2 className="text-sm font-semibold text-blue-400">¿Algún equipo fallando?</h2>
-                <p className="mt-1 text-[10px] text-gray-400">
-                  Reporta rápidamente cualquier novedad que estés observando en tus equipos.
-                </p>
-              </div>
-            </div>
-
-            <button type="button" onClick={onReportFailure} className="mt-4 w-full rounded-md bg-blue-600 py-2 text-[10px] font-semibold transition hover:bg-blue-700">
-              Reportar Nueva Falla
-            </button>
+      {error && <p role="alert" className="mb-4 rounded-md border border-red-400/20 bg-red-400/10 p-3 text-[11px] text-red-200">{error}</p>}
+      {loading ? <p className="py-10 text-center text-[11px] text-slate-400">Cargando datos del operario...</p> : (
+        <>
+          <div className="mb-5 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            <MetricCard icon={Tractor} label="Maquinaria asignada" value={assets.length} tone="text-cyan-300" />
+            <MetricCard icon={CheckCircle2} label="Operativa" value={operationalMachines} tone="text-emerald-300" />
+            <MetricCard icon={Wrench} label="En reparación" value={machinesInRepair} tone="text-amber-300" />
+            <MetricCard icon={AlertTriangle} label="Reportes pendientes" value={openReports} tone="text-orange-300" />
           </div>
 
-          <div className="rounded-xl bg-[#242424] p-4">
-            <h2 className="mb-4 text-sm font-semibold">Mis Reportes Recientes</h2>
+          <div className="grid grid-cols-1 gap-5 xl:grid-cols-[1.5fr_1fr]">
+            <div className="space-y-5">
+              <div className="rounded-xl border border-cyan-400/20 bg-[#102637] p-5">
+                <div className="flex items-start gap-3">
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-cyan-400/10 text-cyan-300"><AlertTriangle size={18} /></span>
+                  <div>
+                    <h2 className="text-sm font-semibold text-white">¿Detectaste una falla?</h2>
+                    <p className="mt-1 text-[11px] text-slate-400">Regístrala para que el equipo de mantenimiento pueda atenderla.</p>
+                  </div>
+                </div>
+                <button type="button" onClick={onReportFailure} className="mt-4 rounded-md bg-cyan-600 px-4 py-2 text-[11px] font-semibold transition hover:bg-cyan-500">Reportar falla</button>
+              </div>
 
-            <div className="space-y-2">
-              <ReportItem
-                machine="Fumigadora Jacto 3030"
-                description="Fuga de manguera de retorno de presión"
-                date="Hoy, 8:30 AM"
-                status="Evaluando"
-              />
+              <section className="rounded-xl border border-white/10 bg-[#102637] p-5">
+                <div className="mb-4 flex items-center justify-between gap-3">
+                  <div>
+                    <h2 className="text-sm font-semibold">Historial reciente de reportes</h2>
+                    <p className="mt-1 text-[10px] text-slate-400">Tus reportes registrados, con su estado actual.</p>
+                  </div>
+                  <button type="button" onClick={onOpenReports} className="text-[10px] font-medium text-cyan-300 hover:text-cyan-200">Ver todos</button>
+                </div>
+                {reports.length === 0 ? <p className="rounded-md border border-white/5 p-4 text-center text-[11px] text-slate-400">Aún no tienes reportes registrados.</p> : (
+                  <div className="space-y-2">
+                    {reports.slice(0, 4).map((report) => <ReportItem key={report.id} report={report} />)}
+                  </div>
+                )}
+              </section>
+            </div>
 
-              <ReportItem
-                machine="Tractor John Deere 6125J"
-                description="Testigo de baja tensión en el tablero"
-                date="Ayer, 4:15 PM"
-                status="En Taller"
-              />
+            <div className="space-y-5">
+              <section className="rounded-xl border border-white/10 bg-[#102637] p-5">
+                <div className="mb-4 flex items-center justify-between gap-3">
+                  <div>
+                    <h2 className="text-sm font-semibold">Estado de mi maquinaria</h2>
+                    <p className="mt-1 text-[10px] text-slate-400">Estado operativo de tus equipos asignados.</p>
+                  </div>
+                  <button type="button" onClick={onOpenMachinery} className="text-[10px] font-medium text-cyan-300 hover:text-cyan-200">Ver maquinaria</button>
+                </div>
+                {assets.length === 0 ? <p className="rounded-md border border-white/5 p-4 text-center text-[11px] text-slate-400">No hay maquinaria activa asignada a tu usuario.</p> : (
+                  <div className="space-y-3">
+                    {assets.slice(0, 5).map((asset) => (
+                      <div key={asset.id} className="flex items-center justify-between gap-3 border-b border-white/5 pb-3 last:border-0 last:pb-0">
+                        <div className="min-w-0">
+                          <p className="truncate text-[11px] font-medium text-white">{asset.name}</p>
+                          <p className="mt-1 truncate text-[10px] text-slate-400">{[asset.brand, asset.model].filter(Boolean).join(" ") || "Sin marca o modelo"}</p>
+                        </div>
+                        <StatusBadge status={asset.operationalStatus} />
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </section>
+
+              <section className="rounded-xl border border-white/10 bg-[#102637] p-5">
+                <div className="mb-4 flex items-center gap-2"><Activity size={15} className="text-cyan-300" /><h2 className="text-sm font-semibold">Actividad de reportes</h2></div>
+                <div className="flex h-28 items-end gap-2">
+                  {reportCountByMonth.map(({ label, count }) => {
+                    const max = Math.max(1, ...reportCountByMonth.map((item) => item.count));
+                    return <div key={label} className="flex h-full flex-1 flex-col items-center justify-end gap-1">
+                      <span className="text-[9px] text-slate-400">{count}</span>
+                      <div title={`${count} reportes`} className="w-full max-w-8 rounded-t bg-cyan-500/80" style={{ height: `${Math.max(count ? 12 : 4, count / max * 72)}%` }} />
+                      <span className="text-[9px] text-slate-500">{label}</span>
+                    </div>;
+                  })}
+                </div>
+                <p className="mt-3 text-[9px] text-slate-500">Cantidad de reportes por mes · últimos 6 meses</p>
+              </section>
             </div>
           </div>
-        </div>
-
-        <div className="h-fit rounded-xl bg-[#292929] p-4">
-          <h2 className="mb-5 text-sm font-semibold">Disponibilidad de Maquinaria</h2>
-
-          <Availability name="Tractor John Deere 613" value={95} description="Totalmente operativo" />
-          <Availability name="Cosechadora New Holland" value={80} description="Operacional, requiere revisión" />
-          <Availability name="Fumigadora Jacto 3030" value={40} description="Fuera de servicio por falla reportada" />
-          <Availability name="Sistema de Riego Lote A" value={100} description="Presión óptima" />
-        </div>
-      </div>
+        </>
+      )}
     </>
   );
 }
 
-function ReportItem({ machine, description, date, status }) {
-  return (
-    <div className="flex items-center justify-between rounded-md border border-[#333] bg-[#292929] p-3">
-      <div>
-        <p className="text-[11px] font-semibold">{machine}</p>
-        <p className="mt-1 text-[9px] text-gray-400">{description}</p>
-        <p className="mt-1 text-[8px] text-gray-500">{date}</p>
-      </div>
-
-      <span className="rounded-sm bg-blue-600 px-2 py-1 text-[8px]">{status}</span>
-    </div>
-  );
+function buildMonthlyReportCounts(reports) {
+  const now = new Date();
+  return Array.from({ length: 6 }, (_, index) => {
+    const date = new Date(now.getFullYear(), now.getMonth() - (5 - index), 1);
+    const key = `${date.getFullYear()}-${date.getMonth()}`;
+    return {
+      label: new Intl.DateTimeFormat("es-CO", { month: "short" }).format(date),
+      count: reports.filter((report) => {
+        const reportDate = new Date(report.fechaReporte);
+        return `${reportDate.getFullYear()}-${reportDate.getMonth()}` === key;
+      }).length,
+    };
+  });
 }
 
-function Availability({ name, value, description }) {
-  return (
-    <div className="mb-4">
-      <div className="mb-1 flex justify-between">
-        <span className="text-[10px] text-gray-300">{name}</span>
-        <span className={`text-[9px] font-semibold ${value < 50 ? "text-orange-400" : "text-blue-400"}`}>
-          {value}%
-        </span>
-      </div>
+function MetricCard({ icon: Icon, label, value, tone }) {
+  return <div className="rounded-xl border border-white/10 bg-[#102637] p-4">
+    <div className="flex items-center justify-between"><span className="text-[10px] text-slate-400">{label}</span><Icon size={16} className={tone} /></div>
+    <p className="mt-3 text-2xl font-semibold text-white">{value}</p>
+  </div>;
+}
 
-      <div className="h-[5px] overflow-hidden rounded-full bg-[#3a3a3a]">
-        <div
-          className={`h-full rounded-full ${value < 50 ? "bg-orange-400" : "bg-blue-500"}`}
-          style={{ width: `${value}%` }}
-        />
-      </div>
-
-      <p className="mt-1 text-[7px] text-gray-500">{description}</p>
+function ReportItem({ report }) {
+  return <div className="flex items-center justify-between gap-3 rounded-md border border-white/5 bg-[#0b1d2a] p-3">
+    <div className="min-w-0">
+      <p className="truncate text-[11px] font-medium text-white">{report.assetName || "Activo"}</p>
+      <p className="mt-1 truncate text-[10px] text-slate-400">{report.tipoFalla} · {formatDate(report.fechaReporte)}</p>
     </div>
-  );
+    <StatusBadge status={report.estado} report />
+  </div>;
+}
+
+function StatusBadge({ status, report = false }) {
+  const labels = report
+    ? { PENDIENTE: "Pendiente", EN_REVISION: "En revisión", RESUELTO: "Resuelto" }
+    : { OPERATIONAL: "Operativa", OPERATIONAL_WITH_RESTRICTIONS: "Con restricciones", IN_REPAIR: "En reparación", OBSOLETE: "Fuera de servicio" };
+  const tones = report
+    ? { PENDIENTE: "bg-amber-400/10 text-amber-200", EN_REVISION: "bg-cyan-400/10 text-cyan-200", RESUELTO: "bg-emerald-400/10 text-emerald-200" }
+    : { OPERATIONAL: "bg-emerald-400/10 text-emerald-200", OPERATIONAL_WITH_RESTRICTIONS: "bg-amber-400/10 text-amber-200", IN_REPAIR: "bg-orange-400/10 text-orange-200", OBSOLETE: "bg-slate-400/10 text-slate-300" };
+  return <span className={`shrink-0 rounded-full px-2 py-1 text-[9px] font-semibold ${tones[status] || "bg-slate-400/10 text-slate-300"}`}>{labels[status] || status || "Sin estado"}</span>;
+}
+
+function formatDate(value) {
+  if (!value) return "Fecha no disponible";
+  return new Intl.DateTimeFormat("es-CO", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value));
 }

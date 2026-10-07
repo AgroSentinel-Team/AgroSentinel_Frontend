@@ -9,6 +9,8 @@ const failureReportApi = createApi(`${API_ROOT}/failure-reports`, false);
 
 export const getAssets = async () => (await assetApi.get('')).data;
 
+export const getAssignedAssets = async () => (await assetApi.get('/assigned')).data;
+
 export const createAsset = async (asset) => (await assetApi.post('', asset)).data;
 
 export const updateAsset = async (id, asset) => (await assetApi.put(`/${id}`, asset)).data;
@@ -18,6 +20,8 @@ export const deactivateAsset = async (id) => (await assetApi.patch(`/${id}/deact
 export const deleteAsset = async (id) => assetApi.delete(`/${id}`);
 
 export const getAssetResume = async (id) => (await assetApi.get(`/${id}/resume`)).data;
+
+export const getAssignedAssetResume = async (id) => (await assetApi.get(`/assigned/${id}/resume`)).data;
 
 export const getPredictiveAssets = async () => (await predictiveApi.get('/predictive/assets')).data;
 

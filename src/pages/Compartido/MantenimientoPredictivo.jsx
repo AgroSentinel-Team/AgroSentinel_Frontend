@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Activity, AlertTriangle, CheckCircle2, Clock3, Gauge, Wrench, RefreshCcw } from 'lucide-react';
-import { getPredictiveAssets, savePredictiveFeedback } from '../../services/assetService';
+import { getAssignedAssets, getPredictiveAssets, savePredictiveFeedback } from '../../services/assetService';
 import { requestPreventiveSchedule } from '../../services/preventiveMaintenanceNavigation';
 
 const FAILURE_TYPES = ['Normal', 'Vibration Issue', 'Overheating', 'Pressure Drop', 'Electrical Fault'];
@@ -57,7 +57,18 @@ function mapPredictiveAssets(data) {
   });
 }
 
-export default function MantenimientoPredictivo() {
+async function loadPredictiveEquipment(assignedOnly) {
+  if (!assignedOnly) return mapPredictiveAssets(await getPredictiveAssets());
+
+  const [predictiveAssets, assignedAssets] = await Promise.all([
+    getPredictiveAssets(),
+    getAssignedAssets(),
+  ]);
+  const assignedAssetIds = new Set(assignedAssets.map((asset) => asset.id));
+  return mapPredictiveAssets(predictiveAssets.filter((asset) => assignedAssetIds.has(asset.assetId)));
+}
+
+export default function MantenimientoPredictivo({ assignedOnly = false }) {
   const [equipment, setEquipment] = useState([]);
   const [selectedId, setSelectedId] = useState(null);
   const [filter, setFilter] = useState('Todos');
@@ -74,7 +85,7 @@ export default function MantenimientoPredictivo() {
     setLoading(true);
     setLoadError('');
     try {
-      const mappedData = mapPredictiveAssets(await getPredictiveAssets());
+      const mappedData = await loadPredictiveEquipment(assignedOnly);
       setEquipment(mappedData);
       setSelectedId((current) => mappedData.some((item) => item.id === current) ? current : mappedData[0]?.id ?? null);
     } catch (error) {
@@ -86,10 +97,9 @@ export default function MantenimientoPredictivo() {
 
   useEffect(() => {
     let cancelled = false;
-    getPredictiveAssets()
-      .then((data) => {
+    loadPredictiveEquipment(assignedOnly)
+      .then((mappedData) => {
         if (cancelled) return;
-        const mappedData = mapPredictiveAssets(data);
         setEquipment(mappedData);
         setSelectedId((current) => mappedData.some((item) => item.id === current) ? current : mappedData[0]?.id ?? null);
       })
@@ -100,7 +110,7 @@ export default function MantenimientoPredictivo() {
         if (!cancelled) setLoading(false);
       });
     return () => { cancelled = true; };
-  }, []);
+  }, [assignedOnly]);
 
   const selected = equipment.find((item) => item.id === selectedId) || equipment[0];
   const feedbackValue = feedbackDraft?.recordId != null
@@ -171,7 +181,7 @@ export default function MantenimientoPredictivo() {
   }
 
   if (equipment.length === 0) {
-    return <div className="p-10 text-center text-slate-400">{loadError || 'No hay activos marcados con motor.'}</div>;
+    return <div className="p-10 text-center text-slate-400">{loadError || (assignedOnly ? 'No tienes activos asignados con motor y telemetría predictiva.' : 'No hay activos marcados con motor.')}</div>;
   }
 
   return (
