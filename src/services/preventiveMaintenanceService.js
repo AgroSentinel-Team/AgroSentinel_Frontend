@@ -1,7 +1,6 @@
-import { API_ROOT, createApi } from './apiClient';
+import { API_ORIGIN, API_ROOT, createApi } from './apiClient';
 
 const maintenanceApi = createApi(`${API_ROOT}/preventive-maintenances`, false);
-const API_ORIGIN = API_ROOT.replace(/\/api\/?$/, '');
 
 export const getPreventiveMaintenances = async () => (await maintenanceApi.get('')).data;
 

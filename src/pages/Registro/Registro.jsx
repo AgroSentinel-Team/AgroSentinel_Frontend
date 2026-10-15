@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
+import { API_ROOT } from '../../services/apiClient';
 import { User, Mail, Lock, EyeOff, Eye, Briefcase, XCircle } from 'lucide-react';
 
 export default function Registro() {
@@ -34,7 +35,7 @@ export default function Registro() {
     setLoading(true);
 
     try {
-      await axios.post('http://localhost:8080/api/auth/registro', formData);
+      await axios.post(`${API_ROOT}/auth/registro`, formData);
       setSuccess('Usuario creado correctamente. Redirigiendo al login...');
       setTimeout(() => navigate('/login'), 2000);
     } catch (err) {

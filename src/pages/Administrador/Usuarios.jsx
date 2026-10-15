@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import axios from 'axios';
+import { API_ROOT } from '../../services/apiClient';
 import { expireSession } from '../../services/sessionService';
 import {
   CheckCircle2,
@@ -22,8 +23,6 @@ const roles = [
   { value: 'OPERATIVO_CAMPO', label: 'Usuario operativo de campo' },
   { value: 'ADMINISTRADOR', label: 'Administrador' },
 ];
-
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
 
 const emptyForm = { name: '', email: '', role: 'TECNICO', password: '' };
 const inputClass = 'w-full rounded-md border border-[#36556f] bg-[#102a3d] px-3 py-2.5 text-sm text-white outline-none transition placeholder:text-slate-400 focus:border-cyan-400';
@@ -78,7 +77,7 @@ export default function Usuarios() {
       setIsLoading(true);
       setRequestError('');
       try {
-        const response = await axios.get(`${API_BASE_URL}/api/usuarios`, authConfig());
+        const response = await axios.get(`${API_ROOT}/usuarios`, authConfig());
         if (isCurrent) setUsers(response.data.map(fromApiUser));
       } catch (error) {
         if (isCurrent) setRequestError(getApiError(error));
@@ -119,8 +118,8 @@ export default function Usuarios() {
     const payload = { nombre: form.name.trim(), email: form.email.trim(), rol: form.role };
     try {
       const response = editingUser
-        ? await axios.put(`${API_BASE_URL}/api/usuarios/${editingUser.id}`, payload, authConfig())
-        : await axios.post(`${API_BASE_URL}/api/usuarios`, { ...payload, password: form.password }, authConfig());
+        ? await axios.put(`${API_ROOT}/usuarios/${editingUser.id}`, payload, authConfig())
+        : await axios.post(`${API_ROOT}/usuarios`, { ...payload, password: form.password }, authConfig());
       const savedUser = fromApiUser(response.data);
       setUsers((current) => editingUser
         ? current.map((user) => user.id === savedUser.id ? savedUser : user)
@@ -137,7 +136,7 @@ export default function Usuarios() {
     setBusyUserId(userId);
     setRequestError('');
     try {
-      const response = await axios.patch(`${API_BASE_URL}/api/usuarios/${userId}/rol`, { rol: role }, authConfig());
+      const response = await axios.patch(`${API_ROOT}/usuarios/${userId}/rol`, { rol: role }, authConfig());
       const updatedUser = fromApiUser(response.data);
       setUsers((current) => current.map((user) => user.id === userId ? updatedUser : user));
     } catch (error) {
@@ -151,7 +150,7 @@ export default function Usuarios() {
     setBusyUserId(user.id);
     setRequestError('');
     try {
-      const response = await axios.patch(`${API_BASE_URL}/api/usuarios/${user.id}/estado`, { activo: !user.active }, authConfig());
+      const response = await axios.patch(`${API_ROOT}/usuarios/${user.id}/estado`, { activo: !user.active }, authConfig());
       const updatedUser = fromApiUser(response.data);
       setUsers((current) => current.map((item) => item.id === user.id ? updatedUser : item));
     } catch (error) {
@@ -166,7 +165,7 @@ export default function Usuarios() {
     setIsDeleting(true);
     setRequestError('');
     try {
-      await axios.delete(`${API_BASE_URL}/api/usuarios/${userToDelete.id}`, authConfig());
+      await axios.delete(`${API_ROOT}/usuarios/${userToDelete.id}`, authConfig());
       setUsers((current) => current.filter((user) => user.id !== userToDelete.id));
       setUserToDelete(null);
       setDeleteConfirmation('');

@@ -1,7 +1,8 @@
 import axios, { AxiosHeaders } from 'axios';
 import { expireSession, expireSessionIfTokenExpired, hasUnexpiredToken } from './sessionService';
 
-export const API_ROOT = (import.meta.env.VITE_API_URL || 'http://localhost:8080/api').replace(/\/+$/, '');
+export const API_ORIGIN = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080').replace(/\/+$/, '');
+export const API_ROOT = `${API_ORIGIN}/api`;
 
 export function createApi(baseURL = API_ROOT, json = true) {
   const api = axios.create({
