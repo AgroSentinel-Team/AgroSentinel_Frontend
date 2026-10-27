@@ -4,6 +4,21 @@ import { getAssignedAssets, getPredictiveAssets, savePredictiveFeedback } from '
 import { requestPreventiveSchedule } from '../../services/preventiveMaintenanceNavigation';
 
 const FAILURE_TYPES = ['Normal', 'Vibration Issue', 'Overheating', 'Pressure Drop', 'Electrical Fault'];
+const FAILURE_TYPE_LABELS = {
+  Normal: 'Normal',
+  'Vibration Issue': 'Problema de vibración',
+  Overheating: 'Sobrecalentamiento',
+  'Pressure Drop': 'Caída de presión',
+  'Electrical Fault': 'Falla eléctrica',
+};
+
+function traducirDiagnostico(texto) {
+  if (typeof texto !== 'string') return texto;
+  return Object.entries(FAILURE_TYPE_LABELS).reduce(
+    (resultado, [original, traducido]) => resultado.replaceAll(original, traducido),
+    texto,
+  );
+}
 
 const riskStyles = {
   Alto: 'border-red-400/30 bg-red-500/10 text-red-300',
@@ -51,7 +66,7 @@ function mapPredictiveAssets(data) {
       health: healthValue,
       risk: !record ? 'Sin datos' : isAlert ? 'Alto' : 'Bajo',
       nextService: !record ? 'Sin lecturas' : isAlert ? 'Inmediato' : 'Según plan preventivo',
-      signal: record?.affectedComponents || 'Sin lecturas registradas',
+      signal: traducirDiagnostico(record?.affectedComponents || 'Sin lecturas registradas'),
       record,
     };
   });
@@ -66,6 +81,39 @@ async function loadPredictiveEquipment(assignedOnly) {
   ]);
   const assignedAssetIds = new Set(assignedAssets.map((asset) => asset.id));
   return mapPredictiveAssets(predictiveAssets.filter((asset) => assignedAssetIds.has(asset.assetId)));
+}
+
+function getMlopsRecommendation(record) {
+  if (!record) {
+    return 'Este motor todavía no tiene lecturas predictivas registradas.';
+  }
+
+  const tipoFallaPredicha = record.tipoFallaPredicha;
+  const tendenciaLstm = record.tendencia_lstm ?? record.tendenciaLstm;
+  const confianzaLstm = record.confianza_lstm ?? record.confianzaLstm;
+  const confianzaValida = confianzaLstm != null && Number.isFinite(Number(confianzaLstm));
+
+  if (typeof tipoFallaPredicha !== 'string' || typeof tendenciaLstm !== 'string' || !confianzaValida) {
+    return 'La recomendación de contexto temporal no está disponible para esta lectura.';
+  }
+
+  const confianzaPct = Math.round(Number(confianzaLstm) * 100);
+  const fallaPredichaEs = traducirDiagnostico(tipoFallaPredicha);
+  const tendenciaLstmEs = traducirDiagnostico(tendenciaLstm);
+
+  if (tipoFallaPredicha === 'Normal' && tendenciaLstm !== 'Normal') {
+    return `⚠️ Alerta Temprana de Degradación: Los parámetros instantáneos están estables, pero la red neuronal histórica advierte con un ${confianzaPct}% de seguridad que el motor se dirige hacia un ${tendenciaLstmEs}. Se sugiere revisión preventiva temprana.`;
+  }
+
+  if (tipoFallaPredicha !== 'Normal' && tendenciaLstm === tipoFallaPredicha) {
+    return `🚨 Falla Crítica Confirmada: Anomalía de ${fallaPredichaEs} detectada en tiempo real y respaldada por el desgaste histórico (${confianzaPct}%). Detener equipo inmediatamente.`;
+  }
+
+  if (tipoFallaPredicha === 'Normal' && tendenciaLstm === 'Normal') {
+    return `✅ Operación Óptima: El ensamble instantáneo y el análisis temporal (${confianzaPct}%) coinciden en que el motor opera con normalidad. Continuar ciclos regulares.`;
+  }
+
+  return `⚠️ Precaución: El modelo instantáneo detecta ${fallaPredichaEs} pero la tendencia histórica marca ${tendenciaLstmEs}. Requiere inspección manual para confirmar.`;
 }
 
 export default function MantenimientoPredictivo({ assignedOnly = false }) {
@@ -135,7 +183,7 @@ export default function MantenimientoPredictivo({ assignedOnly = false }) {
     const predictiveRisk = record.predictionClass === 1 ? 'Alto' : 'Bajo';
     const measurements = [
       `Riesgo predictivo: ${predictiveRisk}`,
-      `Falla o señal detectada: ${record.affectedComponents || 'Sin detalle'}`,
+      `Falla o señal detectada: ${traducirDiagnostico(record.affectedComponents || 'Sin detalle')}`,
       `Confianza del modelo: ${selected.confidence}%`,
       `Temperatura: ${record.temperature} °C`,
       `Vibración: ${record.vibration} Hz`,
@@ -248,7 +296,7 @@ export default function MantenimientoPredictivo({ assignedOnly = false }) {
                 <div className="mt-3 space-y-1.5">
                   <div className="flex items-center justify-between text-[9px] text-slate-400">
                     <span>Estado de salud del motor</span>
-                    <span className="font-semibold text-slate-300">{item.record ? `${item.confidence}% confianza de predicción (IA)` : 'Sin lecturas'}</span>
+                    <span className="font-semibold text-slate-300">{item.record ? `${item.confidence}% respaldo del diagnóstico` : 'Sin lecturas'}</span>
                   </div>
                   <div className="flex items-center gap-3">
                     <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-slate-700">
@@ -285,8 +333,23 @@ export default function MantenimientoPredictivo({ assignedOnly = false }) {
             <div className="mt-4 rounded-lg border border-amber-400/20 bg-amber-500/10 p-3">
               <div className="flex items-center gap-2 text-amber-300"><Clock3 size5={14} /><span className="text-[10px] font-semibold uppercase tracking-[0.12em]">Recomendación MLOps</span></div>
               <p className="mt-2 text-[11px] leading-relaxed text-amber-100">
-                {!selected.record ? 'Este motor todavía no tiene lecturas predictivas registradas.' : selected.risk === 'Alto' ? 'Detener equipo inmediatamente. El modelo detecta una falla inminente en los componentes listados en la señal.' : 'El modelo indica operación normal. Continuar con los ciclos de mantenimiento preventivo regulares.'}
+                {getMlopsRecommendation(selected.record)}
               </p>
+              {selected.record && (
+                <div className="mt-3 border-t border-amber-300/15 pt-3">
+                  <p className="text-[9px] font-semibold uppercase tracking-[0.1em] text-amber-200">¿Por qué este porcentaje?</p>
+                  <p className="mt-1 text-[10px] leading-relaxed text-amber-100/80">
+                    {traducirDiagnostico(selected.record.razonConfianza
+                      || selected.record.razon_confianza
+                      || 'No se guardó el desglose de votos para esta lectura. Las nuevas predicciones incluirán la explicación.')}
+                  </p>
+                  {selected.record.confianzaLstm != null && (
+                    <p className="mt-2 text-[10px] text-slate-300">
+                      Tendencia LSTM: {traducirDiagnostico(selected.record.tendenciaLstm || 'No disponible')} · confianza de clase {Math.round(Number(selected.record.confianzaLstm) * 100)}%.
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
 
             {selected.record && (
@@ -294,11 +357,11 @@ export default function MantenimientoPredictivo({ assignedOnly = false }) {
                 <div>
                   <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-cyan-200">Validación del técnico</p>
                   <p className="mt-1 text-[10px] text-slate-300">
-                    Predicción IA: {selected.record.tipoFallaPredicha || 'No disponible'}
+                    Predicción IA: {traducirDiagnostico(selected.record.tipoFallaPredicha || 'No disponible')}
                   </p>
                   {selected.record.fallaRealConfirmada && (
                     <p className="mt-1 text-[10px] text-emerald-300">
-                      Falla confirmada: {selected.record.fallaRealConfirmada}
+                      Falla confirmada: {traducirDiagnostico(selected.record.fallaRealConfirmada)}
                     </p>
                   )}
                 </div>
@@ -316,7 +379,7 @@ export default function MantenimientoPredictivo({ assignedOnly = false }) {
                 >
                   <option value="">Selecciona la falla real</option>
                   {[...new Set([...FAILURE_TYPES, selected.record.tipoFallaPredicha].filter(Boolean))].map((failureType) => (
-                    <option key={failureType} value={failureType}>{failureType}</option>
+                    <option key={failureType} value={failureType}>{traducirDiagnostico(failureType)}</option>
                   ))}
                 </select>
                 <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
