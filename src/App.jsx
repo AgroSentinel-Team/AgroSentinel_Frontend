@@ -80,7 +80,7 @@ export default function App() {
     <BrowserRouter>
       <SessionExpiredNotice />
       <Routes>
-        <Route path="/" element={<Navigate to="/login" replace />} />
+        <Route path="/" element={<Login />} />
         <Route path="/login" element={<Login />} />
         <Route path="/registro" element={<Registro />} />
         <Route path="/admin/dashboard" element={<ProtectedRoute allowedRoles={['ADMIN', 'ADMINISTRADOR']}><AdminDashboard /></ProtectedRoute>} />
@@ -90,6 +90,7 @@ export default function App() {
         <Route path="/tecnico/mantenimiento-preventivo" element={<ProtectedRoute allowedRoles={['TECNICO']}><PreventiveMaintenance /></ProtectedRoute>} />
         <Route path="/almacen/dashboard" element={<ProtectedRoute allowedRoles={['ALMACENISTA']}><AlmacenDashboard /></ProtectedRoute>} />
         <Route path="/operativo/dashboard" element={<ProtectedRoute allowedRoles={['OPERARIO_CAMPO', 'OPERATIVO_CAMPO']}><OperDashboard /></ProtectedRoute>} />
+        <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </BrowserRouter>
   );
