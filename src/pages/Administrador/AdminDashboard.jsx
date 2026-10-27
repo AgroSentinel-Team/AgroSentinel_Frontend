@@ -1,6 +1,25 @@
-import { useEffect, useState } from 'react';
-import { Activity, ArrowDownLeft, ArrowUpRight, BarChart3, Bell, ClipboardCheck, FileWarning, LayoutDashboard, Package, Tractor, Users, UsersRound } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import {
+  Activity,
+  ArrowDownLeft,
+  ArrowUpRight,
+  BarChart3,
+  Bell,
+  ChevronDown,
+  ClipboardCheck,
+  FileWarning,
+  LayoutDashboard,
+  Package,
+  Tractor,
+  Users,
+  UsersRound,
+  X,
+} from 'lucide-react';
 import LogoutButton from '../../components/LogoutButton';
+import { getAssets, getFailureReports, getPredictiveAssets } from '../../services/assetService';
+import { getCurrentUser } from '../../services/technicianService';
+import { getPreventiveMaintenances } from '../../services/preventiveMaintenanceService';
+import { OPEN_PREVENTIVE_SCHEDULE_EVENT } from '../../services/preventiveMaintenanceNavigation';
 import Usuarios from './Usuarios';
 import GruposTrabajo from './GruposTrabajo';
 import Activos from './Activos';
@@ -11,7 +30,7 @@ import Reportes from '../Compartido/Reportes';
 import MantenimientoPredictivo from '../Compartido/MantenimientoPredictivo';
 import PreventiveMaintenance from '../Compartido/PreventiveMaintenance';
 import ReporteFallas from './ReporteFallas';
-import { OPEN_PREVENTIVE_SCHEDULE_EVENT } from '../../services/preventiveMaintenanceNavigation';
+import AdminDashboardHome from './AdminDashboardHome';
 
 const navigation = [
   { label: 'Dashboard', icon: LayoutDashboard },
@@ -27,210 +46,93 @@ const navigation = [
   { label: 'Mantenimiento Preventivo', icon: ClipboardCheck },
 ];
 
-const stats = [
-  { title: 'REPORTES NUEVOS', value: '5' },
-  { title: 'EN EVALUACIÓN', value: '3' },
-  { title: 'EN TALLER', value: '4' },
-  { title: 'RESULTADOS ESTE MES', value: '12' },
-];
+const EMPTY_DASHBOARD_DATA = {
+  assets: null,
+  reports: null,
+  predictiveAssets: null,
+  maintenances: null,
+};
 
-const reports = [
-  {
-    id: 'RF-001',
-    category: 'Hidráulica',
-    title: 'Fumigadora Jacto 3030',
-    summary: 'Se detectó fuga de aceite en la manga de retorno de presión del sistema hidráulico.',
-    time: 'Hoy, 09:30 AM',
-    accent: 'border border-cyan-400/40 bg-[#173d4f] text-cyan-300',
-    button: 'bg-[#836e20] text-amber-100',
-  },
-  {
-    id: 'RF-002',
-    category: 'Eléctrica',
-    title: 'Tractor John Deere 6125J',
-    summary: 'Falla en la batería y conexión de arranque, se observa desgaste en los terminales.',
-    time: 'Ayer, 04:15 PM',
-    accent: 'border border-amber-400/30 bg-[#3e3625] text-amber-300',
-    button: 'bg-[#0d7ca3] text-cyan-100',
-  },
-  {
-    id: 'RF-003',
-    category: 'Mecánica',
-    title: 'Cosechadora New Holland',
-    summary: 'Se observa vibración en la banda de transporte y desgaste en el sistema de presión.',
-    time: '26 Ago 2025, 02:00 PM',
-    accent: 'border border-emerald-400/30 bg-[#1a382d] text-emerald-300',
-    button: 'bg-[#1f654a] text-emerald-100',
-  },
-];
-
-function DashboardHome() {
-  const [selectedReport, setSelectedReport] = useState(reports[0]);
-  const [assignment, setAssignment] = useState('');
-
-  const assignReport = () => {
-    setAssignment(`OT generada para ${selectedReport.id}`);
-  };
-
+function displayError(error) {
   return (
-    <>
-      <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        {stats.map((stat) => (
-          <div
-            key={stat.title}
-            className="rounded-xl border border-[#2d4055] bg-[#172c3d] px-4 py-4"
-          >
-            <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-slate-400">
-              {stat.title}
-            </p>
-            <p className="mt-3 text-[28px] font-bold leading-none text-white">{stat.value}</p>
-          </div>
-        ))}
-      </section>
-
-      <section className="mt-4 grid grid-cols-1 gap-5 xl:grid-cols-[1.38fr_0.95fr]">
-        <div className="rounded-xl border border-[#2d4055] bg-[#13293a] p-4">
-          <h2 className="text-[14px] font-semibold text-white">
-            Reportes Pendientes de Revisión (3)
-          </h2>
-
-          <div className="mt-4 space-y-3">
-            {reports.map((report) => (
-              <div
-                key={report.id}
-                className={`rounded-lg p-3 ${report.accent}`}
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.1em]">
-                      <span>{report.id}</span>
-                      <span className="text-slate-400">• {report.category}</span>
-                    </div>
-                    <p className="mt-2 text-[14px] font-semibold text-white">{report.title}</p>
-                    <p className="mt-1 text-[11px] leading-relaxed text-slate-300">{report.summary}</p>
-                    <p className="mt-2 text-[11px] text-slate-400">{report.time}</p>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={() => setSelectedReport(report)}
-                    className={`rounded-md px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.08em] ${report.button}`}
-                  >
-                    Revisar
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <aside className="rounded-xl border border-[#2d4055] bg-[#102a3d] p-4">
-          <div className="flex items-start justify-between gap-3">
-            <h2 className="text-[14px] font-semibold text-white">Detalle del reporte {selectedReport.id}</h2>
-            <span className="rounded-full border border-cyan-400/40 bg-cyan-400/10 px-2 py-1 text-[11px] font-medium uppercase tracking-[0.1em] text-cyan-300">
-              Urgencia: Media
-            </span>
-          </div>
-
-          <div className="mt-4 grid grid-cols-2 gap-3 text-[11px] text-slate-300">
-            <div>
-              <p className="text-slate-400">Equipo</p>
-              <p className="mt-1 font-medium text-white">{selectedReport.title}</p>
-            </div>
-            <div>
-              <p className="text-slate-400">Tipo falla</p>
-              <p className="mt-1 font-medium text-white">{selectedReport.category}</p>
-            </div>
-            <div>
-              <p className="text-slate-400">Ubicación</p>
-              <p className="mt-1 font-medium text-white">Lote 4 - Sector Norte</p>
-            </div>
-            <div>
-              <p className="text-slate-400">Fecha evento</p>
-              <p className="mt-1 font-medium text-white">2025-08-27 / 09:30 AM</p>
-            </div>
-          </div>
-
-          <div className="mt-4">
-            <p className="text-[11px] uppercase tracking-[0.12em] text-slate-400">
-              Descripción del operador
-            </p>
-            <p className="mt-2 text-[11px] leading-relaxed text-slate-300">
-              {selectedReport.summary}
-            </p>
-          </div>
-
-          <div className="mt-4 rounded-xl border border-[#304d5e] bg-[#1d3242] p-3">
-            <p className="text-[11px] text-slate-400">Esteban Restrepo</p>
-            <p className="mt-1 text-[11px] font-medium text-white">Responsable del área</p>
-          </div>
-
-          <div className="mt-4 space-y-3">
-            <div>
-              <label className="block text-[11px] uppercase tracking-[0.12em] text-slate-400">
-                Técnico responsable
-              </label>
-              <select className="mt-2 w-full rounded-xl border border-[#36556f] bg-[#1a2c3d] px-3 py-2.5 text-[11px] text-white outline-none focus:border-cyan-400">
-                <option>Ing. Héctor Fabián Ortiz</option>
-                <option>Ing. Mariana López</option>
-                <option>Ing. Daniel Rojas</option>
-              </select>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-[11px] uppercase tracking-[0.12em] text-slate-400">
-                  Prioridad de atención
-                </label>
-                <select className="mt-2 w-full rounded-xl border border-[#36556f] bg-[#1a2c3d] px-3 py-2.5 text-[11px] text-white outline-none focus:border-cyan-400">
-                  <option>Alta</option>
-                  <option>Media</option>
-                  <option>Baja</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-[11px] uppercase tracking-[0.12em] text-slate-400">
-                  Tiempo estimado
-                </label>
-                <select className="mt-2 w-full rounded-xl border border-[#36556f] bg-[#1a2c3d] px-3 py-2.5 text-[11px] text-white outline-none focus:border-cyan-400">
-                  <option>3 Horas</option>
-                  <option>6 Horas</option>
-                  <option>1 Día</option>
-                </select>
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-[11px] uppercase tracking-[0.12em] text-slate-400">
-                Notas administrativas
-              </label>
-              <textarea
-                rows="3"
-                className="mt-2 w-full resize-none rounded-xl border border-[#36556f] bg-[#1a2c3d] px-3 py-2.5 text-[11px] text-white outline-none focus:border-cyan-400"
-                defaultValue="Llevar manguera de alta presión y juego de acoples rápidos de repuesto."
-              />
-            </div>
-          </div>
-
-          <button
-            type="button"
-            onClick={assignReport}
-            className="mt-5 w-full rounded-xl border border-cyan-300/40 bg-gradient-to-r from-[#0d7ca3] to-blue-600 px-4 py-3 text-[12px] font-bold uppercase tracking-[0.08em] text-white shadow-[0_8px_18px_rgba(14,165,233,0.2)] transition hover:from-[#0c6b8c] hover:to-blue-700"
-          >
-            Asignar Técnico y Generar OT
-          </button>
-          {assignment && <p className="mt-3 text-center text-[11px] font-semibold text-emerald-300">{assignment}</p>}
-        </aside>
-      </section>
-    </>
+    error.response?.data?.message ||
+    error.response?.data?.detail ||
+    error.message ||
+    'Error de conexión'
   );
+}
+
+function initials(name) {
+  return (name || 'A')
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() || '')
+    .join('');
 }
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState('Dashboard');
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [predictivePrefill, setPredictivePrefill] = useState(null);
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [dashboardData, setDashboardData] = useState(EMPTY_DASHBOARD_DATA);
+  const [dashboardErrors, setDashboardErrors] = useState([]);
+  const [dashboardLoading, setDashboardLoading] = useState(true);
+  const [refreshedAt, setRefreshedAt] = useState(null);
+  const [currentUser, setCurrentUser] = useState(null);
+
+  useEffect(() => {
+    let active = true;
+    const sources = [
+      { key: 'assets', label: 'Activos', request: getAssets },
+      { key: 'reports', label: 'Reportes de fallas', request: getFailureReports },
+      { key: 'predictiveAssets', label: 'Telemetría predictiva', request: getPredictiveAssets },
+      { key: 'maintenances', label: 'Mantenimiento preventivo', request: getPreventiveMaintenances },
+    ];
+
+    Promise.allSettled([
+      ...sources.map((source) => source.request()),
+      getCurrentUser(),
+    ]).then((results) => {
+      if (!active) return;
+      const nextData = { ...EMPTY_DASHBOARD_DATA };
+      const nextErrors = [];
+
+      sources.forEach((source, index) => {
+        const result = results[index];
+        if (result.status === 'fulfilled' && Array.isArray(result.value)) {
+          nextData[source.key] = result.value;
+        } else {
+          nextErrors.push(
+            `${source.label}: ${
+              result.status === 'rejected'
+                ? displayError(result.reason)
+                : 'respuesta inesperada del servidor'
+            }`
+          );
+        }
+      });
+
+      const userResult = results[sources.length];
+      if (userResult.status === 'fulfilled') {
+        setCurrentUser(userResult.value);
+      } else {
+        setCurrentUser(null);
+        nextErrors.push(`Perfil: ${displayError(userResult.reason)}`);
+      }
+
+      setDashboardData(nextData);
+      setDashboardErrors(nextErrors);
+      setRefreshedAt(new Date());
+      setDashboardLoading(false);
+    });
+
+    return () => {
+      active = false;
+    };
+  }, [refreshKey]);
 
   useEffect(() => {
     const openPreventiveSchedule = (event) => {
@@ -241,8 +143,29 @@ export default function AdminDashboard() {
     return () => window.removeEventListener(OPEN_PREVENTIVE_SCHEDULE_EVENT, openPreventiveSchedule);
   }, []);
 
+  const openReportsCount = useMemo(
+    () => dashboardData.reports?.filter((report) => report.estado !== 'RESUELTO').length ?? null,
+    [dashboardData.reports]
+  );
+  const userName = currentUser?.nombre || 'Cuenta administradora';
+  const userRole = currentUser?.rol || currentUser?.roles?.[0] || 'ADMINISTRADOR';
+  const roleLabel = String(userRole).replace(/^ROLE_/, '').replaceAll('_', ' ');
+
+  const refreshDashboard = () => {
+    setDashboardLoading(true);
+    setRefreshKey((key) => key + 1);
+  };
+
   const content = {
-    Dashboard: <DashboardHome />,
+    Dashboard: (
+      <AdminDashboardHome
+        data={dashboardData}
+        loading={dashboardLoading}
+        errors={dashboardErrors}
+        refreshedAt={refreshedAt}
+        onRefresh={refreshDashboard}
+      />
+    ),
     Usuarios: <Usuarios />,
     'Grupos de Trabajo': <GruposTrabajo />,
     Activos: <Activos />,
@@ -261,75 +184,191 @@ export default function AdminDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-[#020d16]">
+    <div className="min-h-screen bg-[#020d16] text-white overflow-x-hidden">
       <div className="flex min-h-screen w-full overflow-hidden bg-[#020d16]">
-        <aside className="hidden w-[190px] shrink-0 border-r border-[#1b2f3f] bg-[#0d1f2d] md:block">
-          <div className="flex h-[58px] items-center gap-2 border-b border-[#1b2f3f] px-4">
-            <div className="flex h-[26px] w-[26px] items-center justify-center rounded-md bg-[#0f9ec7] text-[11px] font-bold text-white">
+        {/* Sidebar Escritorio */}
+        <aside className="hidden w-[220px] lg:w-[240px] shrink-0 border-r border-[#1b2f3f] bg-[#0d1f2d] md:block min-h-screen">
+          <div className="flex h-[60px] items-center gap-2.5 border-b border-[#1b2f3f] px-4">
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#0f9ec7] text-xs font-bold text-white shadow-md shadow-cyan-950/40">
               A
             </div>
-            <span className="text-[14px] font-semibold text-cyan-300">AgroSentinel</span>
+            <span className="text-base font-bold text-cyan-300 tracking-wide">AgroSentinel</span>
           </div>
 
-          <nav className="space-y-1 px-3 py-4">
+          <nav className="space-y-1 p-3 overflow-y-auto max-h-[calc(100vh-60px)]" aria-label="Navegación administrativa">
             {navigation.map(({ label, icon: Icon }) => (
               <button
                 key={label}
                 type="button"
                 onClick={() => setActiveTab(label)}
-                className={`flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-left text-[11px] transition ${
+                aria-current={activeTab === label ? 'page' : undefined}
+                className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-xs font-medium transition-all min-h-[44px] ${
                   activeTab === label
-                    ? 'bg-[#143c50] text-cyan-200 shadow-[inset_0_1px_0_rgba(125,211,252,0.1)]'
-                    : 'text-slate-300 hover:bg-[#143c50] hover:text-white'
+                    ? 'bg-[#143c50] text-cyan-200 shadow-[inset_0_1px_0_rgba(125,211,252,0.15)] border border-cyan-500/20'
+                    : 'text-slate-300 hover:bg-[#143c50]/60 hover:text-white'
                 }`}
               >
-                <Icon size={15} strokeWidth={1.8} />
-                {label}
+                <Icon size={18} strokeWidth={1.8} className="shrink-0" />
+                <span className="truncate">{label}</span>
               </button>
             ))}
           </nav>
         </aside>
 
+        {/* Layout Principal */}
         <main className="flex min-w-0 flex-1 flex-col bg-[#020d16]">
-          <header className="flex min-h-[58px] items-center justify-between gap-3 border-b border-[#1f3446] bg-[#0d2437] px-5">
-            <div className="flex min-w-0 items-center gap-3">
-              <span className="text-[14px] font-semibold text-cyan-300">AgroSentinel</span>
-              <span className="text-slate-500">|</span>
-              <span className="truncate text-[11px] font-semibold text-slate-300">{activeTab}</span>
+          {/* Header Superior */}
+          <header className="sticky top-0 z-40 flex min-h-[60px] items-center justify-between gap-2 border-b border-[#1f3446] bg-[#0d2437]/95 backdrop-blur-md px-3 sm:px-5">
+            <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+              <span className="text-sm sm:text-base font-bold text-cyan-300 tracking-wide truncate">
+                AgroSentinel
+              </span>
+              <span className="text-slate-600 select-none">|</span>
+              <span className="truncate text-xs sm:text-sm font-semibold text-slate-200">{activeTab}</span>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex shrink-0 items-center gap-1.5 sm:gap-3">
+              {/* Notificaciones */}
               <div className="relative">
                 <button
                   type="button"
                   onClick={() => setNotificationsOpen((current) => !current)}
                   aria-label="Ver notificaciones"
-                  className="rounded-md p-1.5 text-slate-300 transition hover:bg-[#1d3d52] hover:text-white"
+                  aria-expanded={notificationsOpen}
+                  className="relative flex h-11 w-11 items-center justify-center rounded-lg text-slate-300 transition-colors hover:bg-[#1d3d52] hover:text-white active:bg-[#1d3d52]/80"
                 >
-                  <Bell size={15} />
+                  <Bell size={18} />
+                  {openReportsCount > 0 && (
+                    <span className="absolute right-2 top-2 h-2.5 w-2.5 rounded-full bg-amber-400 ring-2 ring-[#0d2437]" />
+                  )}
                 </button>
+
                 {notificationsOpen && (
-                  <div className="absolute right-0 top-9 z-10 w-56 rounded-xl border border-[#36556f] bg-[#13293a] p-3 shadow-xl">
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-amber-300">Notificaciones</p>
-                    <p className="mt-2 text-[11px] leading-relaxed text-slate-300">Hay 3 reportes pendientes de revisión.</p>
-                    <button type="button" onClick={() => { setNotificationsOpen(false); setActiveTab('Reportes'); }} className="mt-3 text-[11px] font-semibold text-emerald-300 hover:text-emerald-200">Ver reportes</button>
-                  </div>
+                  <>
+                    <div
+                      className="fixed inset-0 z-40 sm:hidden"
+                      onClick={() => setNotificationsOpen(false)}
+                    />
+                    <div className="absolute right-0 top-12 z-50 w-[calc(100vw-2rem)] max-w-xs rounded-xl border border-[#36556f] bg-[#13293a] p-4 shadow-2xl transition-all">
+                      <div className="flex items-center justify-between pb-2 border-b border-white/10">
+                        <p className="text-xs font-semibold uppercase tracking-wider text-amber-300">
+                          Reportes abiertos
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => setNotificationsOpen(false)}
+                          className="text-slate-400 hover:text-white p-1"
+                        >
+                          <X size={14} />
+                        </button>
+                      </div>
+                      <p className="mt-2.5 text-xs leading-relaxed text-slate-300">
+                        {openReportsCount == null
+                          ? 'No fue posible consultar los reportes.'
+                          : openReportsCount === 0
+                          ? 'No hay reportes abiertos.'
+                          : `${openReportsCount} reporte(s) de falla requiere(n) atención.`}
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setNotificationsOpen(false);
+                          setActiveTab('Reporte de Fallas');
+                        }}
+                        className="mt-3.5 inline-flex items-center gap-1 text-xs font-semibold text-cyan-300 hover:text-cyan-200 min-h-[36px]"
+                      >
+                        Ver reportes de fallas →
+                      </button>
+                    </div>
+                  </>
                 )}
               </div>
-              <LogoutButton className="text-slate-300 hover:bg-[#1d3d52] hover:text-white" />
-              <div className="hidden text-right leading-tight sm:block">
-                <p className="text-[11px] font-medium text-white">Don Carlos Restrepo</p>
-                <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-cyan-300">
-                  Administrador
+
+              {/* Botón Cerrar Sesión */}
+              <LogoutButton className="bg-[#102536] border border-[#294255] text-slate-200 hover:bg-[#1d3d52] hover:text-white" />
+
+              {/* Perfil de Usuario */}
+              <div className="hidden md:flex flex-col text-right leading-tight">
+                <p className="max-w-[150px] lg:max-w-[180px] truncate text-xs font-medium text-white">
+                  {userName}
                 </p>
+                <p className="text-[10px] font-bold uppercase tracking-wider text-cyan-300">{roleLabel}</p>
               </div>
-              <div className="flex h-7 w-7 items-center justify-center rounded-full border border-cyan-300/60 bg-gradient-to-br from-cyan-400 via-blue-500 to-indigo-700 text-[11px] font-bold text-white">
-                CR
+
+              <div
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-cyan-300/60 bg-gradient-to-br from-cyan-400 via-blue-500 to-indigo-700 text-xs font-bold text-white shadow-md"
+                aria-label={userName}
+                title={userName}
+              >
+                {initials(userName)}
               </div>
             </div>
           </header>
 
-          <div className="flex-1 overflow-y-auto p-4 md:p-5">
+          {/* Navegación Móvil Selector */}
+          <nav
+            className="relative border-b border-[#1f3446] bg-[#0d1f2d] px-3 py-2.5 md:hidden z-30"
+            aria-label="Navegación administrativa móvil"
+          >
+            <button
+              type="button"
+              onClick={() => setMobileNavOpen((open) => !open)}
+              aria-expanded={mobileNavOpen}
+              aria-controls="admin-mobile-navigation"
+              className="flex min-h-[44px] w-full items-center justify-between rounded-lg border border-[#294255] bg-[#102536] px-3.5 text-left text-xs font-semibold text-cyan-100 active:bg-[#143c50] transition-colors"
+            >
+              <span className="flex min-w-0 items-center gap-2.5">
+                {(() => {
+                  const ActiveIcon = navigation.find(({ label }) => label === activeTab)?.icon || LayoutDashboard;
+                  return <ActiveIcon size={18} className="shrink-0 text-cyan-300" />;
+                })()}
+                <span className="truncate">{activeTab}</span>
+              </span>
+              <ChevronDown
+                size={18}
+                className={`shrink-0 text-cyan-300 transition-transform duration-200 ${
+                  mobileNavOpen ? 'rotate-180' : ''
+                }`}
+              />
+            </button>
+
+            {/* Dropdown / Drawer Navegación Móvil */}
+            {mobileNavOpen && (
+              <>
+                <div
+                  className="fixed inset-0 z-40 bg-black/60 backdrop-blur-xs md:hidden"
+                  onClick={() => setMobileNavOpen(false)}
+                />
+                <div
+                  id="admin-mobile-navigation"
+                  className="absolute inset-x-3 top-full z-50 mt-2 grid max-h-[min(70vh,30rem)] grid-cols-2 gap-1.5 overflow-y-auto rounded-xl border border-[#36556f] bg-[#102536] p-2.5 shadow-2xl"
+                >
+                  {navigation.map(({ label, icon: Icon }) => (
+                    <button
+                      key={label}
+                      type="button"
+                      onClick={() => {
+                        setActiveTab(label);
+                        setMobileNavOpen(false);
+                      }}
+                      aria-current={activeTab === label ? 'page' : undefined}
+                      className={`flex min-h-[44px] min-w-0 items-center gap-3 rounded-lg px-3 text-left text-xs font-medium transition-colors ${
+                        activeTab === label
+                          ? 'bg-[#143c50] text-cyan-200 font-semibold border border-cyan-500/30'
+                          : 'text-slate-300 hover:bg-[#143c50]/60 hover:text-white active:bg-[#143c50]'
+                      }`}
+                    >
+                      <Icon size={18} className="shrink-0 text-cyan-300" />
+                      <span className="min-w-0 truncate">{label}</span>
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+          </nav>
+
+          {/* Contenido Principal de las Pestañas */}
+          <div className="min-w-0 flex-1 overflow-y-auto p-3 sm:p-4 md:p-6">
             {content[activeTab]}
           </div>
         </main>

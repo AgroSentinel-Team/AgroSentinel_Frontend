@@ -4,12 +4,13 @@ import { getCategories } from '../services/assetService';
 import { getInventoryItems } from '../services/inventoryService';
 import CreateCategoryForm from './CreateCategoryForm';
 
-const inputClass = 'mt-1 w-full rounded-md border border-[#36556f] bg-[#102a3d] px-3 py-2.5 text-[12px] text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-400';
+const inputClass =
+  'mt-1 w-full rounded-lg border border-[#36556f] bg-[#102a3d] px-3.5 py-2.5 text-xs sm:text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/50 min-h-[44px] disabled:opacity-50 disabled:cursor-not-allowed';
 
 function Field({ label, children }) {
   return (
-    <label className="block text-[11px] font-medium text-slate-300">
-      {label}
+    <label className="block text-xs font-medium text-slate-300">
+      <span>{label}</span>
       {children}
     </label>
   );
@@ -40,18 +41,25 @@ export default function InventoryMovementModal({
   const [showCategoryForm, setShowCategoryForm] = useState(false);
   const targetGroupId = targetScope === 'central' ? null : Number(targetScope);
   const targetGroupName = groups.find((group) => String(group.id) === targetScope)?.name;
-  const targetItems = targetScope === currentScope
-    ? items
-    : loadedTargetItems.scope === targetScope ? loadedTargetItems.items : [];
+  const targetItems =
+    targetScope === currentScope
+      ? items
+      : loadedTargetItems.scope === targetScope
+      ? loadedTargetItems.items
+      : [];
   const itemsLoading = targetScope !== currentScope && loadedTargetItems.scope !== targetScope;
-  const itemsError = targetScope !== currentScope && loadedTargetItems.scope === targetScope
-    ? loadedTargetItems.error
-    : '';
+  const itemsError =
+    targetScope !== currentScope && loadedTargetItems.scope === targetScope
+      ? loadedTargetItems.error
+      : '';
   const selectedItem = targetItems.find((item) => String(item.id) === String(form.itemId));
 
   useEffect(() => {
     let active = true;
-    if (targetScope === currentScope) return () => { active = false; };
+    if (targetScope === currentScope)
+      return () => {
+        active = false;
+      };
     getInventoryItems(targetGroupId, true)
       .then((loadedItems) => {
         if (active) setLoadedTargetItems({ scope: targetScope, items: loadedItems, error: '' });
@@ -61,11 +69,17 @@ export default function InventoryMovementModal({
           setLoadedTargetItems({
             scope: targetScope,
             items: [],
-            error: loadError.response?.data?.detail || loadError.response?.data?.message || loadError.message || 'No se pudo cargar el inventario de la zona.',
+            error:
+              loadError.response?.data?.detail ||
+              loadError.response?.data?.message ||
+              loadError.message ||
+              'No se pudo cargar el inventario de la zona.',
           });
         }
       });
-    return () => { active = false; };
+    return () => {
+      active = false;
+    };
   }, [targetScope, currentScope, targetGroupId]);
 
   useEffect(() => {
@@ -74,27 +88,42 @@ export default function InventoryMovementModal({
     getCategories()
       .then((loadedCategories) => {
         if (!active) return;
-        const uniqueCategories = loadedCategories.filter((category, index, all) => (
-          all.findIndex((candidate) => candidate.name.trim().toLocaleLowerCase() === category.name.trim().toLocaleLowerCase()) === index
-        ));
+        const uniqueCategories = loadedCategories.filter(
+          (category, index, all) =>
+            all.findIndex(
+              (candidate) =>
+                candidate.name.trim().toLocaleLowerCase() === category.name.trim().toLocaleLowerCase()
+            ) === index
+        );
         setCategories(uniqueCategories);
         setCategoriesError('');
       })
       .catch((loadError) => {
         if (active) {
-          setCategoriesError(loadError.response?.data?.detail || loadError.response?.data?.message || loadError.message || 'No se pudieron cargar las categorías.');
+          setCategoriesError(
+            loadError.response?.data?.detail ||
+              loadError.response?.data?.message ||
+              loadError.message ||
+              'No se pudieron cargar las categorías.'
+          );
         }
       })
       .finally(() => {
         if (active) setCategoriesLoading(false);
       });
-    return () => { active = false; };
+    return () => {
+      active = false;
+    };
   }, [isEntry]);
 
   const handleCategoryCreated = (category) => {
     setCategories((current) => {
-      const existing = current.find((item) => item.name.trim().toLocaleLowerCase() === category.name.trim().toLocaleLowerCase());
-      return existing ? current : [...current, category].sort((left, right) => left.name.localeCompare(right.name));
+      const existing = current.find(
+        (item) => item.name.trim().toLocaleLowerCase() === category.name.trim().toLocaleLowerCase()
+      );
+      return existing
+        ? current
+        : [...current, category].sort((left, right) => left.name.localeCompare(right.name));
     });
     setForm((current) => ({ ...current, category: category.name }));
     setShowCategoryForm(false);
@@ -105,7 +134,7 @@ export default function InventoryMovementModal({
 
   return (
     <div
-      className="fixed inset-0 z-[70] flex items-center justify-center bg-black/75 p-3 sm:p-6"
+      className="fixed inset-0 z-[70] flex items-center justify-center bg-black/80 backdrop-blur-sm p-3 sm:p-4 md:p-6 overflow-y-auto"
       role="presentation"
       onMouseDown={(event) => {
         if (event.target === event.currentTarget && !saving) onClose();
@@ -115,19 +144,31 @@ export default function InventoryMovementModal({
         role="dialog"
         aria-modal="true"
         aria-labelledby="inventory-movement-title"
-        className="max-h-[94vh] w-full max-w-2xl overflow-y-auto rounded-lg border border-white/10 bg-[#102637] p-5 shadow-2xl sm:p-6"
+        className="relative my-auto max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-xl border border-white/10 bg-[#102637] p-4 sm:p-6 shadow-2xl transition-all min-w-0"
       >
-        <div className="mb-5 flex items-start justify-between gap-3">
-          <div className="flex items-start gap-3">
-            <span className={`mt-0.5 rounded-lg p-2 ${isEntry ? 'bg-emerald-400/10 text-emerald-300' : 'bg-amber-400/10 text-amber-300'}`}>
-              <Icon size={18} />
+        {/* Header Modal */}
+        <div className="mb-4 sm:mb-5 flex items-start justify-between gap-3 border-b border-white/10 pb-3.5">
+          <div className="flex items-center gap-3 min-w-0">
+            <span
+              className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border ${
+                isEntry
+                  ? 'bg-emerald-400/10 text-emerald-300 border-emerald-400/20'
+                  : 'bg-amber-400/10 text-amber-300 border-amber-400/20'
+              }`}
+            >
+              <Icon size={20} />
             </span>
-            <div>
-              <h2 id="inventory-movement-title" className="text-[15px] font-semibold text-white">
+            <div className="min-w-0">
+              <h2 id="inventory-movement-title" className="text-base sm:text-lg font-semibold text-white truncate">
                 Registrar {isEntry ? 'entrada' : 'salida'}
               </h2>
-              <p className="mt-1 text-[11px] text-slate-400">
-                {scoped ? `Inventario de ${targetGroupName || (targetScope === 'central' ? 'la bodega central' : groupName || 'la zona seleccionada')}.` : 'Completa los datos del movimiento de inventario.'}
+              <p className="mt-0.5 text-xs text-slate-400">
+                {scoped
+                  ? `Inventario de ${
+                      targetGroupName ||
+                      (targetScope === 'central' ? 'la bodega central' : groupName || 'la zona seleccionada')
+                    }.`
+                  : 'Completa los datos del movimiento de inventario.'}
               </p>
             </div>
           </div>
@@ -137,16 +178,16 @@ export default function InventoryMovementModal({
             disabled={saving}
             title="Cerrar"
             aria-label={`Cerrar formulario de ${isEntry ? 'entrada' : 'salida'}`}
-            className="rounded-md p-1 text-slate-400 transition hover:bg-white/5 hover:text-white disabled:opacity-50"
+            className="flex h-11 w-11 items-center justify-center rounded-lg text-slate-400 hover:bg-white/10 hover:text-white transition-colors shrink-0 disabled:opacity-50"
           >
-            <X size={18} />
+            <X size={20} />
           </button>
         </div>
 
         <form onSubmit={submit} className="space-y-5">
           {scoped && (
-            <section>
-              <h3 className="mb-3 text-[10px] font-semibold uppercase tracking-wide text-cyan-300">
+            <section className="rounded-lg bg-[#0a1b28]/60 p-3.5 sm:p-4 border border-white/5 space-y-3">
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-cyan-300">
                 Zona de inventario
               </h3>
               <Field label="Almacén / grupo *">
@@ -159,18 +200,23 @@ export default function InventoryMovementModal({
                   className={inputClass}
                 >
                   <option value="central">Bodega central</option>
-                  {groups.filter((group) => group.active).map((group) => (
-                    <option key={group.id} value={group.id}>{group.name}</option>
-                  ))}
+                  {groups
+                    .filter((group) => group.active)
+                    .map((group) => (
+                      <option key={group.id} value={group.id}>
+                        {group.name}
+                      </option>
+                    ))}
                 </select>
               </Field>
             </section>
           )}
-          <section>
-            <h3 className="mb-3 text-[10px] font-semibold uppercase tracking-wide text-cyan-300">
+
+          <section className="rounded-lg bg-[#0a1b28]/60 p-3.5 sm:p-4 border border-white/5 space-y-3.5">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-cyan-300">
               Producto y cantidad
             </h3>
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid gap-3.5 grid-cols-1 sm:grid-cols-2">
               <Field label="Producto *">
                 <select
                   required
@@ -188,6 +234,7 @@ export default function InventoryMovementModal({
                   {isEntry && <option value="__new__">+ Crear producto y registrar primera entrada</option>}
                 </select>
               </Field>
+
               <Field label={`Cantidad ${isEntry ? 'de entrada' : 'de salida'} *`}>
                 <input
                   required
@@ -202,30 +249,43 @@ export default function InventoryMovementModal({
                 />
               </Field>
             </div>
+
             {!isEntry && selectedItem && (
-              <p className="mt-2 flex items-center gap-1.5 text-[10px] text-cyan-200">
-                <Package size={12} />
+              <p className="flex items-center gap-1.5 text-xs text-cyan-200 pt-1">
+                <Package size={14} className="shrink-0" />
                 Stock disponible: {selectedItem.stock} {selectedItem.unit}
               </p>
             )}
-            {itemsLoading && <p className="mt-2 text-[10px] text-slate-400">Cargando productos de la zona...</p>}
-            {itemsError && <p role="alert" className="mt-2 text-[10px] text-red-300">{itemsError}</p>}
+            {itemsLoading && <p className="text-xs text-slate-400">Cargando productos de la zona...</p>}
+            {itemsError && (
+              <p role="alert" className="text-xs text-red-300">
+                {itemsError}
+              </p>
+            )}
             {!isEntry && !itemsLoading && targetItems.length === 0 && !itemsError && (
-              <p className="mt-2 text-[10px] text-amber-200">
+              <p className="text-xs text-amber-200">
                 No hay productos disponibles en este inventario. Registra primero una entrada.
               </p>
             )}
           </section>
 
           {isEntry && form.itemId === '__new__' && (
-            <section className="border-t border-white/10 pt-4">
-              <h3 className="mb-3 text-[10px] font-semibold uppercase tracking-wide text-cyan-300">
+            <section className="rounded-lg bg-[#0a1b28]/60 p-3.5 sm:p-4 border border-white/5 space-y-3.5">
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-cyan-300">
                 Datos del nuevo producto
               </h3>
-              <div className="grid gap-4 sm:grid-cols-2">
+              <div className="grid gap-3.5 grid-cols-1 sm:grid-cols-2">
                 <Field label="Nombre del producto *">
-                  <input required maxLength="160" value={form.item} onChange={(event) => setForm({ ...form, item: event.target.value })} placeholder="Nombre" className={inputClass} />
+                  <input
+                    required
+                    maxLength="160"
+                    value={form.item}
+                    onChange={(event) => setForm({ ...form, item: event.target.value })}
+                    placeholder="Nombre"
+                    className={inputClass}
+                  />
                 </Field>
+
                 <div>
                   <Field label="Categoría *">
                     <select
@@ -239,31 +299,55 @@ export default function InventoryMovementModal({
                         {categoriesLoading ? 'Cargando categorías...' : 'Selecciona una categoría'}
                       </option>
                       {categories.map((category) => (
-                        <option key={category.id} value={category.name}>{category.name}</option>
+                        <option key={category.id} value={category.name}>
+                          {category.name}
+                        </option>
                       ))}
                     </select>
                   </Field>
                   <button
                     type="button"
                     onClick={() => setShowCategoryForm(true)}
-                    className="mt-2 inline-flex items-center gap-1 text-[10px] text-cyan-300 transition hover:text-cyan-200"
+                    className="mt-2 inline-flex items-center gap-1.5 min-h-[36px] px-2.5 py-1 rounded-md text-xs font-medium text-cyan-300 bg-cyan-500/10 hover:bg-cyan-500/20 active:bg-cyan-500/30 transition-colors"
                   >
-                    <Plus size={12} /> Crear categoría
+                    <Plus size={14} /> Crear categoría
                   </button>
-                  {categoriesError && <p role="alert" className="mt-1 text-[10px] text-red-300">{categoriesError}</p>}
+                  {categoriesError && (
+                    <p role="alert" className="mt-1 text-xs text-red-300">
+                      {categoriesError}
+                    </p>
+                  )}
                 </div>
+
                 <Field label="Unidad *">
-                  <input required maxLength="30" value={form.unit} onChange={(event) => setForm({ ...form, unit: event.target.value })} placeholder="und, kg, L..." className={inputClass} />
+                  <input
+                    required
+                    maxLength="30"
+                    value={form.unit}
+                    onChange={(event) => setForm({ ...form, unit: event.target.value })}
+                    placeholder="und, kg, L..."
+                    className={inputClass}
+                  />
                 </Field>
+
                 <Field label="Stock mínimo">
-                  <input required type="number" min="0" step="0.001" value={form.minimum} onChange={(event) => setForm({ ...form, minimum: event.target.value })} placeholder="0" className={inputClass} />
+                  <input
+                    required
+                    type="number"
+                    min="0"
+                    step="0.001"
+                    value={form.minimum}
+                    onChange={(event) => setForm({ ...form, minimum: event.target.value })}
+                    placeholder="0"
+                    className={inputClass}
+                  />
                 </Field>
               </div>
             </section>
           )}
 
-          <section className="border-t border-white/10 pt-4">
-            <h3 className="mb-3 text-[10px] font-semibold uppercase tracking-wide text-cyan-300">
+          <section className="rounded-lg bg-[#0a1b28]/60 p-3.5 sm:p-4 border border-white/5 space-y-3">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-cyan-300">
               {isEntry ? 'Origen y observaciones' : 'Destino y observaciones'}
             </h3>
             <Field label={isEntry ? 'Proveedor / motivo' : 'Destino / motivo'}>
@@ -273,35 +357,55 @@ export default function InventoryMovementModal({
                 value={form.reason}
                 onChange={(event) => setForm({ ...form, reason: event.target.value })}
                 placeholder={isEntry ? 'Proveedor, referencia u observaciones' : 'Área, responsable u observaciones'}
-                className={inputClass}
+                className={`${inputClass} min-h-[80px] resize-y`}
               />
             </Field>
           </section>
 
-          {error && <p role="alert" className="rounded-md border border-red-400/20 bg-red-400/10 p-3 text-[11px] text-red-200">{error}</p>}
+          {error && (
+            <p role="alert" className="rounded-lg border border-red-400/20 bg-red-400/10 p-3.5 text-xs text-red-200">
+              {error}
+            </p>
+          )}
 
-          <div className="flex justify-end gap-2 border-t border-white/10 pt-4">
-            <button type="button" onClick={onClose} disabled={saving} className="rounded-md border border-white/10 px-3 py-2 text-[11px] text-slate-300 transition hover:bg-white/5 disabled:opacity-50">
+          {/* Acciones */}
+          <div className="flex flex-col-reverse sm:flex-row justify-end gap-2.5 sm:gap-3 border-t border-white/10 pt-4">
+            <button
+              type="button"
+              onClick={onClose}
+              disabled={saving}
+              className="inline-flex h-11 w-full sm:w-auto items-center justify-center rounded-lg border border-white/10 px-4 text-xs font-medium text-slate-300 hover:bg-white/5 active:bg-white/10 disabled:opacity-50 transition-colors"
+            >
               Cancelar
             </button>
             <button
               type="submit"
-              disabled={saving || itemsLoading || Boolean(itemsError) || (isEntry
-                ? form.itemId !== '__new__' && targetItems.length === 0
-                  || form.itemId === '__new__' && (categoriesLoading || Boolean(categoriesError) || !categories.some((category) => category.name === form.category))
-                : targetItems.length === 0)}
-              className={`rounded-md px-4 py-2 text-[11px] font-medium text-white transition disabled:cursor-not-allowed disabled:opacity-50 ${isEntry ? 'bg-emerald-600 hover:bg-emerald-500' : 'bg-amber-600 hover:bg-amber-500'}`}
+              disabled={
+                saving ||
+                itemsLoading ||
+                Boolean(itemsError) ||
+                (isEntry
+                  ? (form.itemId !== '__new__' && targetItems.length === 0) ||
+                    (form.itemId === '__new__' &&
+                      (categoriesLoading ||
+                        Boolean(categoriesError) ||
+                        !categories.some((category) => category.name === form.category)))
+                  : targetItems.length === 0)
+              }
+              className={`inline-flex h-11 w-full sm:w-auto items-center justify-center rounded-lg px-5 text-xs font-medium text-white transition-colors shadow-lg disabled:cursor-not-allowed disabled:opacity-50 ${
+                isEntry
+                  ? 'bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 shadow-emerald-950/40'
+                  : 'bg-amber-600 hover:bg-amber-500 active:bg-amber-700 shadow-amber-950/40'
+              }`}
             >
               {saving ? 'Guardando...' : `Guardar ${isEntry ? 'entrada' : 'salida'}`}
             </button>
           </div>
         </form>
       </div>
+
       {showCategoryForm && (
-        <CreateCategoryForm
-          onCancel={() => setShowCategoryForm(false)}
-          onCreated={handleCategoryCreated}
-        />
+        <CreateCategoryForm onCancel={() => setShowCategoryForm(false)} onCreated={handleCategoryCreated} />
       )}
     </div>
   );

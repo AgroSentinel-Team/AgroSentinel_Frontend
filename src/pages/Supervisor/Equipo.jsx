@@ -1,4 +1,4 @@
-import { Activity, Clock3, UserRound } from 'lucide-react';
+import { Clock3, UserRound } from 'lucide-react';
 
 const teamActivity = [
   {
@@ -6,35 +6,35 @@ const teamActivity = [
     role: 'Almacenista Turno A',
     action: 'Registró entrada de 50 unidades de Pintura Acrílica',
     time: '09:30',
-    color: 'from-gray-500 to-gray-800',
+    color: 'from-blue-600 to-indigo-800',
   },
   {
     name: 'María L.',
     role: 'Preparador de Despacho',
     action: 'Completó el inventario general de la Zona B',
     time: '08:45',
-    color: 'from-orange-300 to-gray-700',
+    color: 'from-emerald-500 to-teal-800',
   },
   {
     name: 'Martín G.',
     role: 'Almacenista Turno B',
     action: 'Reportó daño de 5 disolventes en traslado',
     time: 'Ayer',
-    color: 'from-yellow-700 to-gray-900',
+    color: 'from-amber-500 to-orange-800',
   },
   {
     name: 'Laura G.',
     role: 'Despachador',
     action: 'Solicitó autorización para ajuste de stock',
     time: 'Ayer',
-    color: 'from-gray-400 to-gray-800',
+    color: 'from-cyan-500 to-blue-800',
   },
 ];
 
 function Avatar({ color, initials }) {
   return (
     <div
-      className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br ${color} text-[7px] font-bold text-white`}
+      className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br ${color} text-xs font-bold text-white shadow-sm border border-white/10`}
     >
       {initials}
     </div>
@@ -43,39 +43,61 @@ function Avatar({ color, initials }) {
 
 export default function Equipo() {
   return (
-    <section className="rounded-lg border border-white/10 bg-[#292929] p-4">
-      <div className="mb-4 flex items-center gap-3">
-        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-500/15 text-blue-400">
-          <UserRound size={16} />
+    <section className="rounded-xl border border-[#2d4055] bg-[#13293a] p-4 sm:p-5 shadow-xl space-y-4 min-w-0 text-white">
+      <div className="flex items-center gap-3 border-b border-white/10 pb-3">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-cyan-400/30 bg-cyan-400/10 text-cyan-300">
+          <UserRound size={20} />
         </div>
-        <div>
-          <h2 className="text-[11px] font-bold text-white">Actividad del Equipo</h2>
-          <p className="text-[7px] text-slate-400">Últimas acciones del personal operativo</p>
+        <div className="min-w-0">
+          <h2 className="text-sm sm:text-base font-bold text-white truncate">
+            Actividad del Equipo
+          </h2>
+          <p className="mt-0.5 text-xs text-slate-400 truncate">
+            Últimas acciones del personal operativo
+          </p>
         </div>
       </div>
 
-      <div className="space-y-3">
-        {teamActivity.map((person, index) => (
-          <div key={person.name} className={`flex gap-3 py-2 ${index !== teamActivity.length - 1 ? 'border-b border-white/10' : ''}`}>
-            <Avatar color={person.color} initials={person.name.split(' ').map((x) => x[0]).join('')} />
+      <div className="grid grid-cols-2 gap-2 sm:gap-3">
+        {teamActivity.map((person, index) => {
+          const initials = person.name
+            .split(' ')
+            .map((x) => x[0])
+            .join('');
 
-            <div className="min-w-0 flex-1">
-              <div className="flex items-start justify-between gap-2">
-                <div>
-                  <p className="text-[8px] font-bold text-white">{person.name}</p>
-                  <p className="text-[6px] text-slate-400">{person.role}</p>
+          return (
+            <div
+              key={person.name}
+              className={`flex items-start gap-3 py-2.5 ${
+                index !== teamActivity.length - 1 ? 'border-b border-white/5' : ''
+              }`}
+            >
+              <Avatar color={person.color} initials={initials} />
+
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-start justify-between gap-2">
+                  <div>
+                    <p className="text-xs sm:text-sm font-bold text-white leading-tight">
+                      {person.name}
+                    </p>
+                    <p className="text-[11px] font-medium text-cyan-300/80">
+                      {person.role}
+                    </p>
+                  </div>
+
+                  <span className="inline-flex items-center gap-1 font-mono text-[11px] text-slate-400">
+                    <Clock3 size={13} className="text-slate-500 shrink-0" />
+                    {person.time}
+                  </span>
                 </div>
 
-                <span className="inline-flex items-center gap-1 text-[6px] text-slate-400">
-                  <Clock3 size={10} />
-                  {person.time}
-                </span>
+                <p className="mt-1 text-xs text-slate-300 leading-relaxed">
+                  {person.action}
+                </p>
               </div>
-
-              <p className="mt-1 text-[7px] leading-relaxed text-slate-500">{person.action}</p>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </section>
   );

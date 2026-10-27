@@ -10,8 +10,13 @@ import {
   RefreshCw,
   ScrollText,
   Wrench,
+  X,
 } from 'lucide-react';
-import { getInventoryItems, getInventoryMovements, getInventoryTasks } from '../../services/inventoryService';
+import {
+  getInventoryItems,
+  getInventoryMovements,
+  getInventoryTasks,
+} from '../../services/inventoryService';
 
 const SECTIONS = [
   { id: 'inventory', label: 'Inventario actual', description: 'Existencias y alertas de stock.', icon: Package },
@@ -19,20 +24,25 @@ const SECTIONS = [
   { id: 'tasks', label: 'Tareas del turno', description: 'Tareas creadas durante el período.', icon: Wrench },
 ];
 
-const fieldClass = 'mt-1 w-full rounded-lg border border-[#36556f] bg-[#102a3d] px-3 py-2.5 text-[12px] text-white outline-none transition focus:border-cyan-400';
+const fieldClass =
+  'mt-1 w-full rounded-lg border border-[#36556f] bg-[#102a3d] px-3.5 py-2.5 text-xs sm:text-sm text-white outline-none transition placeholder:text-slate-400 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/50 min-h-[44px] disabled:opacity-60';
 
 function getErrorMessage(error) {
-  return error.response?.data?.detail
-    || error.response?.data?.message
-    || error.message
-    || 'No se pudieron cargar los datos del reporte.';
+  return (
+    error.response?.data?.detail ||
+    error.response?.data?.message ||
+    error.message ||
+    'No se pudieron cargar los datos del reporte.'
+  );
 }
 
 function dateKey(value) {
   if (!value) return '';
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return '';
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(
+    date.getDate(),
+  ).padStart(2, '0')}`;
 }
 
 function makeFilenameSuffix(groupName) {
@@ -45,10 +55,16 @@ function makeFilenameSuffix(groupName) {
 }
 
 function downloadCsv(rows, filename) {
-  const csv = rows.map((row) => row.map((value) => {
-    const text = String(value ?? '');
-    return `"${text.replaceAll('"', '""')}"`;
-  }).join(',')).join('\r\n');
+  const csv = rows
+    .map((row) =>
+      row
+        .map((value) => {
+          const text = String(value ?? '');
+          return `"${text.replaceAll('"', '""')}"`;
+        })
+        .join(','),
+    )
+    .join('\r\n');
   const blob = new Blob([`\uFEFF${csv}`], { type: 'text/csv;charset=utf-8' });
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
@@ -92,10 +108,9 @@ function addPdfTable(pdf, state, title, headers, rows) {
 
   drawHeader();
   rows.forEach((row, rowIndex) => {
-    const cells = row.map((value) => pdf.splitTextToSize(
-      String(value ?? '—'),
-      columnWidth - 4,
-    ));
+    const cells = row.map((value) =>
+      pdf.splitTextToSize(String(value ?? '—'), columnWidth - 4),
+    );
     const rowHeight = Math.max(7, ...cells.map((cell) => cell.length * lineHeight + 3));
     if (state.y + rowHeight > pageHeight - margin) {
       pdf.addPage();
@@ -129,11 +144,12 @@ export default function Reportes({ variant = 'dark', groupId, groupName, scoped 
   const [format, setFormat] = useState('pdf');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+
   const currentReport = reportData?.scopeKey === scopeKey ? reportData : null;
   const items = currentReport?.items ?? [];
   const movements = currentReport?.movements ?? [];
   const tasks = currentReport?.tasks ?? [];
-  const error = currentReport?.error ?? '';
+  const [error, setError] = useState(currentReport?.error ?? '');
   const loading = currentReport === null;
   const invalidDateRange = Boolean(startDate && endDate && startDate > endDate);
   const muted = dark ? 'text-slate-400' : 'text-slate-500';
@@ -154,41 +170,52 @@ export default function Reportes({ variant = 'dark', groupId, groupName, scoped 
             tasks: turnTasks,
             error: '',
           });
+          setError('');
         }
       })
       .catch((loadError) => {
         if (active) {
+          const errMsg = getErrorMessage(loadError);
           setReportData({
             scopeKey,
             items: [],
             movements: [],
             tasks: [],
-            error: getErrorMessage(loadError),
+            error: errMsg,
           });
+          setError(errMsg);
         }
       });
-    return () => { active = false; };
+    return () => {
+      active = false;
+    };
   }, [groupId, scopeKey, scoped]);
 
   const filteredMovements = movements.filter((movement) => {
     const date = dateKey(movement.fecha);
     return (!startDate || date >= startDate) && (!endDate || date <= endDate);
   });
+
   const filteredTasks = tasks.filter((task) => {
     const date = dateKey(task.createdAt);
     return (!startDate || date >= startDate) && (!endDate || date <= endDate);
   });
 
   const toggleSection = (section) => {
-    setSelectedSections((current) => current.includes(section)
-      ? current.filter((item) => item !== section)
-      : [...current, section]);
+    setSelectedSections((current) =>
+      current.includes(section)
+        ? current.filter((item) => item !== section)
+        : [...current, section],
+    );
   };
 
   const exportReport = () => {
     if (selectedSections.length === 0 || invalidDateRange || loading || error) return;
-    const filename = `agrosentinel-reporte-${makeFilenameSuffix(groupName)}-${startDate || 'inicio'}-${endDate || 'hoy'}`;
+    const filename = `agrosentinel-reporte-${makeFilenameSuffix(groupName)}-${
+      startDate || 'inicio'
+    }-${endDate || 'hoy'}`;
     const sections = [];
+
     if (selectedSections.includes('inventory')) {
       sections.push({
         title: `Inventario actual (${items.length} productos)`,
@@ -203,6 +230,7 @@ export default function Reportes({ variant = 'dark', groupId, groupName, scoped 
         ]),
       });
     }
+
     if (selectedSections.includes('movements')) {
       sections.push({
         title: `Movimientos (${filteredMovements.length})`,
@@ -218,6 +246,7 @@ export default function Reportes({ variant = 'dark', groupId, groupName, scoped 
         ]),
       });
     }
+
     if (selectedSections.includes('tasks')) {
       sections.push({
         title: `Tareas del turno (${filteredTasks.length})`,
@@ -259,122 +288,238 @@ export default function Reportes({ variant = 'dark', groupId, groupName, scoped 
     pdf.text('REPORTE DE ALMACÉN', 14, 25);
     pdf.setFontSize(8);
     pdf.text(
-      `${groupName || 'Bodega central'}  ·  Período: ${startDate || 'Inicio'} — ${endDate || 'Hoy'}  ·  Generado: ${new Date().toLocaleString('es-CO')}`,
+      `${groupName || 'Bodega central'}  ·  Período: ${startDate || 'Inicio'} — ${
+        endDate || 'Hoy'
+      }  ·  Generado: ${new Date().toLocaleString('es-CO')}`,
       14,
       33,
       { maxWidth: pageWidth - 28 },
     );
     const state = { y: 49 };
-    sections.forEach((section) => addPdfTable(pdf, state, section.title, section.headers, section.rows));
+    sections.forEach((section) =>
+      addPdfTable(pdf, state, section.title, section.headers, section.rows),
+    );
     pdf.save(`${filename}.pdf`);
   };
 
   return (
-    <section className="mx-auto w-full max-w-6xl space-y-5">
-      <header className="flex flex-wrap items-end justify-between gap-3">
+    <section className="mx-auto w-full max-w-6xl space-y-5 text-white min-w-0">
+      {/* Encabezado Principal */}
+      <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b border-white/10 pb-4">
         <div>
-          <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-cyan-300">Centro de exportación</p>
-          <h1 className="mt-1 text-xl font-semibold text-white">Reportes de almacén</h1>
-          <p className={`mt-1 text-[12px] ${muted}`}>Configura el período, el contenido y el formato para {groupName || 'Bodega central'}.</p>
+          <div className="flex items-center gap-2 text-cyan-300">
+            <FileText size={18} />
+            <span className="text-xs font-bold uppercase tracking-wider">
+              Centro de exportación
+            </span>
+          </div>
+          <h1 className="mt-1 text-xl sm:text-2xl font-bold tracking-tight">
+            Reportes de almacén
+          </h1>
+          <p className={`mt-0.5 text-xs ${muted}`}>
+            Configura el período, el contenido y el formato para {groupName || 'Bodega central'}.
+          </p>
         </div>
-        <span className="rounded-full border border-cyan-300/20 bg-cyan-300/10 px-3 py-1.5 text-[11px] font-medium text-cyan-100">
+        <span className="shrink-0 self-start sm:self-center rounded-full border border-cyan-300/30 bg-cyan-400/10 px-3.5 py-1.5 text-xs font-semibold text-cyan-200">
           {loading ? 'Cargando datos...' : groupName || 'Bodega central'}
         </span>
       </header>
 
+      {/* Alerta de Error */}
       {error && (
-        <p role="alert" className="rounded-lg border border-red-400/20 bg-red-400/10 px-4 py-3 text-[12px] text-red-200">
-          {error}
-        </p>
+        <div
+          role="alert"
+          className="flex items-start justify-between gap-3 rounded-lg border border-red-500/30 bg-red-500/10 p-3.5 text-xs text-red-200"
+        >
+          <span className="min-w-0 flex-1">{error}</span>
+          <button
+            type="button"
+            onClick={() => setError('')}
+            className="text-red-300 hover:text-white p-1 shrink-0 -mr-1 -mt-1"
+          >
+            <X size={16} />
+          </button>
+        </div>
       )}
 
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,1.6fr)_minmax(280px,0.9fr)]">
-        <article className="rounded-xl border border-[#2d4055] bg-[#13293a] p-5 shadow-lg shadow-black/10">
-          <div className="mb-4 flex items-start gap-3">
-            <span className="rounded-lg bg-cyan-400/10 p-2 text-cyan-300"><FileText size={18} /></span>
+      {/* Grid Contenido & Opciones Exportación */}
+      <div className="grid gap-4 xl:grid-cols-[minmax(0,1.6fr)_minmax(300px,0.9fr)]">
+        {/* Selección de Secciones */}
+        <article className="rounded-xl border border-[#2d4055] bg-[#13293a] p-4 sm:p-5 shadow-xl min-w-0 space-y-4">
+          <div className="flex items-start gap-3 border-b border-white/10 pb-3">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-cyan-400/15 text-cyan-300 border border-cyan-400/30">
+              <FileText size={18} />
+            </span>
             <div>
-              <h2 className="text-[14px] font-semibold text-white">Contenido del reporte</h2>
-              <p className={`mt-1 text-[11px] ${muted}`}>Selecciona una o varias secciones.</p>
+              <h2 className="text-sm sm:text-base font-semibold text-white">Contenido del reporte</h2>
+              <p className={`mt-0.5 text-xs ${muted}`}>Selecciona una o varias secciones para incluir en el reporte.</p>
             </div>
           </div>
-          <div className="grid gap-3 md:grid-cols-3">
+
+          <div className="grid gap-2 grid-cols-2 sm:gap-3.5 lg:grid-cols-3">
             {SECTIONS.map((section) => {
               const Icon = section.icon;
               const selected = selectedSections.includes(section.id);
-              const count = section.id === 'inventory' ? items.length
-                : section.id === 'movements' ? filteredMovements.length
+              const count =
+                section.id === 'inventory'
+                  ? items.length
+                  : section.id === 'movements'
+                  ? filteredMovements.length
                   : filteredTasks.length;
-              const unit = section.id === 'inventory' ? 'productos'
-                : section.id === 'movements' ? 'movimientos'
+              const unit =
+                section.id === 'inventory'
+                  ? 'productos'
+                  : section.id === 'movements'
+                  ? 'movimientos'
                   : 'tareas';
+
               return (
                 <button
                   key={section.id}
                   type="button"
                   onClick={() => toggleSection(section.id)}
                   aria-pressed={selected}
-                  className={`min-h-36 rounded-lg border p-4 text-left transition ${selected ? 'border-cyan-400/60 bg-[#12394b] ring-1 ring-cyan-400/20' : 'border-[#2d4055] bg-[#102a3d] hover:border-[#45647a]'}`}
+                  className={`flex flex-col justify-between min-h-[140px] rounded-xl border p-4 text-left transition-all ${
+                    selected
+                      ? 'border-cyan-400 bg-[#12394b] shadow-lg ring-1 ring-cyan-400/40'
+                      : 'border-[#2d4055] bg-[#102a3d] hover:border-[#45647a] hover:bg-[#143247]'
+                  }`}
                 >
                   <div className="flex items-start justify-between gap-2">
-                    <Icon size={17} className={selected ? 'text-cyan-300' : 'text-slate-400'} />
-                    <span className={`flex h-5 w-5 items-center justify-center rounded border ${selected ? 'border-cyan-400 bg-cyan-500 text-white' : 'border-[#557087] text-transparent'}`}>
-                      {selected && <Check size={13} />}
+                    <Icon size={20} className={selected ? 'text-cyan-300' : 'text-slate-400'} />
+                    <span
+                      className={`flex h-5 w-5 shrink-0 items-center justify-center rounded border transition-colors ${
+                        selected
+                          ? 'border-cyan-400 bg-cyan-500 text-white'
+                          : 'border-[#557087] bg-transparent text-transparent'
+                      }`}
+                    >
+                      {selected && <Check size={14} strokeWidth={3} />}
                     </span>
                   </div>
-                  <p className="mt-4 text-[12px] font-semibold text-white">{section.label}</p>
-                  <p className={`mt-1 min-h-8 text-[10px] leading-4 ${muted}`}>{section.description}</p>
-                  <p className="mt-2 text-[10px] font-medium text-cyan-200">{loading ? '—' : `${count} ${unit}`}</p>
+
+                  <div>
+                    <p className="text-xs sm:text-sm font-semibold text-white">{section.label}</p>
+                    <p className={`mt-1 text-[11px] leading-tight ${muted}`}>{section.description}</p>
+                  </div>
+
+                  <p className="mt-2 text-xs font-bold text-cyan-200">
+                    {loading ? '—' : `${count} ${unit}`}
+                  </p>
                 </button>
               );
             })}
           </div>
-          <p className={`mt-3 text-[10px] ${muted}`}>La fecha filtra movimientos y tareas. El inventario corresponde a las existencias actuales.</p>
+
+          <p className={`text-xs ${muted} pt-2 border-t border-white/5`}>
+            Las fechas seleccionadas filtrarán únicamente movimientos y tareas. Las existencias de inventario reflejan el estado actual.
+          </p>
         </article>
 
+        {/* Panel Configuración Descarga */}
         <aside className="space-y-4">
-          <article className="rounded-xl border border-[#2d4055] bg-[#13293a] p-5">
-            <div className="mb-4 flex items-center gap-2">
-              <CalendarDays size={17} className="text-cyan-300" />
-              <h2 className="text-[14px] font-semibold text-white">Período</h2>
+          {/* Período / Fechas */}
+          <article className="rounded-xl border border-[#2d4055] bg-[#13293a] p-4 sm:p-5 shadow-xl space-y-3">
+            <div className="flex items-center gap-2 border-b border-white/10 pb-2.5">
+              <CalendarDays size={18} className="text-cyan-300 shrink-0" />
+              <h2 className="text-xs sm:text-sm font-bold text-white uppercase tracking-wider">
+                Período de consulta
+              </h2>
             </div>
-            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
-              <label className="block text-[11px] text-slate-300">
-                Desde
-                <input type="date" value={startDate} max={endDate || undefined} onChange={(event) => setStartDate(event.target.value)} className={fieldClass} />
+
+            <div className="grid grid-cols-2 gap-2 xl:grid-cols-1">
+              <label className="block text-xs font-medium text-slate-300">
+                <span>Desde</span>
+                <input
+                  type="date"
+                  value={startDate}
+                  max={endDate || undefined}
+                  onChange={(event) => setStartDate(event.target.value)}
+                  className={fieldClass}
+                />
               </label>
-              <label className="block text-[11px] text-slate-300">
-                Hasta
-                <input type="date" value={endDate} min={startDate || undefined} onChange={(event) => setEndDate(event.target.value)} className={fieldClass} />
+
+              <label className="block text-xs font-medium text-slate-300">
+                <span>Hasta</span>
+                <input
+                  type="date"
+                  value={endDate}
+                  min={startDate || undefined}
+                  onChange={(event) => setEndDate(event.target.value)}
+                  className={fieldClass}
+                />
               </label>
             </div>
-            {invalidDateRange && <p role="alert" className="mt-2 text-[10px] text-red-300">La fecha inicial debe ser anterior a la fecha final.</p>}
-            <button type="button" onClick={() => { setStartDate(''); setEndDate(''); }} className="mt-3 text-[10px] font-medium text-cyan-300 hover:text-cyan-200">
+
+            {invalidDateRange && (
+              <p role="alert" className="text-xs text-red-300 font-medium">
+                La fecha inicial debe ser anterior a la fecha final.
+              </p>
+            )}
+
+            <button
+              type="button"
+              onClick={() => {
+                setStartDate('');
+                setEndDate('');
+              }}
+              className="inline-flex min-h-[36px] items-center text-xs font-semibold text-cyan-300 hover:text-cyan-200 transition-colors"
+            >
               Limpiar fechas
             </button>
           </article>
 
-          <article className="rounded-xl border border-[#2d4055] bg-[#13293a] p-5">
-            <div className="mb-4 flex items-center gap-2">
-              {format === 'pdf' ? <FileText size={17} className="text-cyan-300" /> : <FileSpreadsheet size={17} className="text-emerald-300" />}
-              <h2 className="text-[14px] font-semibold text-white">Formato de descarga</h2>
+          {/* Formato y Botón Exportar */}
+          <article className="rounded-xl border border-[#2d4055] bg-[#13293a] p-4 sm:p-5 shadow-xl space-y-4">
+            <div className="flex items-center gap-2 border-b border-white/10 pb-2.5">
+              {format === 'pdf' ? (
+                <FileText size={18} className="text-cyan-300 shrink-0" />
+              ) : (
+                <FileSpreadsheet size={18} className="text-emerald-300 shrink-0" />
+              )}
+              <h2 className="text-xs sm:text-sm font-bold text-white uppercase tracking-wider">
+                Formato de descarga
+              </h2>
             </div>
-            <label className="block text-[11px] text-slate-300">
-              Formato
-              <select value={format} onChange={(event) => setFormat(event.target.value)} className={fieldClass}>
+
+            <label className="block text-xs font-medium text-slate-300 space-y-1">
+              <span>Tipo de archivo</span>
+              <select
+                value={format}
+                onChange={(event) => setFormat(event.target.value)}
+                className={fieldClass}
+              >
                 <option value="pdf">PDF · Documento listo para imprimir</option>
                 <option value="csv">CSV · Hoja de cálculo</option>
               </select>
             </label>
+
             <button
               type="button"
-              disabled={loading || Boolean(error) || selectedSections.length === 0 || invalidDateRange}
+              disabled={
+                loading ||
+                Boolean(error) ||
+                selectedSections.length === 0 ||
+                invalidDateRange
+              }
               onClick={exportReport}
-              className="mt-4 flex w-full items-center justify-center gap-2 rounded-lg bg-cyan-600 px-4 py-3 text-[12px] font-semibold text-white shadow-md shadow-cyan-950/30 transition hover:bg-cyan-500 disabled:cursor-not-allowed disabled:opacity-45"
+              className="flex min-h-[44px] w-full items-center justify-center gap-2 rounded-lg bg-cyan-600 px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-white shadow-lg shadow-cyan-950/40 transition-colors hover:bg-cyan-500 active:bg-cyan-700 disabled:cursor-not-allowed disabled:opacity-40"
             >
-              {loading ? <RefreshCw size={15} className="animate-spin" /> : <Download size={15} />}
-              {loading ? 'Cargando datos...' : `Descargar ${format.toUpperCase()}`}
+              {loading ? (
+                <RefreshCw size={18} className="animate-spin" />
+              ) : (
+                <Download size={18} />
+              )}
+              <span>
+                {loading ? 'Cargando datos...' : `Descargar ${format.toUpperCase()}`}
+              </span>
             </button>
-            {selectedSections.length === 0 && <p className="mt-2 text-center text-[10px] text-amber-200">Selecciona al menos una sección.</p>}
+
+            {selectedSections.length === 0 && (
+              <p className="text-center text-xs text-amber-300 font-medium">
+                Selecciona al menos una sección para descargar el reporte.
+              </p>
+            )}
           </article>
         </aside>
       </div>
