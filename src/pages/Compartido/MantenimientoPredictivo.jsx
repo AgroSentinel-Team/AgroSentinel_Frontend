@@ -171,20 +171,33 @@ export default function MantenimientoPredictivo({ assignedOnly = false }) {
     [equipment, filter],
   );
 
-  const acknowledgeAlert = () => {
-    if (!selected) return;
-    setEquipment((current) => current.map((item) => item.id === selected.id ? { ...item, risk: 'Medio' } : item));
-    setMessage(`Alerta de ${selected.name} marcada para seguimiento.`);
-  };
-
   const scheduleMaintenance = () => {
     if (!selected) return;
     const record = selected.record;
-    const predictiveRisk = record.predictionClass === 1 ? 'Alto' : 'Bajo';
+    const tipoFallaPredicha = record.tipoFallaPredicha;
+    const tendenciaLstm = record.tendenciaLstm ?? record.tendencia_lstm;
+    const esAlertaTemprana = tipoFallaPredicha === 'Normal'
+      && tendenciaLstm
+      && tendenciaLstm !== 'Normal';
+    const predictiveRisk = record.predictionClass === 1
+      ? 'Alto'
+      : esAlertaTemprana ? 'Medio' : 'Bajo';
+    const razonConfianza = record.razonConfianza ?? record.razon_confianza;
+    const confianzaLstm = record.confianzaLstm ?? record.confianza_lstm;
     const measurements = [
       `Riesgo predictivo: ${predictiveRisk}`,
       `Falla o señal detectada: ${traducirDiagnostico(record.affectedComponents || 'Sin detalle')}`,
-      `Confianza del modelo: ${selected.confidence}%`,
+      `Recomendación MLOps: ${getMlopsRecommendation(record)}`,
+      ...(razonConfianza
+        ? [`¿Por qué este porcentaje?: ${traducirDiagnostico(razonConfianza)}`]
+        : []),
+      ...(tendenciaLstm
+        ? [`Tendencia LSTM: ${traducirDiagnostico(tendenciaLstm)}`]
+        : []),
+      ...(confianzaLstm != null && Number.isFinite(Number(confianzaLstm))
+        ? [`Confianza de clase LSTM: ${Math.round(Number(confianzaLstm) * 100)}%`]
+        : []),
+      `Respaldo del diagnóstico: ${selected.confidence}% (acuerdo entre modelos o regla física, no probabilidad calibrada)`,
       `Temperatura: ${record.temperature} °C`,
       `Vibración: ${record.vibration} Hz`,
       `Presión: ${record.pressure} bar`,
@@ -403,8 +416,7 @@ export default function MantenimientoPredictivo({ assignedOnly = false }) {
               </div>
             )}
 
-            <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-1">
-              <button type="button" disabled={!selected.record} onClick={acknowledgeAlert} className="rounded-lg border border-amber-400/40 bg-amber-50 px-3 py-2.5 text-[10px] font-bold uppercase tracking-[0.08em] text-slate-950 transition hover:bg-amber-400 disabled:opacity-50">Reconocer alerta</button>
+            <div className="mt-4">
               {canSchedule && <button type="button" disabled={!selected.record} onClick={scheduleMaintenance} className="rounded-lg border border-emerald-400/40 bg-emerald-600 px-3 py-2.5 text-[10px] font-bold uppercase tracking-[0.08em] text-white transition hover:bg-emerald-500 disabled:opacity-50">Programar mantenimiento</button>}
             </div>
           </aside>
