@@ -14,6 +14,7 @@ import {
   X,
 } from "lucide-react";
 import LogoutButton from "../../components/LogoutButton";
+import DashboardRoleSwitcher from "../../components/DashboardRoleSwitcher";
 import Maquinaria from "./Maquinaria";
 import MisReportes from "./MisReportes";
 import MantenimientoPredictivo from "../Compartido/MantenimientoPredictivo";
@@ -144,6 +145,7 @@ export default function OperDashboard() {
           </div>
 
           <div className="flex items-center gap-3">
+            <DashboardRoleSwitcher />
             <div className="text-right hidden sm:block">
               <p className="text-xs font-bold text-white truncate max-w-[150px]">
                 {userName || "Operario"}

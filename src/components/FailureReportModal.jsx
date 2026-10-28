@@ -32,26 +32,41 @@ export default function FailureReportModal({ onClose, onSaved }) {
     const [groupsLoading, setGroupsLoading] = useState(true);
     const [groupError, setGroupError] = useState('');
     const [query, setQuery] = useState('');
-    const [form, setForm] = useState({ assetId: '', groupId: '', tipoFalla: '', prioridad: 'MEDIA', descripcion: '' });
+    const [form, setForm] = useState({
+        assetId: '',
+        groupId: '',
+        assignedTechnicianId: '',
+        tipoFalla: '',
+        prioridad: 'MEDIA',
+        descripcion: '',
+    });
     const [evidence, setEvidence] = useState(null);
     const [submitError, setSubmitError] = useState('');
     const [submitting, setSubmitting] = useState(false);
 
-    const isAdministrator = (() => {
+    const roleAccess = (() => {
         const role = (localStorage.getItem('rol') ?? '').toUpperCase().replace(/^ROLE_/, '');
         try {
             const roles = JSON.parse(localStorage.getItem('roles') ?? '[]');
-            return (
-                ['ADMIN', 'ADMINISTRADOR'].includes(role) ||
-                (Array.isArray(roles) &&
-                    roles.some((item) =>
-                        ['ADMIN', 'ADMINISTRADOR'].includes((item ?? '').toUpperCase().replace(/^ROLE_/, ''))
-                    ))
+            const effectiveRoles = new Set(
+                [role, ...(Array.isArray(roles) ? roles : [])]
+                    .map((item) => (item ?? '').toUpperCase().replace(/^ROLE_/, '')),
             );
+            return {
+                isAdministrator: effectiveRoles.has('ADMIN') || effectiveRoles.has('ADMINISTRADOR'),
+                canChooseTechnician:
+                    effectiveRoles.has('ADMIN') ||
+                    effectiveRoles.has('ADMINISTRADOR') ||
+                    effectiveRoles.has('SUPERVISOR'),
+            };
         } catch {
-            return ['ADMIN', 'ADMINISTRADOR'].includes(role);
+            return {
+                isAdministrator: ['ADMIN', 'ADMINISTRADOR'].includes(role),
+                canChooseTechnician: ['ADMIN', 'ADMINISTRADOR', 'SUPERVISOR'].includes(role),
+            };
         }
     })();
+    const { isAdministrator, canChooseTechnician } = roleAccess;
 
     useEffect(() => {
         let cancelled = false;
@@ -94,10 +109,22 @@ export default function FailureReportModal({ onClose, onSaved }) {
                 .includes(query.trim().toLowerCase())
         )
         .sort((first, second) => Number(second.assignedToCurrentUser) - Number(first.assignedToCurrentUser));
+    const selectedGroup = groups.find((group) => String(group.id) === String(form.groupId));
+    const availableTechnicians = (selectedGroup?.members || []).filter((member) => {
+        const effectiveRoles = Array.isArray(member.roles) ? member.roles : [member.rol];
+        return effectiveRoles.some(
+            (role) => String(role ?? '').toUpperCase().replace(/^ROLE_/, '') === 'TECNICO',
+        );
+    });
 
     const updateField = (event) => {
         setSubmitError('');
-        setForm((current) => ({ ...current, [event.target.name]: event.target.value }));
+        const { name, value } = event.target;
+        setForm((current) => ({
+            ...current,
+            [name]: value,
+            ...(name === 'groupId' ? { assignedTechnicianId: '' } : {}),
+        }));
     };
 
     const handleEvidenceChange = (event) => {
@@ -139,6 +166,9 @@ export default function FailureReportModal({ onClose, onSaved }) {
                     JSON.stringify({
                         assetId: Number(form.assetId),
                         groupId: form.groupId ? Number(form.groupId) : null,
+                        assignedTechnicianId: form.assignedTechnicianId
+                            ? Number(form.assignedTechnicianId)
+                            : null,
                         tipoFalla: form.tipoFalla.trim(),
                         prioridad: form.prioridad,
                         descripcion: form.descripcion.trim(),
@@ -292,6 +322,39 @@ export default function FailureReportModal({ onClose, onSaved }) {
                                     No hay un grupo activo disponible para asignar esta falla.
                                 </p>
                             )}
+                        </div>
+                    )}
+
+                    {canChooseTechnician && (
+                        <div>
+                            <label htmlFor="failure-technician" className="mb-1 block text-xs font-medium text-slate-300">
+                                Asignar técnico
+                                <span className="ml-1 font-normal text-slate-400">(opcional)</span>
+                            </label>
+                            <select
+                                id="failure-technician"
+                                name="assignedTechnicianId"
+                                value={form.assignedTechnicianId}
+                                onChange={updateField}
+                                disabled={!selectedGroup || availableTechnicians.length === 0}
+                                className={inputClass}
+                            >
+                                <option value="">
+                                    {!selectedGroup
+                                        ? 'Selecciona primero un grupo'
+                                        : availableTechnicians.length
+                                        ? 'Asignación automática por rotación'
+                                        : 'Este grupo no tiene técnicos activos'}
+                                </option>
+                                {availableTechnicians.map((technician) => (
+                                    <option key={technician.id} value={technician.id}>
+                                        {technician.nombre}{technician.lider ? ' · Líder' : ''}
+                                    </option>
+                                ))}
+                            </select>
+                            <p className="mt-1 text-[11px] leading-relaxed text-slate-400">
+                                Solo se muestran técnicos activos del grupo seleccionado. Si no eliges uno, el sistema asigna por rotación.
+                            </p>
                         </div>
                     )}
 

@@ -8,6 +8,7 @@ const EMPTY_FORM = {
     brand: '',
     model: '',
     serialNumber: '',
+    inventoryCode: '',
     extraSpecifications: '',
     categoryId: '',
     responsibleId: '',
@@ -59,7 +60,7 @@ function getInitialForm(asset) {
     };
 }
 
-function InputField({ label, name, value, onChange, type = 'text', required = false, min, step }) {
+function InputField({ label, name, value, onChange, type = 'text', required = false, min, step, maxLength, hint }) {
     return (
         <label className="block text-xs font-medium text-slate-300">
             <span>
@@ -74,7 +75,9 @@ function InputField({ label, name, value, onChange, type = 'text', required = fa
                 required={required}
                 min={min}
                 step={step}
+                maxLength={maxLength}
             />
+            {hint && <span className="mt-1 block text-[11px] leading-relaxed text-slate-400">{hint}</span>}
         </label>
     );
 }
@@ -191,6 +194,14 @@ export default function CreateAssetForm({ asset = null, onCancel, onSaved }) {
                             <InputField label="Marca" name="brand" value={form.brand} onChange={changeForm} />
                             <InputField label="Modelo" name="model" value={form.model} onChange={changeForm} />
                             <InputField label="Número de serie" name="serialNumber" value={form.serialNumber} onChange={changeForm} />
+                            <InputField
+                                label="Código de inventario / placa"
+                                name="inventoryCode"
+                                value={form.inventoryCode}
+                                onChange={changeForm}
+                                maxLength={80}
+                                hint="Identificador interno o placa física del activo."
+                            />
 
                             <label className="block text-xs font-medium text-slate-300">
                                 <span>Tiene motor</span>

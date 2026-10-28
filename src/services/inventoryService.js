@@ -53,6 +53,9 @@ export const getInventoryMovements = async (groupId, scoped = false) =>
 export const getInventoryGroups = async () =>
   (await directoryApi.get('/work-groups/options')).data;
 
+export const getAllWorkGroups = async () =>
+  (await directoryApi.get('/work-groups/options', { params: { all: true } })).data;
+
 export const getInventoryTasks = async () =>
   (await apiClient.get('/inventory/tasks', authConfig())).data;
 

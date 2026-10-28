@@ -16,6 +16,7 @@ import {
   X,
 } from "lucide-react";
 import LogoutButton from "../../components/LogoutButton";
+import DashboardRoleSwitcher from "../../components/DashboardRoleSwitcher";
 import Inventario from "../Compartido/Inventario";
 import Reportes from "../Compartido/Reportes";
 import Entradas from "../Compartido/Entradas";
@@ -525,6 +526,7 @@ export default function SgaControlDashboard() {
             </div>
 
             <div className="flex flex-wrap items-center justify-end gap-2 sm:gap-3">
+              <DashboardRoleSwitcher />
               <button
                 type="button"
                 onClick={() => setActiveTab("Entradas")}

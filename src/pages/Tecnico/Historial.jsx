@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { CalendarClock, CheckCircle2, ChevronDown, Download, LoaderCircle, RefreshCw, Wrench } from 'lucide-react';
+import { CalendarClock, CheckCircle2, ChevronDown, Download, FileText, LoaderCircle, RefreshCw, Wrench } from 'lucide-react';
+import AssetReportModal from '../../components/AssetReportModal';
 import { getTechnicianMaintenanceHistory } from '../../services/technicianService';
 import { getPreventiveMaintenanceEvidence } from '../../services/preventiveMaintenanceService';
 
@@ -79,7 +80,7 @@ function EvidenceDownload({ url, index }) {
   );
 }
 
-function HistoryDetails({ item }) {
+function HistoryDetails({ item, onOpenReport }) {
   return (
     /* DOS COLUMNAS (y tres en pantallas grandes) para aprovechar el espacio */
     <div className="grid grid-cols-2 gap-2 border-t border-[#2d4055] bg-[#0b1d2a] p-3 sm:gap-3 sm:p-5 lg:grid-cols-3">
@@ -231,7 +232,7 @@ export default function Historial() {
                   <ChevronDown size={18} className="text-slate-400 transition-transform duration-200 group-open:rotate-180 shrink-0" />
                 </div>
               </summary>
-              <HistoryDetails item={item} />
+              <HistoryDetails item={item} onOpenReport={(ast) => { setSelectedAsset(ast); setOpenReport(true); }} />
             </details>
           ))}
         </div>

@@ -16,6 +16,7 @@ import {
   X,
 } from 'lucide-react';
 import LogoutButton from '../../components/LogoutButton';
+import DashboardRoleSwitcher from '../../components/DashboardRoleSwitcher';
 import { getAssets, getFailureReports, getPredictiveAssets } from '../../services/assetService';
 import { getCurrentUser } from '../../services/technicianService';
 import { getPreventiveMaintenances } from '../../services/preventiveMaintenanceService';
@@ -228,6 +229,7 @@ export default function AdminDashboard() {
             </div>
 
             <div className="flex shrink-0 items-center gap-1.5 sm:gap-3">
+              <DashboardRoleSwitcher />
               {/* Notificaciones */}
               <div className="relative">
                 <button

@@ -10,6 +10,7 @@ import {
   LayoutDashboard,
   Menu,
   Package,
+  Plus,
   RefreshCw,
   Search,
   Tractor,
@@ -20,6 +21,8 @@ import {
   X,
 } from 'lucide-react';
 import LogoutButton from '../../components/LogoutButton';
+import DashboardRoleSwitcher from '../../components/DashboardRoleSwitcher';
+import FailureReportModal from '../../components/FailureReportModal';
 import Inventario from '../Compartido/Inventario';
 import Entradas from '../Compartido/Entradas';
 import Salidas from '../Compartido/Salidas';
@@ -422,10 +425,11 @@ function Overview({ assets, reports, maintenances, onNavigate, errors }) {
   );
 }
 
-function OrdersView({ reports, error, title = 'Reporte de Fallas' }) {
+function OrdersView({ reports, error, title = 'Reporte de Fallas', onReportCreated }) {
   const [query, setQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('TODOS');
   const [selectedReport, setSelectedReport] = useState(null);
+  const [showReportModal, setShowReportModal] = useState(false);
 
   const visibleReports = useMemo(() => {
     return reports.filter((report) => {
@@ -453,7 +457,16 @@ function OrdersView({ reports, error, title = 'Reporte de Fallas' }) {
         eyebrow="Seguimiento operativo"
         title={title}
         description="Consulta los reportes de fallas, su prioridad, zona y responsable técnico."
-      />
+      >
+        <button
+          type="button"
+          onClick={() => setShowReportModal(true)}
+          className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-cyan-600 px-4 text-xs font-semibold text-white shadow-lg shadow-cyan-950/40 transition-colors hover:bg-cyan-500 sm:w-auto"
+        >
+          <Plus size={17} />
+          Reportar falla
+        </button>
+      </SectionHeading>
 
       <div className="flex flex-wrap items-center gap-3 rounded-xl border border-[#2d4055] bg-[#13293a] p-3 shadow-lg">
         <label className="relative min-w-[220px] flex-1">
@@ -605,6 +618,15 @@ function OrdersView({ reports, error, title = 'Reporte de Fallas' }) {
       </div>
 
       <ReportDetails report={selectedReport} onClose={() => setSelectedReport(null)} />
+      {showReportModal && (
+        <FailureReportModal
+          onClose={() => setShowReportModal(false)}
+          onSaved={() => {
+            setShowReportModal(false);
+            onReportCreated?.();
+          }}
+        />
+      )}
     </div>
   );
 }
@@ -1039,7 +1061,12 @@ export default function SupervisorDashboard() {
     ) : activeView === 'Activos' ? (
       <AssetsView assets={assets} error={errors.assets} />
     ) : activeView === 'Reporte de Fallas' ? (
-      <OrdersView reports={reports} error={errors.reports} title="Reporte de Fallas" />
+      <OrdersView
+        reports={reports}
+        error={errors.reports}
+        title="Reporte de Fallas"
+        onReportCreated={() => setRefreshKey((value) => value + 1)}
+      />
     ) : activeView === 'Inventario' ? (
       <Inventario key={`inventory-${selectedGroupId ?? 'central'}`} {...inventoryScopeProps} />
     ) : activeView === 'Entradas' ? (
@@ -1165,6 +1192,7 @@ export default function SupervisorDashboard() {
           </div>
 
           <div className="flex items-center gap-2.5 sm:gap-3">
+            <DashboardRoleSwitcher />
             {showInventoryScope && (
               <label className="flex items-center gap-2">
                 <span className="hidden text-xs text-slate-400 sm:inline">Bodega</span>

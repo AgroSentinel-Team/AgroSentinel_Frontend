@@ -23,9 +23,18 @@ export const getAssetResume = async (id) => (await assetApi.get(`/${id}/resume`)
 
 export const getAssignedAssetResume = async (id) => (await assetApi.get(`/assigned/${id}/resume`)).data;
 
-export const getPredictiveAssets = async () => (await predictiveApi.get('/predictive/assets')).data;
+export const getPredictiveAssets = async () => {
+  try {
+    return (await predictiveApi.get('/predictive/assets')).data;
+  } catch (error) {
+    if (error.response?.status === 401) return [];
+    throw error;
+  }
+};
 
-export const getPredictiveHistory = async (id) => (await predictiveApi.get(`/predictive/assets/${id}/history`)).data;
+export const getPredictiveHistory = async (id) => {
+  return (await predictiveApi.get(`/predictive/assets/${id}/history`)).data;
+};
 
 export const savePredictiveFeedback = async (id, fallaRealConfirmada) =>
     (await predictiveApi.put(`/predictive/records/${id}/feedback`, { fallaRealConfirmada })).data;

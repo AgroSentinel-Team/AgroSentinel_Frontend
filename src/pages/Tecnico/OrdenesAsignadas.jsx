@@ -1,6 +1,10 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Activity,
+  AlertTriangle,
+  Check,
+  Layers,
+  Package,
   Clock3,
   FileText,
   LoaderCircle,
@@ -18,6 +22,11 @@ import {
   startFailureReview,
 } from '../../services/technicianService';
 import { getPreventiveMaintenances } from '../../services/preventiveMaintenanceService';
+import {
+  getInventoryItems,
+  getInventoryGroups,
+  getAllWorkGroups,
+} from '../../services/inventoryService';
 
 const equipmentStates = [
   ['OPERATIONAL', '100% operativo'],
@@ -79,12 +88,17 @@ function InterventionForm({ report, assetResume, onClose, onSaved }) {
     receivedBy: '',
   });
   const [parts, setParts] = useState([]);
-  const [partDraft, setPartDraft] = useState({
-    partNumber: '',
-    name: '',
-    brand: '',
-    quantity: '',
-  });
+  const [technicianGroups, setTechnicianGroups] = useState([]);
+  const [allZones, setAllZones] = useState([]);
+  const [loadingGroups, setLoadingGroups] = useState(true);
+  const [groupError, setGroupError] = useState('');
+  const [isExternalZone, setIsExternalZone] = useState(false);
+  const [selectedExternalZoneId, setSelectedExternalZoneId] = useState('CENTRAL');
+  const [availableItems, setAvailableItems] = useState([]);
+  const [loadingItems, setLoadingItems] = useState(false);
+  const [selectedItemId, setSelectedItemId] = useState('');
+  const [partQuantity, setPartQuantity] = useState('');
+  const [partSelectionError, setPartSelectionError] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
@@ -94,26 +108,145 @@ function InterventionForm({ report, assetResume, onClose, onSaved }) {
       [event.target.name]: event.target.value,
     }));
 
+  const primaryGroup = useMemo(
+    () =>
+      technicianGroups.find((group) => String(group.id) === String(report.workGroupId)) ||
+      (report.workGroupId
+        ? { id: report.workGroupId, name: report.workGroupName || 'Mi Grupo' }
+        : technicianGroups[0] || null),
+    [technicianGroups, report.workGroupId, report.workGroupName],
+  );
+
+  useEffect(() => {
+    let active = true;
+    Promise.allSettled([getInventoryGroups(), getAllWorkGroups()]).then((results) => {
+      if (!active) return;
+      const [myGroupsResult, allGroupsResult] = results;
+      setTechnicianGroups(
+        myGroupsResult.status === 'fulfilled' && Array.isArray(myGroupsResult.value)
+          ? myGroupsResult.value
+          : [],
+      );
+      setAllZones(
+        allGroupsResult.status === 'fulfilled' && Array.isArray(allGroupsResult.value)
+          ? allGroupsResult.value
+          : [],
+      );
+      const failedResult = results.find((result) => result.status === 'rejected');
+      if (failedResult) {
+        const requestError = failedResult.reason;
+        setGroupError(
+          requestError.response?.data?.message ||
+            requestError.response?.data?.detail ||
+            requestError.message ||
+            'No fue posible cargar los grupos de trabajo.',
+        );
+      }
+    }).finally(() => {
+      if (active) setLoadingGroups(false);
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+    if (loadingGroups) return () => {
+      active = false;
+    };
+
+    Promise.resolve()
+      .then(() => {
+        if (!active) return null;
+        setLoadingItems(true);
+        setPartSelectionError('');
+        setSelectedItemId('');
+        setPartQuantity('');
+
+        if (!isExternalZone && !primaryGroup) {
+          setAvailableItems([]);
+          setPartSelectionError('La falla no tiene un grupo asignado para consultar su inventario.');
+          return [];
+        }
+
+        const targetGroupId = isExternalZone
+          ? (selectedExternalZoneId === 'CENTRAL' ? null : Number(selectedExternalZoneId))
+          : primaryGroup.id;
+        const isCentral = isExternalZone && selectedExternalZoneId === 'CENTRAL';
+        return getInventoryItems(targetGroupId, isCentral ? true : targetGroupId != null);
+      })
+      .then((items) => {
+        if (!active || items === null) return;
+        setAvailableItems(Array.isArray(items) ? items : []);
+      })
+      .catch((err) => {
+        if (!active) return;
+        setAvailableItems([]);
+        setPartSelectionError(
+          err.response?.data?.message ||
+            err.response?.data?.detail ||
+            err.message ||
+            'No fue posible cargar el inventario de esta bodega.',
+        );
+      })
+      .finally(() => {
+        if (active) setLoadingItems(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [isExternalZone, selectedExternalZoneId, primaryGroup, loadingGroups]);
+
+  const selectedItem = availableItems.find((itm) => String(itm.id) === String(selectedItemId)) || null;
+  const alreadyUsedQuantity = parts
+    .filter((p) => p.itemId === selectedItem?.id)
+    .reduce((sum, p) => sum + Number(p.quantity || 0), 0);
+  const currentAvailableStock = selectedItem
+    ? Math.max(0, Number(selectedItem.stock || 0) - alreadyUsedQuantity)
+    : 0;
+
   const addPart = () => {
-    if (
-      !partDraft.partNumber.trim() ||
-      !partDraft.name.trim() ||
-      !partDraft.quantity ||
-      Number(partDraft.quantity) <= 0
-    ) {
-      setError(
-        'Completa número de parte, nombre y cantidad mayor que cero.',
+    setPartSelectionError('');
+    if (!selectedItem) {
+      setPartSelectionError('Selecciona una pieza o repuesto del inventario.');
+      return;
+    }
+    const qty = Number(partQuantity);
+    if (!qty || qty <= 0) {
+      setPartSelectionError('Ingresa una cantidad mayor que cero.');
+      return;
+    }
+    if (qty > currentAvailableStock) {
+      setPartSelectionError(
+        'La cantidad ingresada (' + qty + ') supera el stock disponible (' + currentAvailableStock + ' ' + selectedItem.unit + ').',
       );
       return;
     }
-    setParts((current) => [
-      ...current,
-      { ...partDraft, quantity: Number(partDraft.quantity) },
-    ]);
-    setPartDraft({ partNumber: '', name: '', brand: '', quantity: '' });
-    setError('');
-  };
 
+    const currentZoneName = isExternalZone
+      ? (selectedExternalZoneId === 'CENTRAL'
+          ? 'Bodega Central'
+          : allZones.find((z) => String(z.id) === String(selectedExternalZoneId))?.name || 'Zona Externa')
+      : (primaryGroup?.name || 'Grupo de Trabajo Propio');
+
+    const newPart = {
+      itemId: selectedItem.id,
+      sourceGroupId: isExternalZone && selectedExternalZoneId !== 'CENTRAL' ? Number(selectedExternalZoneId) : (isExternalZone ? null : primaryGroup?.id || null),
+      sourceZoneName: currentZoneName,
+      isExternal: isExternalZone,
+      partNumber: selectedItem.category || ('REP-' + selectedItem.id),
+      name: selectedItem.name || selectedItem.item || 'Repuesto',
+      brand: null,
+      unit: selectedItem.unit || 'und',
+      quantity: qty,
+    };
+
+    setParts((current) => [...current, newPart]);
+    setSelectedItemId('');
+    setPartQuantity('');
+  };
   const submit = async (event) => {
     event.preventDefault();
     setError('');
@@ -408,77 +541,206 @@ function InterventionForm({ report, assetResume, onClose, onSaved }) {
             })}
           </div>
 
-          <div className="space-y-3 rounded-xl border border-[#30485a] bg-[#0d2030] p-4">
-            <p className="text-xs font-bold uppercase tracking-wider text-slate-300">
-              Repuestos e insumos (opcional)
-            </p>
-            <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
-              {['partNumber', 'name', 'brand', 'quantity'].map((field) => (
-                <input
-                  key={field}
-                  className={fieldClass}
-                  aria-label={
-                    {
-                      partNumber: 'Número de parte',
-                      name: 'Nombre',
-                      brand: 'Marca',
-                      quantity: 'Cantidad',
-                    }[field]
-                  }
-                  placeholder={
-                    {
-                      partNumber: 'Número de parte',
-                      name: 'Nombre',
-                      brand: 'Marca',
-                      quantity: 'Cantidad',
-                    }[field]
-                  }
-                  type={field === 'quantity' ? 'number' : 'text'}
-                  min={field === 'quantity' ? '0.001' : undefined}
-                  value={partDraft[field]}
-                  onChange={(event) =>
-                    setPartDraft((current) => ({
-                      ...current,
-                      [field]: event.target.value,
-                    }))
-                  }
-                />
-              ))}
-            </div>
-            <button
-              type="button"
-              onClick={addPart}
-              className="inline-flex min-h-[38px] items-center gap-1.5 rounded-lg border border-cyan-400/30 bg-cyan-500/15 px-3 py-1.5 text-xs font-bold text-cyan-200 hover:bg-cyan-500/25 transition-colors"
-            >
-              <Plus size={14} />
-              <span>Agregar repuesto</span>
-            </button>
+          {/* Selector Controlado de Repuestos e Insumos */}
+          <div className="space-y-4 rounded-xl border border-[#30485a] bg-[#0d2030] p-4 sm:p-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/10 pb-3">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-wider text-cyan-300 flex items-center gap-2">
+                  <Package size={16} />
+                  <span>Repuestos e Insumos Utilizados</span>
+                </p>
+                <p className="mt-0.5 text-[11px] text-slate-400">
+                  Selecciona piezas de tu inventario o solicita insumos a otra zona/bodega externa.
+                </p>
+              </div>
 
-            {parts.length > 0 && (
-              <div className="space-y-1.5 pt-2 border-t border-white/5">
-                {parts.map((part, index) => (
-                  <div
-                    key={`${part.partNumber}-${index}`}
-                    className="flex items-center justify-between rounded-lg bg-[#102a3d] p-2.5 border border-white/5 text-xs font-mono text-slate-200"
+              {/* Interruptor Repuesto de Otra Zona */}
+              <label className="inline-flex items-center gap-2.5 cursor-pointer bg-[#102a3d] px-3 py-1.5 rounded-lg border border-white/10 hover:border-cyan-400/40 transition-colors">
+                <input
+                  type="checkbox"
+                  checked={isExternalZone}
+                  onChange={(e) => setIsExternalZone(e.target.checked)}
+                  className="h-4 w-4 rounded accent-cyan-500 cursor-pointer"
+                />
+                <span className="text-xs font-semibold text-slate-200">
+                  Repuesto de otra zona o bodega externa
+                </span>
+              </label>
+            </div>
+
+            {loadingGroups && (
+              <p className="text-xs text-slate-400">Cargando tus grupos y bodegas disponibles…</p>
+            )}
+            {groupError && (
+              <p role="alert" className="rounded-lg border border-amber-400/30 bg-amber-500/10 p-2.5 text-xs text-amber-200">
+                No se pudo consultar toda la lista de zonas: {groupError}
+              </p>
+            )}
+
+            {/* Zona seleccionada / Desplegable de Bodega Externa */}
+            {isExternalZone ? (
+              <div className="rounded-lg border border-amber-400/30 bg-amber-500/10 p-3 space-y-2">
+                <div className="flex items-center gap-2 text-amber-300 text-xs font-bold">
+                  <Layers size={14} />
+                  <span>Bodega o Zona Externa de Origen:</span>
+                </div>
+                <select
+                  value={selectedExternalZoneId}
+                  onChange={(e) => setSelectedExternalZoneId(e.target.value)}
+                  className={fieldClass}
+                >
+                  <option value="CENTRAL">Bodega Central (Existencias generales)</option>
+                  {allZones
+                    .filter((z) => !primaryGroup || String(z.id) !== String(primaryGroup.id))
+                    .map((zone) => (
+                      <option key={zone.id} value={zone.id}>
+                        {zone.name}
+                      </option>
+                    ))}
+                </select>
+                {!loadingGroups && allZones.length === 0 && (
+                  <p className="text-[11px] text-amber-200">
+                    No hay otras zonas disponibles además de la bodega central.
+                  </p>
+                )}
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 text-xs text-slate-300 bg-[#102a3d] p-2.5 rounded-lg border border-white/5">
+                <Check size={14} className="text-cyan-400 shrink-0" />
+                <span>
+                  Consultando catálogo de tu grupo asignado: <strong className="text-cyan-300">{primaryGroup?.name || "Mi Grupo de Trabajo"}</strong>
+                </span>
+              </div>
+            )}
+
+            {/* Desplegable de Repuestos del Inventario */}
+            <div className="space-y-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="sm:col-span-2">
+                  <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                    Pieza / Repuesto disponible ({availableItems.length} insumos)
+                  </label>
+                  <select
+                    value={selectedItemId}
+                    onChange={(e) => {
+                      setSelectedItemId(e.target.value);
+                      setPartSelectionError("");
+                    }}
+                    disabled={loadingItems}
+                    className={fieldClass}
                   >
-                    <span>
-                      <strong>{part.partNumber}</strong> · {part.name} · Cantidad:{' '}
-                      <strong className="text-cyan-300">{part.quantity}</strong>{' '}
-                      {part.brand && `(${part.brand})`}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setParts((current) =>
-                          current.filter((_, partIndex) => partIndex !== index),
-                        )
-                      }
-                      className="text-red-300 hover:text-red-100 p-1"
-                    >
-                      <Trash2 size={14} />
-                    </button>
+                    <option value="">-- Seleccionar repuesto del catálogo --</option>
+                    {availableItems.map((itm) => {
+                      const isOutOfStock = Number(itm.stock || 0) <= 0;
+                      return (
+                        <option
+                          key={itm.id}
+                          value={itm.id}
+                          disabled={isOutOfStock}
+                        >
+                          {itm.name || itm.item} [{itm.category || "General"}] · Stock: {itm.stock} {itm.unit} {isOutOfStock ? "(Agotado)" : ""}
+                        </option>
+                      );
+                    })}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                    Cantidad a usar {selectedItem ? "(" + selectedItem.unit + ")" : ""}
+                  </label>
+                  <input
+                    type="number"
+                    min="0.001"
+                    step="any"
+                    max={currentAvailableStock || undefined}
+                    placeholder="Ej. 1"
+                    value={partQuantity}
+                    onChange={(e) => {
+                      setPartQuantity(e.target.value);
+                      setPartSelectionError("");
+                    }}
+                    disabled={!selectedItem}
+                    className={fieldClass}
+                  />
+                </div>
+              </div>
+
+              {/* Información de Stock y Alertas */}
+              {selectedItem && (
+                <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-[#102a3d] p-2.5 text-xs border border-white/5">
+                  <div className="flex items-center gap-2">
+                    <span className="text-slate-400">Stock total: <strong>{selectedItem.stock} {selectedItem.unit}</strong></span>
+                    <span className="text-slate-500">·</span>
+                    <span className="text-cyan-300 font-bold">Disponible para esta orden: {currentAvailableStock} {selectedItem.unit}</span>
                   </div>
-                ))}
+                  <span className="text-slate-400 font-mono text-[11px]">Categoría: {selectedItem.category || "General"}</span>
+                </div>
+              )}
+
+              {partSelectionError && (
+                <div className="flex items-center gap-2 rounded-lg border border-red-500/30 bg-red-500/10 p-2.5 text-xs text-red-200">
+                  <AlertTriangle size={14} className="shrink-0 text-red-400" />
+                  <span>{partSelectionError}</span>
+                </div>
+              )}
+
+              <button
+                type="button"
+                onClick={addPart}
+                disabled={!selectedItem || !partQuantity || Number(partQuantity) <= 0}
+                className="inline-flex min-h-[38px] items-center gap-1.5 rounded-lg border border-cyan-400/30 bg-cyan-500/15 px-3.5 py-1.5 text-xs font-bold text-cyan-200 hover:bg-cyan-500/25 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <Plus size={14} />
+                <span>Agregar repuesto a la intervención</span>
+              </button>
+            </div>
+
+            {/* Lista de Repuestos Utilizados en esta Intervención */}
+            {parts.length > 0 && (
+              <div className="space-y-2 pt-3 border-t border-white/10">
+                <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                  Repuestos registrados en esta intervención ({parts.length}):
+                </p>
+                <div className="space-y-2">
+                  {parts.map((part, index) => (
+                    <div
+                      key={"part-" + part.itemId + "-" + index}
+                      className="flex items-center justify-between rounded-lg bg-[#102a3d] p-3 border border-white/5 text-xs text-slate-200"
+                    >
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <strong className="text-white font-medium">{part.name}</strong>
+                          <span className="font-mono text-[11px] text-slate-400">({part.partNumber})</span>
+                          <span
+                            className={"rounded-full px-2 py-0.5 text-[10px] font-semibold " + (
+                              part.isExternal
+                                ? "bg-amber-500/15 text-amber-300 border border-amber-500/30"
+                                : "bg-cyan-500/15 text-cyan-300 border border-cyan-500/30"
+                            )}
+                          >
+                            {part.isExternal ? ("Origen: " + part.sourceZoneName) : "Grupo Propio"}
+                          </span>
+                        </div>
+                        <p className="text-xs text-slate-300">
+                          Cantidad a descontar: <strong className="text-cyan-300 font-mono">{part.quantity} {part.unit}</strong>
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setParts((current) =>
+                            current.filter((_, partIndex) => partIndex !== index),
+                          )
+                        }
+                        title="Quitar repuesto"
+                        className="text-red-300 hover:text-red-100 hover:bg-red-500/20 rounded p-1.5 transition-colors"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
           </div>

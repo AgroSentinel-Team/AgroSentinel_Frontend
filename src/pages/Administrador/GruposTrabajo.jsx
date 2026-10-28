@@ -10,6 +10,11 @@ const roles = [
     { value: 'OPERARIO_CAMPO', label: 'Operario de campo' },
 ];
 
+function roleLabel(role) {
+    const normalizedRole = String(role ?? '').toUpperCase().replace(/^ROLE_/, '');
+    return roles.find((item) => item.value === normalizedRole)?.label ?? normalizedRole;
+}
+
 const emptyForm = {
     name: '',
     description: '',
@@ -421,11 +426,31 @@ export default function GruposTrabajo() {
 
                                     <div className="border-t border-[#2d4055] pt-2">
                                         <p className="text-slate-400 text-[11px] font-medium uppercase tracking-wider mb-0.5">
-                                            Integrantes
+                                            Integrantes y roles efectivos
                                         </p>
-                                        <p className="text-slate-200 leading-relaxed line-clamp-3">
-                                            {group.members.map((member) => member.nombre).join(', ') || 'Sin miembros'}
-                                        </p>
+                                        {group.members.length ? (
+                                            <ul className="space-y-2">
+                                                {group.members.map((member) => (
+                                                    <li key={member.id} className="min-w-0">
+                                                        <p className="truncate text-slate-200">
+                                                            {member.nombre}{member.lider ? ' · Líder' : ''}
+                                                        </p>
+                                                        <div className="mt-1 flex flex-wrap gap-1">
+                                                            {(member.roles?.length ? member.roles : [member.rol]).map((role) => (
+                                                                <span
+                                                                    key={`${member.id}-${role}`}
+                                                                    className="rounded-full border border-cyan-400/20 bg-cyan-500/10 px-2 py-0.5 text-[10px] text-cyan-200"
+                                                                >
+                                                                    {roleLabel(role)}
+                                                                </span>
+                                                            ))}
+                                                        </div>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        ) : (
+                                            <p className="text-slate-400">Sin miembros</p>
+                                        )}
                                     </div>
                                 </div>
                             </div>

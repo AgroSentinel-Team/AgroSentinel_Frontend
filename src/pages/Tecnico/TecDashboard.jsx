@@ -11,6 +11,7 @@ import {
   X,
 } from "lucide-react";
 import LogoutButton from "../../components/LogoutButton";
+import DashboardRoleSwitcher from "../../components/DashboardRoleSwitcher";
 import MiPanel from "./MiPanel";
 import OrdenesAsignadas from "./OrdenesAsignadas";
 import Historial from "./Historial";
@@ -236,6 +237,7 @@ export default function TechnicianPanel() {
           </div>
 
           <div className="flex items-center gap-2.5 sm:gap-3">
+            <DashboardRoleSwitcher />
             <LogoutButton className="text-slate-300 hover:bg-white/10 hover:text-white" />
 
             <div className="hidden text-right leading-tight sm:block">

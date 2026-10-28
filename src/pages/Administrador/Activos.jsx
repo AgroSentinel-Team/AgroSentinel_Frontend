@@ -22,6 +22,7 @@ import {
 } from '../../services/assetService';
 import { getPreventiveMaintenanceEvidence } from '../../services/preventiveMaintenanceService';
 import CreateAssetForm from '../../components/CreateAssetForm';
+import AssetReportModal from '../../components/AssetReportModal';
 
 const STATUS_LABELS = {
     OPERATIONAL: 'Operativo',
@@ -77,6 +78,7 @@ export default function Activos() {
     const [statusFilter, setStatusFilter] = useState('ALL');
     const [modal, setModal] = useState('');
     const [editingAsset, setEditingAsset] = useState(null);
+    const [selectedReportAsset, setSelectedReportAsset] = useState(null);
     const [resume, setResume] = useState(null);
     const [resumeLoading, setResumeLoading] = useState(false);
     const [predictiveHistory, setPredictiveHistory] = useState([]);
@@ -161,18 +163,9 @@ export default function Activos() {
         }
     };
 
-    const openResume = async (asset) => {
-        setResume(null);
-        setResumeLoading(true);
-        setModal('resume');
-        try {
-            setResume(await getAssetResume(asset.id));
-        } catch (error) {
-            setFeedback(`No se pudo cargar la hoja de vida: ${describeError(error)}`);
-            setModal('');
-        } finally {
-            setResumeLoading(false);
-        }
+    const openResume = (asset) => {
+        setSelectedReportAsset(asset);
+        setModal('reportModal');
     };
 
     const openMaintenanceEvidence = async (url) => {
@@ -535,227 +528,15 @@ export default function Activos() {
                 <CreateAssetForm asset={editingAsset} onCancel={() => setModal('')} onSaved={handleAssetSaved} />
             )}
 
-            {/* Modal Hoja de Vida Standard */}
-            {modal === 'resume' && (
-                <div
-                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-3 sm:p-4 md:p-6 overflow-y-auto"
-                    role="presentation"
-                >
-                    <div
-                        role="dialog"
-                        aria-modal="true"
-                        aria-labelledby="asset-resume-title"
-                        className="relative my-auto max-h-[92vh] w-full max-w-3xl overflow-y-auto rounded-xl border border-white/10 bg-[#102637] p-4 sm:p-6 shadow-2xl transition-all min-w-0"
-                    >
-                        <div className="mb-4 sm:mb-5 flex items-start justify-between gap-3 border-b border-white/10 pb-3.5">
-                            <div className="min-w-0">
-                                <h3 id="asset-resume-title" className="text-base sm:text-lg font-semibold text-white truncate">
-                                    Hoja de vida del activo
-                                </h3>
-                                <p className="mt-0.5 text-xs text-slate-400">
-                                    Ficha, responsable e historial de mantenimiento.
-                                </p>
-                            </div>
-                            <button
-                                type="button"
-                                onClick={() => setModal('')}
-                                title="Cerrar"
-                                aria-label="Cerrar hoja de vida"
-                                className="flex h-11 w-11 items-center justify-center rounded-lg text-slate-400 hover:bg-white/10 hover:text-white transition-colors shrink-0"
-                            >
-                                <X size={20} />
-                            </button>
-                        </div>
-
-                        {resumeLoading ? (
-                            <p className="py-12 text-center text-xs text-slate-400">Cargando hoja de vida...</p>
-                        ) : (
-                            resume && (
-                                <div className="space-y-6">
-                                    {/* Ficha General */}
-                                    <div className="grid gap-2 border-b border-white/10 pb-5 grid-cols-2 text-[10px] sm:gap-4 sm:text-xs">
-                                        <div>
-                                            <p className="text-slate-400 font-medium">Activo</p>
-                                            <p className="mt-1 text-sm font-semibold text-white">{resume.asset.name}</p>
-                                            <p className="mt-0.5 text-slate-300">
-                                                {[resume.asset.brand, resume.asset.model, resume.asset.serialNumber]
-                                                    .filter(Boolean)
-                                                    .join(' · ')}
-                                            </p>
-                                        </div>
-                                        <div>
-                                            <p className="text-slate-400 font-medium">Categoría / responsable</p>
-                                            <p className="mt-1 text-white">
-                                                {resume.asset.categoryName} / {resume.asset.responsibleName}
-                                            </p>
-                                        </div>
-                                        <div>
-                                            <p className="text-slate-400 font-medium">Ubicación / estado</p>
-                                            <p className="mt-1 text-white">
-                                                {resume.asset.location || 'Sin ubicación'} /{' '}
-                                                {STATUS_LABELS[resume.asset.operationalStatus] ||
-                                                    resume.asset.operationalStatus}{' '}
-                                                / {resume.asset.isActive ? 'Activo' : 'Desactivado'}
-                                            </p>
-                                        </div>
-                                        <div>
-                                            <p className="text-slate-400 font-medium">Adquisición / costo</p>
-                                            <p className="mt-1 text-white">
-                                                {formatDate(resume.asset.acquisitionDate)} /{' '}
-                                                {formatCurrency(resume.asset.acquisitionCost)}
-                                            </p>
-                                        </div>
-                                        <div>
-                                            <p className="text-slate-400 font-medium">Proveedor</p>
-                                            <p className="mt-1 text-white">{resume.asset.provider || 'Sin registro'}</p>
-                                        </div>
-                                        <div>
-                                            <p className="text-slate-400 font-medium">Vencimiento de garantía</p>
-                                            <p className="mt-1 text-white">
-                                                {formatDate(resume.asset.warrantyExpirationDate)}
-                                            </p>
-                                        </div>
-                                        <div className="sm:col-span-2">
-                                            <p className="text-slate-400 font-medium">Especificaciones adicionales</p>
-                                            <pre className="mt-1 whitespace-pre-wrap break-words font-sans text-xs text-white bg-[#081723] p-3 rounded-lg border border-white/5">
-                                                {resume.asset.extraSpecifications || 'Sin registro'}
-                                            </pre>
-                                        </div>
-                                    </div>
-
-                                    {/* Historial de Mantenimientos */}
-                                    <div className="space-y-3">
-                                        <h4 className="flex items-center gap-2 text-xs font-semibold text-white uppercase tracking-wider">
-                                            <Wrench size={16} className="text-cyan-300" />
-                                            Historial de mantenimiento
-                                        </h4>
-                                        {resume.maintenanceHistory.length ? (
-                                            <div className="space-y-3">
-                                                {resume.maintenanceHistory.map((item) => {
-                                                    const statusClass =
-                                                        item.status === 'COMPLETED'
-                                                            ? 'border-emerald-400/30 bg-emerald-500/10 text-emerald-300'
-                                                            : item.status === 'URGENT_CORRECTIVE'
-                                                            ? 'border-red-400/30 bg-red-500/10 text-red-300'
-                                                            : item.status === 'PARTIALLY_COMPLETED'
-                                                            ? 'border-amber-400/30 bg-amber-500/10 text-amber-300'
-                                                            : 'border-cyan-400/30 bg-cyan-500/10 text-cyan-300';
-                                                    return (
-                                                        <article
-                                                            key={item.id}
-                                                            className="rounded-lg border border-white/10 bg-[#0b1d2a] p-3.5 space-y-3"
-                                                        >
-                                                            <div className="flex flex-wrap items-start justify-between gap-2">
-                                                                <div>
-                                                                    <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">
-                                                                        {item.type === 'PREVENTIVE'
-                                                                            ? 'Mantenimiento preventivo'
-                                                                            : 'Mantenimiento correctivo'}
-                                                                    </p>
-                                                                    <p className="mt-0.5 text-xs font-medium text-white">
-                                                                        {item.status === 'SCHEDULED'
-                                                                            ? 'Trabajo planificado'
-                                                                            : 'Trabajo realizado'}
-                                                                    </p>
-                                                                </div>
-                                                                <span
-                                                                    className={`rounded-full border px-2.5 py-1 text-xs font-semibold ${statusClass}`}
-                                                                >
-                                                                    {MAINTENANCE_STATUS_LABELS[item.status] ||
-                                                                        'Completado'}
-                                                                </span>
-                                                            </div>
-
-                                                            <dl className="grid gap-2 border-t border-white/5 pt-3 text-[10px] grid-cols-2 sm:text-xs lg:grid-cols-3">
-                                                                <div>
-                                                                    <dt className="text-slate-500">Fecha programada</dt>
-                                                                    <dd className="mt-0.5 text-slate-200">
-                                                                        {formatDateTime(
-                                                                            item.scheduledAt || item.maintenanceDate
-                                                                        )}
-                                                                    </dd>
-                                                                </div>
-                                                                <div>
-                                                                    <dt className="text-slate-500">Fecha de ejecución</dt>
-                                                                    <dd className="mt-0.5 text-slate-200">
-                                                                        {item.executedAt
-                                                                            ? formatDateTime(item.executedAt)
-                                                                            : 'Pendiente'}
-                                                                    </dd>
-                                                                </div>
-                                                                <div>
-                                                                    <dt className="text-slate-500">Técnico responsable</dt>
-                                                                    <dd className="mt-0.5 text-slate-200">
-                                                                        {item.technicianName || 'Sin asignar'}
-                                                                    </dd>
-                                                                </div>
-                                                            </dl>
-
-                                                            <div className="rounded-lg border border-white/5 bg-[#102637] p-3">
-                                                                <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-                                                                    {item.status === 'SCHEDULED'
-                                                                        ? 'Plan de trabajo'
-                                                                        : 'Detalle del trabajo y observaciones'}
-                                                                </p>
-                                                                <p className="mt-1 whitespace-pre-wrap text-xs leading-relaxed text-slate-200">
-                                                                    {item.tasksDescription || 'Sin descripción de tareas'}
-                                                                </p>
-                                                                {item.replacedParts && (
-                                                                    <p className="mt-2 text-xs text-slate-300">
-                                                                        <span className="text-slate-500">Repuestos: </span>
-                                                                        {item.replacedParts}
-                                                                    </p>
-                                                                )}
-                                                            </div>
-
-                                                            <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-slate-400">
-                                                                {item.nextRecommendedDate && (
-                                                                    <span>
-                                                                        Próximo mantenimiento:{' '}
-                                                                        {formatDate(item.nextRecommendedDate)}
-                                                                    </span>
-                                                                )}
-                                                                {item.provider && <span>Proveedor: {item.provider}</span>}
-                                                                {item.cost !== null && item.cost !== undefined && (
-                                                                    <span>Costo: {formatCurrency(item.cost)}</span>
-                                                                )}
-                                                                {item.signedAt && (
-                                                                    <span>
-                                                                        Firma digital: {formatDateTime(item.signedAt)}
-                                                                    </span>
-                                                                )}
-                                                            </div>
-
-                                                            {item.evidences?.length > 0 && (
-                                                                <div className="flex flex-wrap gap-2 border-t border-white/5 pt-3">
-                                                                    {item.evidences.map((url) => (
-                                                                        <button
-                                                                            key={url}
-                                                                            type="button"
-                                                                            onClick={() => openMaintenanceEvidence(url)}
-                                                                            className="inline-flex min-h-[36px] items-center rounded-lg border border-cyan-400/20 bg-cyan-500/10 px-3 py-1.5 text-xs text-cyan-200 hover:bg-cyan-400/20 active:bg-cyan-400/30 transition-colors"
-                                                                        >
-                                                                            Ver evidencia
-                                                                        </button>
-                                                                    ))}
-                                                                </div>
-                                                            )}
-                                                        </article>
-                                                    );
-                                                })}
-                                            </div>
-                                        ) : (
-                                            <p className="rounded-lg border border-white/10 p-4 text-xs text-slate-400">
-                                                Este activo aún no tiene mantenimientos registrados.
-                                            </p>
-                                        )}
-                                    </div>
-                                </div>
-                            )
-                        )}
-                    </div>
-                </div>
-            )}
+            {/* Generador de Reportes Completos y Hoja de Vida */}
+            <AssetReportModal
+                asset={selectedReportAsset}
+                isOpen={modal === 'reportModal'}
+                onClose={() => {
+                    setModal('');
+                    setSelectedReportAsset(null);
+                }}
+            />
 
             {/* Modal Hoja de Vida Predictivo */}
             {modal === 'predictiveResume' && (

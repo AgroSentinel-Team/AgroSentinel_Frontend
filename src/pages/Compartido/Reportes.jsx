@@ -3,12 +3,15 @@ import { jsPDF } from 'jspdf';
 import {
   CalendarDays,
   Check,
+  ClipboardList,
   Download,
+  Eye,
   FileSpreadsheet,
   FileText,
   Package,
   RefreshCw,
   ScrollText,
+  ShieldCheck,
   Wrench,
   X,
 } from 'lucide-react';
@@ -17,6 +20,8 @@ import {
   getInventoryMovements,
   getInventoryTasks,
 } from '../../services/inventoryService';
+import { getAssets } from '../../services/assetService';
+import AssetReportModal from '../../components/AssetReportModal';
 
 const SECTIONS = [
   { id: 'inventory', label: 'Inventario actual', description: 'Existencias y alertas de stock.', icon: Package },
@@ -139,11 +144,24 @@ function addPdfTable(pdf, state, title, headers, rows) {
 export default function Reportes({ variant = 'dark', groupId, groupName, scoped = false }) {
   const dark = variant === 'dark';
   const scopeKey = scoped ? `group:${groupId ?? 'central'}` : 'all';
+
+  // Tabs: 'warehouse' (Reportes de Almacén) | 'assets' (Hoja de Vida por Activo)
+  const [activeTab, setActiveTab] = useState('warehouse');
+
+  // Almacén / Inventario Reportes
   const [reportData, setReportData] = useState(null);
   const [selectedSections, setSelectedSections] = useState(['inventory', 'movements']);
   const [format, setFormat] = useState('pdf');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+
+  // Hoja de Vida y Activos
+  const [assetList, setAssetList] = useState([]);
+  const [loadingAssets, setLoadingAssets] = useState(true);
+  const [selectedAssetId, setSelectedAssetId] = useState('');
+  const [openAssetModal, setOpenAssetModal] = useState(false);
+  const [assetError, setAssetError] = useState('');
+  const [assetRefreshKey, setAssetRefreshKey] = useState(0);
 
   const currentReport = reportData?.scopeKey === scopeKey ? reportData : null;
   const items = currentReport?.items ?? [];
@@ -154,6 +172,7 @@ export default function Reportes({ variant = 'dark', groupId, groupName, scoped 
   const invalidDateRange = Boolean(startDate && endDate && startDate > endDate);
   const muted = dark ? 'text-slate-400' : 'text-slate-500';
 
+  // Carga de datos de almacén
   useEffect(() => {
     let active = true;
     Promise.all([
@@ -190,6 +209,42 @@ export default function Reportes({ variant = 'dark', groupId, groupName, scoped 
       active = false;
     };
   }, [groupId, scopeKey, scoped]);
+
+  // Carga de catálogo de activos para Hoja de Vida
+  useEffect(() => {
+    let active = true;
+    Promise.resolve()
+      .then(() => {
+        if (!active) return null;
+        setLoadingAssets(true);
+        setAssetError('');
+        return getAssets();
+      })
+      .then((data) => {
+        if (!active || data === null) return;
+        const list = Array.isArray(data) ? data : [];
+        setAssetList(list);
+        setSelectedAssetId((current) =>
+          list.some((asset) => String(asset.id) === current)
+            ? current
+            : String(list[0]?.id ?? ''),
+        );
+      })
+      .catch((e) => {
+        if (active) {
+          setAssetList([]);
+          setAssetError(getErrorMessage(e));
+        }
+      })
+      .finally(() => {
+        if (active) setLoadingAssets(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [assetRefreshKey]);
+
+  const selectedAsset = assetList.find((a) => String(a.id) === String(selectedAssetId));
 
   const filteredMovements = movements.filter((movement) => {
     const date = dateKey(movement.fecha);
@@ -310,20 +365,49 @@ export default function Reportes({ variant = 'dark', groupId, groupName, scoped 
           <div className="flex items-center gap-2 text-cyan-300">
             <FileText size={18} />
             <span className="text-xs font-bold uppercase tracking-wider">
-              Centro de exportación
+              Centro de Reportes y Auditoría
             </span>
           </div>
           <h1 className="mt-1 text-xl sm:text-2xl font-bold tracking-tight">
-            Reportes de almacén
+            Informes Oficiales de Operación
           </h1>
           <p className={`mt-0.5 text-xs ${muted}`}>
-            Configura el período, el contenido y el formato para {groupName || 'Bodega central'}.
+            Exporta hojas de vida por activo con historial completo o informes consolidados de almacén e inventario.
           </p>
         </div>
         <span className="shrink-0 self-start sm:self-center rounded-full border border-cyan-300/30 bg-cyan-400/10 px-3.5 py-1.5 text-xs font-semibold text-cyan-200">
           {loading ? 'Cargando datos...' : groupName || 'Bodega central'}
         </span>
       </header>
+
+      {/* Selector de Pestañas / Tipo de Reporte */}
+      <div className="flex flex-wrap gap-2 border-b border-white/10 pb-2">
+        <button
+          type="button"
+          onClick={() => setActiveTab('warehouse')}
+          className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-xs font-bold transition-all ${
+            activeTab === 'warehouse'
+              ? 'bg-cyan-500 text-slate-950 shadow-md'
+              : 'bg-[#102a3d] text-slate-300 hover:bg-[#14344d]'
+          }`}
+        >
+          <Package size={16} />
+          <span>Reportes de Almacén e Inventario</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('assets')}
+          className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-xs font-bold transition-all ${
+            activeTab === 'assets'
+              ? 'bg-cyan-500 text-slate-950 shadow-md'
+              : 'bg-[#102a3d] text-slate-300 hover:bg-[#14344d]'
+          }`}
+        >
+          <ClipboardList size={16} />
+          <span>Hoja de Vida y Mantenimientos por Activo</span>
+        </button>
+      </div>
 
       {/* Alerta de Error */}
       {error && (
@@ -342,187 +426,327 @@ export default function Reportes({ variant = 'dark', groupId, groupName, scoped 
         </div>
       )}
 
-      {/* Grid Contenido & Opciones Exportación */}
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,1.6fr)_minmax(300px,0.9fr)]">
-        {/* Selección de Secciones */}
-        <article className="rounded-xl border border-[#2d4055] bg-[#13293a] p-4 sm:p-5 shadow-xl min-w-0 space-y-4">
-          <div className="flex items-start gap-3 border-b border-white/10 pb-3">
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-cyan-400/15 text-cyan-300 border border-cyan-400/30">
-              <FileText size={18} />
-            </span>
-            <div>
-              <h2 className="text-sm sm:text-base font-semibold text-white">Contenido del reporte</h2>
-              <p className={`mt-0.5 text-xs ${muted}`}>Selecciona una o varias secciones para incluir en el reporte.</p>
-            </div>
-          </div>
-
-          <div className="grid gap-2 grid-cols-2 sm:gap-3.5 lg:grid-cols-3">
-            {SECTIONS.map((section) => {
-              const Icon = section.icon;
-              const selected = selectedSections.includes(section.id);
-              const count =
-                section.id === 'inventory'
-                  ? items.length
-                  : section.id === 'movements'
-                  ? filteredMovements.length
-                  : filteredTasks.length;
-              const unit =
-                section.id === 'inventory'
-                  ? 'productos'
-                  : section.id === 'movements'
-                  ? 'movimientos'
-                  : 'tareas';
-
-              return (
-                <button
-                  key={section.id}
-                  type="button"
-                  onClick={() => toggleSection(section.id)}
-                  aria-pressed={selected}
-                  className={`flex flex-col justify-between min-h-[140px] rounded-xl border p-4 text-left transition-all ${
-                    selected
-                      ? 'border-cyan-400 bg-[#12394b] shadow-lg ring-1 ring-cyan-400/40'
-                      : 'border-[#2d4055] bg-[#102a3d] hover:border-[#45647a] hover:bg-[#143247]'
-                  }`}
-                >
-                  <div className="flex items-start justify-between gap-2">
-                    <Icon size={20} className={selected ? 'text-cyan-300' : 'text-slate-400'} />
-                    <span
-                      className={`flex h-5 w-5 shrink-0 items-center justify-center rounded border transition-colors ${
-                        selected
-                          ? 'border-cyan-400 bg-cyan-500 text-white'
-                          : 'border-[#557087] bg-transparent text-transparent'
-                      }`}
-                    >
-                      {selected && <Check size={14} strokeWidth={3} />}
-                    </span>
-                  </div>
-
-                  <div>
-                    <p className="text-xs sm:text-sm font-semibold text-white">{section.label}</p>
-                    <p className={`mt-1 text-[11px] leading-tight ${muted}`}>{section.description}</p>
-                  </div>
-
-                  <p className="mt-2 text-xs font-bold text-cyan-200">
-                    {loading ? '—' : `${count} ${unit}`}
-                  </p>
-                </button>
-              );
-            })}
-          </div>
-
-          <p className={`text-xs ${muted} pt-2 border-t border-white/5`}>
-            Las fechas seleccionadas filtrarán únicamente movimientos y tareas. Las existencias de inventario reflejan el estado actual.
-          </p>
-        </article>
-
-        {/* Panel Configuración Descarga */}
-        <aside className="space-y-4">
-          {/* Período / Fechas */}
-          <article className="rounded-xl border border-[#2d4055] bg-[#13293a] p-4 sm:p-5 shadow-xl space-y-3">
-            <div className="flex items-center gap-2 border-b border-white/10 pb-2.5">
-              <CalendarDays size={18} className="text-cyan-300 shrink-0" />
-              <h2 className="text-xs sm:text-sm font-bold text-white uppercase tracking-wider">
-                Período de consulta
-              </h2>
+      {/* TAB 1: Reportes de Almacén */}
+      {activeTab === 'warehouse' && (
+        <div className="grid gap-4 xl:grid-cols-[minmax(0,1.6fr)_minmax(300px,0.9fr)]">
+          {/* Selección de Secciones */}
+          <article className="rounded-xl border border-[#2d4055] bg-[#13293a] p-4 sm:p-5 shadow-xl min-w-0 space-y-4">
+            <div className="flex items-start gap-3 border-b border-white/10 pb-3">
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-cyan-400/15 text-cyan-300 border border-cyan-400/30">
+                <FileText size={18} />
+              </span>
+              <div>
+                <h2 className="text-sm sm:text-base font-semibold text-white">Contenido del reporte de almacén</h2>
+                <p className={`mt-0.5 text-xs ${muted}`}>Selecciona una o varias secciones para incluir en el reporte.</p>
+              </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-2 xl:grid-cols-1">
-              <label className="block text-xs font-medium text-slate-300">
-                <span>Desde</span>
-                <input
-                  type="date"
-                  value={startDate}
-                  max={endDate || undefined}
-                  onChange={(event) => setStartDate(event.target.value)}
-                  className={fieldClass}
-                />
-              </label>
+            <div className="grid gap-2 grid-cols-2 sm:gap-3.5 lg:grid-cols-3">
+              {SECTIONS.map((section) => {
+                const Icon = section.icon;
+                const selected = selectedSections.includes(section.id);
+                const count =
+                  section.id === 'inventory'
+                    ? items.length
+                    : section.id === 'movements'
+                    ? filteredMovements.length
+                    : filteredTasks.length;
+                const unit =
+                  section.id === 'inventory'
+                    ? 'productos'
+                    : section.id === 'movements'
+                    ? 'movimientos'
+                    : 'tareas';
 
-              <label className="block text-xs font-medium text-slate-300">
-                <span>Hasta</span>
-                <input
-                  type="date"
-                  value={endDate}
-                  min={startDate || undefined}
-                  onChange={(event) => setEndDate(event.target.value)}
-                  className={fieldClass}
-                />
-              </label>
+                return (
+                  <button
+                    key={section.id}
+                    type="button"
+                    onClick={() => toggleSection(section.id)}
+                    aria-pressed={selected}
+                    className={`flex flex-col justify-between min-h-[140px] rounded-xl border p-4 text-left transition-all ${
+                      selected
+                        ? 'border-cyan-400 bg-[#12394b] shadow-lg ring-1 ring-cyan-400/40'
+                        : 'border-[#2d4055] bg-[#102a3d] hover:border-[#45647a] hover:bg-[#143247]'
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <Icon size={20} className={selected ? 'text-cyan-300' : 'text-slate-400'} />
+                      <span
+                        className={`flex h-5 w-5 shrink-0 items-center justify-center rounded border transition-colors ${
+                          selected
+                            ? 'border-cyan-400 bg-cyan-500 text-white'
+                            : 'border-[#557087] bg-transparent text-transparent'
+                        }`}
+                      >
+                        {selected && <Check size={14} strokeWidth={3} />}
+                      </span>
+                    </div>
+
+                    <div>
+                      <p className="text-xs sm:text-sm font-semibold text-white">{section.label}</p>
+                      <p className={`mt-1 text-[11px] leading-tight ${muted}`}>{section.description}</p>
+                    </div>
+
+                    <p className="mt-2 text-xs font-bold text-cyan-200">
+                      {loading ? '—' : `${count} ${unit}`}
+                    </p>
+                  </button>
+                );
+              })}
             </div>
 
-            {invalidDateRange && (
-              <p role="alert" className="text-xs text-red-300 font-medium">
-                La fecha inicial debe ser anterior a la fecha final.
-              </p>
-            )}
-
-            <button
-              type="button"
-              onClick={() => {
-                setStartDate('');
-                setEndDate('');
-              }}
-              className="inline-flex min-h-[36px] items-center text-xs font-semibold text-cyan-300 hover:text-cyan-200 transition-colors"
-            >
-              Limpiar fechas
-            </button>
+            <p className={`text-xs ${muted} pt-2 border-t border-white/5`}>
+              Las fechas seleccionadas filtrarán únicamente movimientos y tareas. Las existencias de inventario reflejan el estado actual.
+            </p>
           </article>
 
-          {/* Formato y Botón Exportar */}
-          <article className="rounded-xl border border-[#2d4055] bg-[#13293a] p-4 sm:p-5 shadow-xl space-y-4">
-            <div className="flex items-center gap-2 border-b border-white/10 pb-2.5">
-              {format === 'pdf' ? (
-                <FileText size={18} className="text-cyan-300 shrink-0" />
-              ) : (
-                <FileSpreadsheet size={18} className="text-emerald-300 shrink-0" />
-              )}
-              <h2 className="text-xs sm:text-sm font-bold text-white uppercase tracking-wider">
-                Formato de descarga
-              </h2>
-            </div>
+          {/* Panel Configuración Descarga */}
+          <aside className="space-y-4">
+            {/* Período / Fechas */}
+            <article className="rounded-xl border border-[#2d4055] bg-[#13293a] p-4 sm:p-5 shadow-xl space-y-3">
+              <div className="flex items-center gap-2 border-b border-white/10 pb-2.5">
+                <CalendarDays size={18} className="text-cyan-300 shrink-0" />
+                <h2 className="text-xs sm:text-sm font-bold text-white uppercase tracking-wider">
+                  Período de consulta
+                </h2>
+              </div>
 
-            <label className="block text-xs font-medium text-slate-300 space-y-1">
-              <span>Tipo de archivo</span>
+              <div className="grid grid-cols-2 gap-2 xl:grid-cols-1">
+                <label className="block text-xs font-medium text-slate-300">
+                  <span>Desde</span>
+                  <input
+                    type="date"
+                    value={startDate}
+                    max={endDate || undefined}
+                    onChange={(event) => setStartDate(event.target.value)}
+                    className={fieldClass}
+                  />
+                </label>
+
+                <label className="block text-xs font-medium text-slate-300">
+                  <span>Hasta</span>
+                  <input
+                    type="date"
+                    value={endDate}
+                    min={startDate || undefined}
+                    onChange={(event) => setEndDate(event.target.value)}
+                    className={fieldClass}
+                  />
+                </label>
+              </div>
+
+              {invalidDateRange && (
+                <p role="alert" className="text-xs text-red-300 font-medium">
+                  La fecha inicial debe ser anterior a la fecha final.
+                </p>
+              )}
+
+              <button
+                type="button"
+                onClick={() => {
+                  setStartDate('');
+                  setEndDate('');
+                }}
+                className="inline-flex min-h-[36px] items-center text-xs font-semibold text-cyan-300 hover:text-cyan-200 transition-colors"
+              >
+                Limpiar fechas
+              </button>
+            </article>
+
+            {/* Formato y Botón Exportar */}
+            <article className="rounded-xl border border-[#2d4055] bg-[#13293a] p-4 sm:p-5 shadow-xl space-y-4">
+              <div className="flex items-center gap-2 border-b border-white/10 pb-2.5">
+                {format === 'pdf' ? (
+                  <FileText size={18} className="text-cyan-300 shrink-0" />
+                ) : (
+                  <FileSpreadsheet size={18} className="text-emerald-300 shrink-0" />
+                )}
+                <h2 className="text-xs sm:text-sm font-bold text-white uppercase tracking-wider">
+                  Formato de descarga
+                </h2>
+              </div>
+
+              <label className="block text-xs font-medium text-slate-300 space-y-1">
+                <span>Tipo de archivo</span>
+                <select
+                  value={format}
+                  onChange={(event) => setFormat(event.target.value)}
+                  className={fieldClass}
+                >
+                  <option value="pdf">PDF · Documento listo para imprimir</option>
+                  <option value="csv">CSV · Hoja de cálculo</option>
+                </select>
+              </label>
+
+              <button
+                type="button"
+                disabled={
+                  loading ||
+                  Boolean(error) ||
+                  selectedSections.length === 0 ||
+                  invalidDateRange
+                }
+                onClick={exportReport}
+                className="flex min-h-[44px] w-full items-center justify-center gap-2 rounded-lg bg-cyan-600 px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-white shadow-lg shadow-cyan-950/40 transition-colors hover:bg-cyan-500 active:bg-cyan-700 disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                {loading ? (
+                  <RefreshCw size={18} className="animate-spin" />
+                ) : (
+                  <Download size={18} />
+                )}
+                <span>
+                  {loading ? 'Cargando datos...' : `Descargar ${format.toUpperCase()}`}
+                </span>
+              </button>
+
+              {selectedSections.length === 0 && (
+                <p className="text-center text-xs text-amber-300 font-medium">
+                  Selecciona al menos una sección para descargar el reporte.
+                </p>
+              )}
+            </article>
+          </aside>
+        </div>
+      )}
+
+      {/* TAB 2: Hoja de Vida y Reporte por Activo (Tarea 1) */}
+      {activeTab === 'assets' && (
+        <article className="rounded-xl border border-[#2d4055] bg-[#13293a] p-5 sm:p-6 shadow-xl space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/10 pb-4">
+            <div>
+              <h2 className="text-base sm:text-lg font-bold text-white flex items-center gap-2">
+                <ClipboardList size={20} className="text-cyan-400" />
+                <span>Generador de Hoja de Vida y Reporte Integral por Activo</span>
+              </h2>
+              <p className={`mt-0.5 text-xs ${muted}`}>
+                Consulta la ficha técnica oficial y el historial cronológico completo de mantenimientos correctivos, preventivos y predictivos.
+              </p>
+            </div>
+          </div>
+
+          <div className="grid gap-6 lg:grid-cols-3">
+            {/* Selector de Activo */}
+            <div className="space-y-4 lg:col-span-1 rounded-xl bg-[#0d2030] p-4 border border-white/5">
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-300">
+                Selecciona un activo o maquinaria ({assetList.length}):
+              </label>
               <select
-                value={format}
-                onChange={(event) => setFormat(event.target.value)}
+                value={selectedAssetId}
+                onChange={(e) => setSelectedAssetId(e.target.value)}
+                disabled={loadingAssets || assetList.length === 0}
                 className={fieldClass}
               >
-                <option value="pdf">PDF · Documento listo para imprimir</option>
-                <option value="csv">CSV · Hoja de cálculo</option>
+                {assetList.length === 0 ? (
+                  <option value="">{loadingAssets ? 'Cargando activos...' : 'No hay activos registrados'}</option>
+                ) : (
+                  assetList.map((asset) => (
+                    <option key={asset.id} value={asset.id}>
+                      {asset.name} ({asset.inventoryCode || 'S/N'}) · {asset.location || 'Sin ubicación'}
+                    </option>
+                  ))
+                )}
               </select>
-            </label>
 
-            <button
-              type="button"
-              disabled={
-                loading ||
-                Boolean(error) ||
-                selectedSections.length === 0 ||
-                invalidDateRange
-              }
-              onClick={exportReport}
-              className="flex min-h-[44px] w-full items-center justify-center gap-2 rounded-lg bg-cyan-600 px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-white shadow-lg shadow-cyan-950/40 transition-colors hover:bg-cyan-500 active:bg-cyan-700 disabled:cursor-not-allowed disabled:opacity-40"
-            >
-              {loading ? (
-                <RefreshCw size={18} className="animate-spin" />
-              ) : (
-                <Download size={18} />
+              <button
+                type="button"
+                onClick={() => setOpenAssetModal(true)}
+                disabled={!selectedAsset || loadingAssets || Boolean(assetError)}
+                className="flex min-h-[44px] w-full items-center justify-center gap-2 rounded-lg bg-cyan-600 px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-white shadow-lg shadow-cyan-950/40 transition-colors hover:bg-cyan-500 active:bg-cyan-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <Eye size={18} />
+                <span>Ver Hoja de Vida y Reporte</span>
+              </button>
+              {assetError && (
+                <div role="alert" className="space-y-2 rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-xs text-red-200">
+                  <p>No se pudo cargar el catálogo de activos: {assetError}</p>
+                  <button
+                    type="button"
+                    onClick={() => setAssetRefreshKey((key) => key + 1)}
+                    className="font-semibold text-red-100 underline hover:text-white"
+                  >
+                    Reintentar
+                  </button>
+                </div>
               )}
-              <span>
-                {loading ? 'Cargando datos...' : `Descargar ${format.toUpperCase()}`}
-              </span>
-            </button>
+            </div>
 
-            {selectedSections.length === 0 && (
-              <p className="text-center text-xs text-amber-300 font-medium">
-                Selecciona al menos una sección para descargar el reporte.
-              </p>
-            )}
-          </article>
-        </aside>
-      </div>
+            {/* Ficha Resumen del Activo Seleccionado */}
+            <div className="lg:col-span-2 rounded-xl bg-[#0d2030] p-5 border border-white/5 space-y-4">
+              <div className="flex items-center justify-between border-b border-white/10 pb-3">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-cyan-300">
+                  Ficha Técnica Resumida
+                </h3>
+                {selectedAsset && (
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-cyan-500/15 border border-cyan-400/30 px-3 py-1 text-xs font-semibold text-cyan-200">
+                    <ShieldCheck size={14} />
+                    <span>{selectedAsset.operationalStatus || 'Sin estado'}</span>
+                  </span>
+                )}
+              </div>
+
+              {selectedAsset ? (
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs">
+                  <div className="rounded-lg bg-[#102a3d] p-3 border border-white/5">
+                    <p className="text-[11px] text-slate-400 uppercase font-semibold">Nombre del Activo</p>
+                    <p className="text-sm font-bold text-white mt-0.5">{selectedAsset.name}</p>
+                  </div>
+                  <div className="rounded-lg bg-[#102a3d] p-3 border border-white/5">
+                    <p className="text-[11px] text-slate-400 uppercase font-semibold">Código / Placa</p>
+                    <p className="text-sm font-mono font-bold text-cyan-300 mt-0.5">
+                      {selectedAsset.inventoryCode || 'Sin código'}
+                    </p>
+                  </div>
+                  <div className="rounded-lg bg-[#102a3d] p-3 border border-white/5">
+                    <p className="text-[11px] text-slate-400 uppercase font-semibold">Marca y Modelo</p>
+                    <p className="text-sm font-bold text-white mt-0.5">
+                      {selectedAsset.brand || 'Genérica'} {selectedAsset.model || ''}
+                    </p>
+                  </div>
+                  <div className="rounded-lg bg-[#102a3d] p-3 border border-white/5">
+                    <p className="text-[11px] text-slate-400 uppercase font-semibold">Número de Serie</p>
+                    <p className="text-sm font-mono text-slate-200 mt-0.5">
+                      {selectedAsset.serialNumber || 'Sin número'}
+                    </p>
+                  </div>
+                  <div className="rounded-lg bg-[#102a3d] p-3 border border-white/5">
+                    <p className="text-[11px] text-slate-400 uppercase font-semibold">Ubicación / Finca</p>
+                    <p className="text-sm font-bold text-slate-200 mt-0.5">
+                      {selectedAsset.location || 'No asignada'}
+                    </p>
+                  </div>
+                  <div className="rounded-lg bg-[#102a3d] p-3 border border-white/5">
+                    <p className="text-[11px] text-slate-400 uppercase font-semibold">Monitoreo Predictivo</p>
+                    <p className="text-sm font-bold text-emerald-300 mt-0.5">
+                      {selectedAsset.hasMotor ? 'Telemetría IoT Activa' : 'No configurado'}
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-xs text-slate-400 italic text-center py-6">
+                  {loadingAssets ? 'Cargando información del activo...' : 'Selecciona un activo para visualizar su ficha.'}
+                </p>
+              )}
+
+              {selectedAsset?.extraSpecifications && (
+                <div className="rounded-lg bg-[#102a3d] p-3 border border-white/5">
+                  <p className="text-[11px] text-slate-400 uppercase font-semibold mb-1">Especificaciones Técnicas</p>
+                  <p className="text-xs text-slate-200 whitespace-pre-wrap">{selectedAsset.extraSpecifications}</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </article>
+      )}
+
+      {/* Modal Integral de Reporte por Activo */}
+      {selectedAsset && (
+        <AssetReportModal
+          asset={selectedAsset}
+          isOpen={openAssetModal}
+          onClose={() => setOpenAssetModal(false)}
+        />
+      )}
     </section>
   );
 }
