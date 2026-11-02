@@ -295,7 +295,7 @@ export default function PreventiveMaintenance({ predictivePrefill, onPredictiveP
     setSaving(true);
     setFeedback('');
     try {
-      await schedulePreventiveMaintenance({
+      const result = await schedulePreventiveMaintenance({
         assetId: Number(schedule.assetId),
         technicianId: Number(schedule.technicianId),
         scheduledAt: schedule.scheduledAt,
@@ -303,7 +303,9 @@ export default function PreventiveMaintenance({ predictivePrefill, onPredictiveP
         predictiveContext: schedule.predictiveContext || null,
       });
       setPanel(null);
-      setFeedback('Mantenimiento preventivo programado correctamente.');
+      setFeedback(result?.queued
+        ? 'Mantenimiento guardado en este dispositivo. Se sincronizara al recuperar internet.'
+        : 'Mantenimiento preventivo programado correctamente.');
       await loadData();
     } catch (error) {
       setFeedback(`No se pudo programar: ${describeError(error)}`);
@@ -317,9 +319,15 @@ export default function PreventiveMaintenance({ predictivePrefill, onPredictiveP
     setSaving(true);
     setFeedback('');
     try {
-      await executePreventiveMaintenance(panel.maintenance.id, execution, evidences);
+      const result = await executePreventiveMaintenance(
+        panel.maintenance.id,
+        execution,
+        evidences,
+      );
       setPanel(null);
-      setFeedback('Ejecución y evidencia guardadas. La hoja de vida del activo fue actualizada.');
+      setFeedback(result?.queued
+        ? 'Ejecucion y evidencia guardadas localmente. Se sincronizaran al recuperar internet.'
+        : 'Ejecución y evidencia guardadas. La hoja de vida del activo fue actualizada.');
       await loadData();
     } catch (error) {
       setFeedback(`No se pudo guardar la ejecución: ${describeError(error)}`);

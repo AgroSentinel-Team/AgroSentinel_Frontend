@@ -1,9 +1,11 @@
 import { apiClient, createApi } from './apiClient';
+import { cachedRequest } from './offlineApi';
+import { getAuthToken } from './sessionService';
 
 const directoryApi = createApi();
 
 function authConfig() {
-  const token = localStorage.getItem('token');
+  const token = getAuthToken();
   return token
     ? { headers: { Authorization: `Bearer ${token}` } }
     : {};
@@ -30,10 +32,11 @@ function filterByInventoryScope(rows, groupId, scoped, resourceName) {
 }
 
 export const getInventoryItems = async (groupId, scoped = false) =>
-  filterByInventoryScope((await apiClient.get('/inventory/items', {
+  cachedRequest(`inventory-items:${scoped ? groupId ?? 'central' : 'all'}`, async () =>
+    filterByInventoryScope((await apiClient.get('/inventory/items', {
     ...authConfig(),
     params: groupScopeParams(groupId, scoped),
-  })).data, groupId, scoped, 'inventario');
+  })).data, groupId, scoped, 'inventario'));
 
 export const registerInventoryMovement = async (itemId, movement, groupId, scoped = false) =>
   (await apiClient.post(`/inventory/${itemId}/movements`, {
@@ -51,10 +54,12 @@ export const getInventoryMovements = async (groupId, scoped = false) =>
   })).data, groupId, scoped, 'movimientos');
 
 export const getInventoryGroups = async () =>
-  (await directoryApi.get('/work-groups/options')).data;
+  cachedRequest('work-groups-options', async () =>
+    (await directoryApi.get('/work-groups/options')).data);
 
 export const getAllWorkGroups = async () =>
-  (await directoryApi.get('/work-groups/options', { params: { all: true } })).data;
+  cachedRequest('all-work-groups-options', async () =>
+    (await directoryApi.get('/work-groups/options', { params: { all: true } })).data);
 
 export const getInventoryTasks = async () =>
   (await apiClient.get('/inventory/tasks', authConfig())).data;

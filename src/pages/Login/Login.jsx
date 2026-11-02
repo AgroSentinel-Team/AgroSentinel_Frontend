@@ -2,10 +2,12 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Mail, Lock, EyeOff, Eye, ShieldCheck, LoaderCircle, Sprout, AlertCircle } from 'lucide-react';
 import { API_ROOT } from '../../services/apiClient';
+import { establishSession } from '../../services/sessionService';
 
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [rememberSession, setRememberSession] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -45,11 +47,13 @@ export default function Login() {
         throw new Error('El servidor no devolvió un JWT válido. Reinicia el backend e inténtalo de nuevo.');
       }
 
-      // Guardar credenciales
-      localStorage.setItem('token', token);
-      localStorage.setItem('rol', rol);
-      localStorage.setItem('nombre', nombre || '');
-      localStorage.setItem('roles', JSON.stringify(roles));
+      await establishSession({
+        token,
+        email: email.trim().toLowerCase(),
+        role: rol,
+        name: nombre || '',
+        roles,
+      }, rememberSession);
 
       const effectiveRoles = new Set(
         [...roles, rol].map((item) => (item ?? '').toUpperCase().replace(/^ROLE_/, '')),
@@ -196,6 +200,16 @@ export default function Login() {
                 </button>
               </div>
             </div>
+
+            <label className="flex min-h-[44px] items-center gap-2 text-xs text-slate-300">
+              <input
+                type="checkbox"
+                checked={rememberSession}
+                onChange={(event) => setRememberSession(event.target.checked)}
+                className="h-4 w-4 rounded accent-cyan-500"
+              />
+              <span>Recordarme en este dispositivo para consultar datos guardados sin conexión</span>
+            </label>
 
             <button
               type="submit"

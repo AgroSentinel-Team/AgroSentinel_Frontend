@@ -1,15 +1,17 @@
 import { LogOut } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { clearSession } from "../services/sessionService";
 
 export default function LogoutButton({ className = "" }) {
   const navigate = useNavigate();
 
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("rol");
-    localStorage.removeItem("roles");
-    localStorage.removeItem("nombre");
-    navigate("/login", { replace: true });
+  const handleLogout = async () => {
+    try {
+      await clearSession();
+      navigate("/login", { replace: true });
+    } catch (error) {
+      console.error("No se pudo borrar la sesion local:", error);
+    }
   };
 
   return (

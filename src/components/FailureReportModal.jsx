@@ -181,7 +181,11 @@ export default function FailureReportModal({ onClose, onSaved }) {
 
         try {
             const savedReport = await createFailureReport(payload);
-            window.alert('Reporte de falla registrado correctamente.');
+            window.alert(
+                savedReport?.queued
+                    ? 'Reporte guardado en este dispositivo. Se sincronizara al recuperar internet.'
+                    : 'Reporte de falla registrado correctamente.',
+            );
             onSaved?.(savedReport);
             onClose();
         } catch (error) {

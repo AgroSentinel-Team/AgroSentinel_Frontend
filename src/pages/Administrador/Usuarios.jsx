@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import axios from 'axios';
-import { API_ROOT } from '../../services/apiClient';
-import { expireSession } from '../../services/sessionService';
+import { API_ROOT, apiClient } from '../../services/apiClient';
+import { expireSession, getAuthToken } from '../../services/sessionService';
 import {
   CheckCircle2,
   Clock3,
@@ -27,6 +27,18 @@ const roles = [
 const emptyForm = { name: '', email: '', role: 'TECNICO', password: '' };
 const inputClass =
   'w-full rounded-lg border border-[#36556f] bg-[#102a3d] px-3.5 py-2.5 text-xs sm:text-sm text-white outline-none transition placeholder:text-slate-400 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/50 min-h-[44px]';
+
+axios.interceptors.request.use((config) => {
+  const token = getAuthToken();
+  if (token) {
+    if (typeof config.headers?.set === 'function') {
+      config.headers.set('Authorization', `Bearer ${token}`);
+    } else {
+      config.headers = { ...config.headers, Authorization: `Bearer ${token}` };
+    }
+  }
+  return config;
+});
 
 function getRoleLabel(role) {
   return roles.find((item) => item.value === role)?.label ?? role;
@@ -78,7 +90,7 @@ export default function Usuarios() {
       setIsLoading(true);
       setRequestError('');
       try {
-        const response = await axios.get(`${API_ROOT}/usuarios`, authConfig());
+        const response = await apiClient.get('/usuarios');
         if (isCurrent) setUsers(response.data.map(fromApiUser));
       } catch (error) {
         if (isCurrent) setRequestError(getApiError(error));

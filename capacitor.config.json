@@ -1,0 +1,6 @@
+{
+  "appId": "com.agrosentinel.mobile",
+  "appName": "AgroSentinel",
+  "webDir": "dist",
+  "androidScheme": "https"
+}

@@ -1,6 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useReducer, useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
-import { hasUnexpiredToken, SESSION_EXPIRED_EVENT } from './services/sessionService';
+import {
+  getAuthToken,
+  isSessionAuthenticated,
+  SESSION_CHANGED_EVENT,
+  SESSION_EXPIRED_EVENT,
+} from './services/sessionService';
 
 import Login from './pages/Login/Login';
 import Registro from './pages/Registro/Registro';
@@ -10,6 +15,7 @@ import TecDashboard from './pages/Tecnico/TecDashboard';
 import AlmacenDashboard from './pages/Almacenista/AlmacenDashboard';
 import OperDashboard from './pages/Operativo/OperDashboard';
 import PreventiveMaintenance from './pages/Compartido/PreventiveMaintenance';
+import OfflineStatusBar from './components/OfflineStatusBar';
 
 function getStoredRoles() {
   try {
@@ -21,7 +27,6 @@ function getStoredRoles() {
 }
 
 function ProtectedRoute({ allowedRoles, children }) {
-  const token = localStorage.getItem('token');
   const role = (localStorage.getItem('rol') ?? '').toUpperCase().replace(/^ROLE_/, '');
   const storedRoles = getStoredRoles();
   const effectiveRoles = new Set(
@@ -30,7 +35,7 @@ function ProtectedRoute({ allowedRoles, children }) {
     ),
   );
   if (
-    !hasUnexpiredToken(token) ||
+    !isSessionAuthenticated() ||
     !allowedRoles.some((allowedRole) => effectiveRoles.has(allowedRole))
   ) {
     return <Navigate to="/login" replace />;
@@ -90,13 +95,55 @@ function SessionExpiredNotice() {
   );
 }
 
-export default function App() {
+function getRoleLandingPath() {
+  const role = (localStorage.getItem('rol') ?? '')
+    .toUpperCase()
+    .replace(/^ROLE_/, '');
+  const roles = getStoredRoles().map((item) =>
+    String(item ?? '').toUpperCase().replace(/^ROLE_/, ''),
+  );
+  const effectiveRoles = new Set([role, ...roles]);
+  if (effectiveRoles.has('TECNICO')) return '/tecnico/dashboard';
+  if (effectiveRoles.has('ADMIN') || effectiveRoles.has('ADMINISTRADOR')) {
+    return '/admin/dashboard';
+  }
+  if (effectiveRoles.has('SUPERVISOR')) return '/supervisor/dashboard';
+  if (effectiveRoles.has('ALMACENISTA')) return '/almacen/dashboard';
+  if (effectiveRoles.has('OPERARIO_CAMPO') || effectiveRoles.has('OPERATIVO_CAMPO')) {
+    return '/operativo/dashboard';
+  }
+  return '/login';
+}
+
+function SessionEntryRoute() {
+  return isSessionAuthenticated()
+    ? <Navigate to={getRoleLandingPath()} replace />
+    : <Login />;
+}
+
+export default function App({ startupError = '' }) {
+  const [, refreshSession] = useReducer((revision) => revision + 1, 0);
+  useEffect(() => {
+    const refresh = () => {
+      getAuthToken();
+      refreshSession();
+    };
+    globalThis.addEventListener(SESSION_CHANGED_EVENT, refresh);
+    return () => globalThis.removeEventListener(SESSION_CHANGED_EVENT, refresh);
+  }, []);
+
   return (
     <BrowserRouter>
       <SessionExpiredNotice />
+      {startupError && (
+        <div role="alert" className="bg-amber-500/15 px-4 py-2 text-center text-xs text-amber-200">
+          {startupError}
+        </div>
+      )}
+      <OfflineStatusBar />
       <Routes>
-        <Route path="/" element={<Login />} />
-        <Route path="/login" element={<Login />} />
+        <Route path="/" element={<SessionEntryRoute />} />
+        <Route path="/login" element={<SessionEntryRoute />} />
         <Route path="/registro" element={<Registro />} />
         <Route
           path="/admin/dashboard"

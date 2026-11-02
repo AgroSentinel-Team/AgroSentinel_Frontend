@@ -843,7 +843,11 @@ function OrderCard({ item, onStart, busy }) {
               {item.assetName || 'Activo sin nombre'}
             </span>
             <span className="inline-flex rounded-full border border-cyan-400/30 bg-cyan-500/15 px-2.5 py-0.5 text-xs font-semibold text-cyan-300">
-              {item.estado || item.status}
+              {item.localSyncPending
+                ? 'PENDIENTE DE SINCRONIZACIÓN'
+                : item.reviewStartPending
+                  ? 'INICIO DE REVISIÓN PENDIENTE'
+                : item.estado || item.status}
             </span>
             {item.groupName && (
               <span className="inline-flex rounded-full border border-slate-500/30 bg-slate-500/15 px-2.5 py-0.5 text-xs font-semibold text-slate-300">
@@ -874,7 +878,7 @@ function OrderCard({ item, onStart, busy }) {
             <button
               type="button"
               onClick={() => onStart(item)}
-              disabled={busy}
+              disabled={busy || item.localSyncPending}
               className="flex min-h-[40px] items-center justify-center gap-1.5 rounded-lg bg-cyan-600 px-4 text-xs font-bold uppercase tracking-wider text-white hover:bg-cyan-500 transition-colors disabled:opacity-50 shadow-md shadow-cyan-950/40"
             >
               {busy ? (
@@ -883,8 +887,10 @@ function OrderCard({ item, onStart, busy }) {
                 <Wrench size={14} />
               )}
               <span>
-                {item.estado === 'EN_REVISION' ||
-                item.estado === 'ESPERA_REPUESTO'
+                {item.localSyncPending
+                  ? 'Pendiente de sincronización'
+                  : item.estado === 'EN_REVISION' ||
+                    item.estado === 'ESPERA_REPUESTO'
                   ? 'Continuar revisión'
                   : 'Iniciar revisión'}
               </span>
