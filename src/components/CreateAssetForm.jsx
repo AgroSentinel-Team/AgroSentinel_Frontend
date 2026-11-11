@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Plus, X } from 'lucide-react';
-import { createAsset, getCategories, getUsers, updateAsset } from '../services/assetService';
+import { API_ORIGIN, createAsset, getCategories, getUsers, updateAsset, uploadAssetImage } from '../services/assetService';
 import CreateCategoryForm from './CreateCategoryForm';
 
 const EMPTY_FORM = {
@@ -91,6 +91,23 @@ export default function CreateAssetForm({ asset = null, onCancel, onSaved }) {
     const [formError, setFormError] = useState('');
     const [saving, setSaving] = useState(false);
     const [showCategoryForm, setShowCategoryForm] = useState(false);
+    const [imageFile, setImageFile] = useState(null);
+    const [imagePreview, setImagePreview] = useState('');
+    const [savedAssetId, setSavedAssetId] = useState(asset?.id ?? null);
+    const previewUrlRef = useRef('');
+
+    useEffect(() => () => {
+        if (previewUrlRef.current) URL.revokeObjectURL(previewUrlRef.current);
+    }, []);
+
+    const selectImage = (event) => {
+        if (previewUrlRef.current) URL.revokeObjectURL(previewUrlRef.current);
+        const selectedFile = event.target.files?.[0] ?? null;
+        setImageFile(selectedFile);
+        const previewUrl = selectedFile ? URL.createObjectURL(selectedFile) : '';
+        previewUrlRef.current = previewUrl;
+        setImagePreview(previewUrl);
+    };
 
     useEffect(() => {
         let cancelled = false;
@@ -132,11 +149,20 @@ export default function CreateAssetForm({ asset = null, onCancel, onSaved }) {
             responsibleId: Number(form.responsibleId),
             acquisitionCost: form.acquisitionCost === '' ? null : Number(form.acquisitionCost),
         };
+        let assetSaved = false;
         try {
-            const saved = asset ? await updateAsset(asset.id, payload) : await createAsset(payload);
-            onSaved(saved);
+            const saved = savedAssetId
+                ? await updateAsset(savedAssetId, payload)
+                : await createAsset(payload);
+            assetSaved = true;
+            setSavedAssetId(saved.id);
+            const result = imageFile ? await uploadAssetImage(saved.id, imageFile) : saved;
+            onSaved(result);
         } catch (error) {
-            setFormError(describeError(error));
+            const message = describeError(error);
+            setFormError(assetSaved
+                ? `El activo se guardó, pero no se pudo cargar la imagen: ${message}`
+                : message);
         } finally {
             setSaving(false);
         }
@@ -296,6 +322,26 @@ export default function CreateAssetForm({ asset = null, onCancel, onSaved }) {
                                 className={`${fieldClass} min-h-[80px] resize-y`}
                             />
                         </label>
+                    </div>
+
+                    <div className="rounded-lg bg-[#0a1b28]/60 p-3.5 sm:p-4 border border-white/5 space-y-3.5">
+                        <h4 className="text-xs font-semibold uppercase tracking-wider text-cyan-300">Imagen del activo</h4>
+                        <label className="block text-xs font-medium text-slate-300">
+                            <span>Foto (JPG, PNG o WEBP, máximo 10 MB)</span>
+                            <input
+                                type="file"
+                                accept="image/jpeg,image/png,image/webp"
+                                onChange={selectImage}
+                                className={`${fieldClass} file:mr-3 file:rounded-md file:border-0 file:bg-cyan-500/15 file:px-3 file:py-1 file:text-cyan-200`}
+                            />
+                        </label>
+                        {(imagePreview || asset?.imageUrl) && (
+                            <img
+                                src={imagePreview || `${API_ORIGIN}${asset.imageUrl}`}
+                                alt={`Vista previa de ${asset?.name || form.name || 'activo'}`}
+                                className="h-28 w-36 rounded-lg border border-white/10 object-cover"
+                            />
+                        )}
                     </div>
 
                     {/* Adquisición y garantía */}

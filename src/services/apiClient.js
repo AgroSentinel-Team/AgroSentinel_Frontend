@@ -21,6 +21,7 @@ const DEFAULT_API_ORIGIN = Capacitor.isNativePlatform()
 export const API_ORIGIN = (import.meta.env.VITE_API_BASE_URL || DEFAULT_API_ORIGIN).replace(/\/+$/, '');
 export const API_ROOT = `${API_ORIGIN}/api`;
 export const OFFLINE_CACHE_STATUS_EVENT = 'agrosentinel:offline-cache-status';
+export const ACCESS_DENIED_EVENT = 'agrosentinel:access-denied';
 
 function notifyCacheStatus(usingCache) {
   if (typeof globalThis.dispatchEvent !== 'function' || typeof CustomEvent === 'undefined') {
@@ -135,6 +136,9 @@ export function createApi(baseURL = API_ROOT, json = true) {
   api.interceptors.response.use(
     (response) => response,
     (error) => {
+      if (error.response?.status === 403 && typeof globalThis.dispatchEvent === 'function') {
+        globalThis.dispatchEvent(new Event(ACCESS_DENIED_EVENT));
+      }
       if (error.response?.status === 401) {
         const serverMessage = error.response.data?.message || '';
         const serverRejectedToken = /token (es )?(inválido|vencido|venció)|cuenta asociada al token/i.test(serverMessage);

@@ -233,6 +233,7 @@ export default function AssetReportModal({ asset, isOpen, onClose }) {
       `Serie: ${activeAsset.serialNumber || '—'}`,
       `Código de Inventario: ${activeAsset.inventoryCode || '—'}`,
       `Ubicación: ${activeAsset.location || '—'}`,
+      `Horómetro acumulado: ${activeAsset.currentHorometer ?? 0} h`,
       `Estado Operativo: ${STATUS_LABELS[activeAsset.operationalStatus] || activeAsset.operationalStatus || '—'}`,
       `Categoría: ${activeAsset.categoryName || '—'}`,
       `Responsable: ${activeAsset.responsibleName || '—'}`,
@@ -465,6 +466,10 @@ export default function AssetReportModal({ asset, isOpen, onClose }) {
                   <dt className="text-[10px] font-bold uppercase tracking-wider text-slate-400 print:text-slate-600">Ubicación Física</dt>
                   <dd className="mt-1 font-medium text-slate-200 print:text-slate-800">{activeAsset?.location || 'Sin ubicación'}</dd>
                 </div>
+                <div className="rounded-lg bg-[#0c1f2e] p-3 border border-white/5 print:bg-slate-50 print:border-slate-200">
+                  <dt className="text-[10px] font-bold uppercase tracking-wider text-slate-400 print:text-slate-600">Horómetro acumulado</dt>
+                  <dd className="mt-1 font-medium text-slate-200 print:text-slate-800">{activeAsset?.currentHorometer ?? 0} h</dd>
+                </div>
 
                 <div className="rounded-lg bg-[#0c1f2e] p-3 border border-white/5 print:bg-slate-50 print:border-slate-200">
                   <dt className="text-[10px] font-bold uppercase tracking-wider text-slate-400 print:text-slate-600">Categoría</dt>
@@ -652,6 +657,13 @@ export default function AssetReportModal({ asset, isOpen, onClose }) {
                             <dt className="text-[10px] font-bold uppercase text-slate-400 print:text-slate-600">Tiempo de Trabajo</dt>
                             <dd className="mt-0.5 font-medium text-slate-200 print:text-slate-800">
                               {item.workMinutes != null ? `${item.workMinutes} minutos` : 'No registrado'}
+                            </dd>
+                          </div>
+
+                          <div className="rounded bg-[#0b1c28] p-2.5 border border-white/5 print:bg-slate-50 print:border-slate-200">
+                            <dt className="text-[10px] font-bold uppercase text-slate-400 print:text-slate-600">Horómetro registrado</dt>
+                            <dd className="mt-0.5 font-medium text-slate-200 print:text-slate-800">
+                              {item.horometerAtMaintenance != null ? `${item.horometerAtMaintenance} h` : 'No registrado'}
                             </dd>
                           </div>
 

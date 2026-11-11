@@ -6,6 +6,9 @@ const maintenanceApi = createApi(`${API_ROOT}/preventive-maintenances`, false);
 export const getPreventiveMaintenances = async () =>
 	cachedRequest('preventive-maintenances', async () => (await maintenanceApi.get('')).data);
 
+export const getPreventiveTechnicianAvailability = async () =>
+	(await maintenanceApi.get('/technicians/availability')).data;
+
 export const schedulePreventiveMaintenance = async (maintenance) =>
 	sendOrQueueJson({
 		endpoint: '/preventive-maintenances',

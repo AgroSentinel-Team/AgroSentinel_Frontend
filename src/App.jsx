@@ -16,6 +16,9 @@ import AlmacenDashboard from './pages/Almacenista/AlmacenDashboard';
 import OperDashboard from './pages/Operativo/OperDashboard';
 import PreventiveMaintenance from './pages/Compartido/PreventiveMaintenance';
 import OfflineStatusBar from './components/OfflineStatusBar';
+import AccesoDenegado from './pages/AccesoDenegado';
+import { ACCESS_DENIED_EVENT } from './services/apiClient';
+import NotificationInbox from './components/NotificationInbox';
 
 function getStoredRoles() {
   try {
@@ -34,13 +37,25 @@ function ProtectedRoute({ allowedRoles, children }) {
       (item ?? '').toUpperCase().replace(/^ROLE_/, ''),
     ),
   );
-  if (
-    !isSessionAuthenticated() ||
-    !allowedRoles.some((allowedRole) => effectiveRoles.has(allowedRole))
-  ) {
+  if (!isSessionAuthenticated()) {
     return <Navigate to="/login" replace />;
   }
+  if (!allowedRoles.some((allowedRole) => effectiveRoles.has(allowedRole))) {
+    return <Navigate to="/403" replace />;
+  }
   return children;
+}
+
+function AccessDeniedRedirect() {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const redirect = () => navigate('/403');
+    globalThis.addEventListener(ACCESS_DENIED_EVENT, redirect);
+    return () => globalThis.removeEventListener(ACCESS_DENIED_EVENT, redirect);
+  }, [navigate]);
+
+  return null;
 }
 
 function SessionExpiredNotice() {
@@ -135,6 +150,8 @@ export default function App({ startupError = '' }) {
   return (
     <BrowserRouter>
       <SessionExpiredNotice />
+      <AccessDeniedRedirect />
+      <NotificationInbox />
       {startupError && (
         <div role="alert" className="bg-amber-500/15 px-4 py-2 text-center text-xs text-amber-200">
           {startupError}
@@ -145,6 +162,7 @@ export default function App({ startupError = '' }) {
         <Route path="/" element={<SessionEntryRoute />} />
         <Route path="/login" element={<SessionEntryRoute />} />
         <Route path="/registro" element={<Registro />} />
+        <Route path="/403" element={<AccesoDenegado />} />
         <Route
           path="/admin/dashboard"
           element={

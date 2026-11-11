@@ -1,5 +1,5 @@
 import { apiClient } from './apiClient';
-import { cachedRequest, sendOrQueueJson } from './offlineApi';
+import { cachedRequest, sendOrQueueForm, sendOrQueueJson } from './offlineApi';
 
 export const getAssignedFailureReports = async () =>
 	cachedRequest('assigned-failure-reports', async () =>
@@ -25,11 +25,15 @@ export const startFailureReview = async (failureId) =>
 		metadata: { failureId },
 	});
 
-export const saveFailureIntervention = async (failureId, intervention) =>
-	sendOrQueueJson({
+export const saveFailureIntervention = async (failureId, intervention, evidences) => {
+	const formData = new FormData();
+	formData.append('data', new Blob([JSON.stringify(intervention)], { type: 'application/json' }));
+	evidences.forEach((evidence) => formData.append('evidencias', evidence));
+	return sendOrQueueForm({
 		endpoint: `/failure-reports/${failureId}/intervention`,
 		method: 'PUT',
-		payload: intervention,
+		formData,
 		operationType: 'failure_report.intervention',
 		metadata: { failureId },
 	});
+};

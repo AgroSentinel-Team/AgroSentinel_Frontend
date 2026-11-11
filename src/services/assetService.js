@@ -1,9 +1,10 @@
-import { API_ROOT, createApi } from './apiClient';
+import { API_ORIGIN, API_ROOT, createApi } from './apiClient';
 import { cachedRequest, sendOrQueueForm } from './offlineApi';
 
-export { API_ROOT };
+export { API_ORIGIN, API_ROOT };
 
 const assetApi = createApi(`${API_ROOT}/assets`);
+const assetUploadApi = createApi(`${API_ROOT}/assets`, false);
 const directoryApi = createApi(API_ROOT);
 const predictiveApi = createApi(API_ROOT);
 const failureReportApi = createApi(`${API_ROOT}/failure-reports`, false);
@@ -17,11 +18,19 @@ export const createAsset = async (asset) => (await assetApi.post('', asset)).dat
 
 export const updateAsset = async (id, asset) => (await assetApi.put(`/${id}`, asset)).data;
 
+export const uploadAssetImage = async (id, image) => {
+	const formData = new FormData();
+	formData.append('image', image);
+	return (await assetUploadApi.post(`/${id}/image`, formData)).data;
+};
+
 export const deactivateAsset = async (id) => (await assetApi.patch(`/${id}/deactivate`)).data;
 
 export const deleteAsset = async (id) => assetApi.delete(`/${id}`);
 
 export const getAssetResume = async (id) => (await assetApi.get(`/${id}/resume`)).data;
+
+export const getAssetFailureTrends = async (id) => (await assetApi.get(`/${id}/failure-trends`)).data;
 
 export const getAssignedAssetResume = async (id) => (await assetApi.get(`/assigned/${id}/resume`)).data;
 
@@ -55,13 +64,47 @@ export const getFailureReportAssets = async () =>
 export const getFailureReports = async () =>
 	cachedRequest('failure-reports', async () => (await failureReportApi.get('')).data);
 
+export const getFailureIntervention = async (id) =>
+	(await failureReportApi.get(`/${id}/intervention`)).data;
+
+export const closeFailureReport = async (id, reviewObservations) =>
+	(await failureReportApi.post(`/${id}/close`, { reviewObservations })).data;
+
+export const getFailureEvidence = async (url) =>
+	(await createApi(API_ORIGIN).get(url, { responseType: 'blob' })).data;
+
 export const getFailureReportGroups = async () =>
 	cachedRequest('work-groups-options', async () => (await directoryApi.get('/work-groups/options')).data);
 
-export const canReportFailure = () => {
-	const role = (localStorage.getItem('rol') ?? '').toUpperCase().replace(/^ROLE_/, '');
-	return ['ADMIN', 'ADMINISTRADOR', 'OPERARIO_CAMPO', 'OPERATIVO_CAMPO'].includes(role);
+const getStoredRoles = () => {
+	const role = localStorage.getItem('rol') ?? '';
+	try {
+		const roles = JSON.parse(localStorage.getItem('roles') ?? '[]');
+		return [role, ...(Array.isArray(roles) ? roles : [])]
+			.map((item) => String(item ?? '').toUpperCase().replace(/^ROLE_/, ''));
+	} catch {
+		return [role.toUpperCase().replace(/^ROLE_/, '')];
+	}
 };
+
+const hasStoredRole = (allowedRoles) =>
+	getStoredRoles().some((role) => allowedRoles.includes(role));
+
+export const isFailureReportAdministrator = () =>
+	hasStoredRole(['ADMIN', 'ADMINISTRADOR']);
+
+export const canReportFailure = () =>
+	hasStoredRole([
+		'ADMIN',
+		'ADMINISTRADOR',
+		'OPERARIO_CAMPO',
+		'OPERATIVO_CAMPO',
+		'SUPERVISOR',
+		'TECNICO',
+	]);
+
+export const canAssignFailureTechnician = () =>
+	hasStoredRole(['ADMIN', 'ADMINISTRADOR', 'SUPERVISOR']);
 
 export const createFailureReport = async (formData) =>
 	sendOrQueueForm({

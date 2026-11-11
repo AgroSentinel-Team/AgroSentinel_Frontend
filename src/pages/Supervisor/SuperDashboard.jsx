@@ -23,6 +23,7 @@ import {
 import LogoutButton from '../../components/LogoutButton';
 import DashboardRoleSwitcher from '../../components/DashboardRoleSwitcher';
 import FailureReportModal from '../../components/FailureReportModal';
+import FailureClosureModal from '../../components/FailureClosureModal';
 import Inventario from '../Compartido/Inventario';
 import Entradas from '../Compartido/Entradas';
 import Salidas from '../Compartido/Salidas';
@@ -47,6 +48,9 @@ const NAVIGATION = [
 
 const REPORT_STATUSES = {
   PENDIENTE: 'Pendiente',
+  ASIGNADA: 'Asignada',
+  EN_EJECUCION: 'En ejecución',
+  EN_CIERRE: 'Pendiente de cierre',
   EN_REVISION: 'En revisión',
   ESPERA_REPUESTO: 'Espera repuesto',
   RESUELTO: 'Resuelto',
@@ -430,6 +434,7 @@ function OrdersView({ reports, error, title = 'Reporte de Fallas', onReportCreat
   const [statusFilter, setStatusFilter] = useState('TODOS');
   const [selectedReport, setSelectedReport] = useState(null);
   const [showReportModal, setShowReportModal] = useState(false);
+  const [reportToReview, setReportToReview] = useState(null);
 
   const visibleReports = useMemo(() => {
     return reports.filter((report) => {
@@ -531,13 +536,24 @@ function OrdersView({ reports, error, title = 'Reporte de Fallas', onReportCreat
               <Badge tone={statusTone(report.prioridad)}>
                 {PRIORITIES[report.prioridad] || report.prioridad || 'Sin prioridad'}
               </Badge>
-              <button
-                type="button"
-                onClick={() => setSelectedReport(report)}
-                className="font-bold text-cyan-300 hover:text-cyan-200 p-1"
-              >
-                Ver detalle
-              </button>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setSelectedReport(report)}
+                  className="font-bold text-cyan-300 hover:text-cyan-200 p-1"
+                >
+                  Ver detalle
+                </button>
+                {report.estado === 'EN_CIERRE' && (
+                  <button
+                    type="button"
+                    onClick={() => setReportToReview(report)}
+                    className="font-bold text-emerald-300 hover:text-emerald-200 p-1"
+                  >
+                    Revisar cierre
+                  </button>
+                )}
+              </div>
             </div>
           </article>
         ))}
@@ -593,13 +609,24 @@ function OrdersView({ reports, error, title = 'Reporte de Fallas', onReportCreat
                     </Badge>
                   </td>
                   <td className="px-4 py-3.5 text-right">
-                    <button
-                      type="button"
-                      onClick={() => setSelectedReport(report)}
-                      className="font-bold text-cyan-300 hover:text-cyan-200 transition-colors"
-                    >
-                      Ver detalle
-                    </button>
+                    <div className="flex justify-end gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setSelectedReport(report)}
+                        className="font-bold text-cyan-300 hover:text-cyan-200 transition-colors"
+                      >
+                        Ver detalle
+                      </button>
+                      {report.estado === 'EN_CIERRE' && (
+                        <button
+                          type="button"
+                          onClick={() => setReportToReview(report)}
+                          className="font-bold text-emerald-300 hover:text-emerald-200 transition-colors"
+                        >
+                          Revisar y cerrar
+                        </button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -618,6 +645,16 @@ function OrdersView({ reports, error, title = 'Reporte de Fallas', onReportCreat
       </div>
 
       <ReportDetails report={selectedReport} onClose={() => setSelectedReport(null)} />
+      {reportToReview && (
+        <FailureClosureModal
+          report={reportToReview}
+          onClose={() => setReportToReview(null)}
+          onClosed={() => {
+            setReportToReview(null);
+            onReportCreated?.();
+          }}
+        />
+      )}
       {showReportModal && (
         <FailureReportModal
           onClose={() => setShowReportModal(false)}

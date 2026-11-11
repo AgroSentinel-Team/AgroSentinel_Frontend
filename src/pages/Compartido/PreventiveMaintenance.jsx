@@ -18,10 +18,11 @@ import {
   X,
 } from 'lucide-react';
 import { getPreventiveMaintenanceEvidence } from '../../services/preventiveMaintenanceService';
-import { getAssets, getCategories, getUsers } from '../../services/assetService';
+import { getAssets, getCategories } from '../../services/assetService';
 import {
   executePreventiveMaintenance,
   getPreventiveMaintenances,
+  getPreventiveTechnicianAvailability,
   schedulePreventiveMaintenance,
 } from '../../services/preventiveMaintenanceService';
 
@@ -156,6 +157,7 @@ export default function PreventiveMaintenance({ predictivePrefill, onPredictiveP
     outcome: 'COMPLETED',
     nextMaintenanceDate: '',
     confirmed: false,
+    horometerReading: '',
   });
   const [evidences, setEvidences] = useState([]);
   const [previewEvidence, setPreviewEvidence] = useState('');
@@ -171,18 +173,16 @@ export default function PreventiveMaintenance({ predictivePrefill, onPredictiveP
     setLoading(true);
     setLoadError('');
     try {
-      const [maintenanceData, assetData, categoryData, userData] = await Promise.all([
+      const [maintenanceData, assetData, categoryData, technicianData] = await Promise.all([
         getPreventiveMaintenances(),
         getAssets(),
         getCategories(),
-        getUsers(),
+        getPreventiveTechnicianAvailability(),
       ]);
       setMaintenances(maintenanceData);
       setAssets(assetData.filter((asset) => asset.isActive));
       setCategories(categoryData);
-      setTechnicians(
-        userData.filter((user) => (user.rol || '').toUpperCase().replace(/^ROLE_/, '') === 'TECNICO'),
-      );
+      setTechnicians(technicianData);
     } catch (error) {
       setLoadError(describeError(error));
     } finally {
@@ -192,15 +192,13 @@ export default function PreventiveMaintenance({ predictivePrefill, onPredictiveP
 
   useEffect(() => {
     let cancelled = false;
-    Promise.all([getPreventiveMaintenances(), getAssets(), getCategories(), getUsers()])
-      .then(([maintenanceData, assetData, categoryData, userData]) => {
+    Promise.all([getPreventiveMaintenances(), getAssets(), getCategories(), getPreventiveTechnicianAvailability()])
+      .then(([maintenanceData, assetData, categoryData, technicianData]) => {
         if (cancelled) return;
         setMaintenances(maintenanceData);
         setAssets(assetData.filter((asset) => asset.isActive));
         setCategories(categoryData);
-        setTechnicians(
-          userData.filter((user) => (user.rol || '').toUpperCase().replace(/^ROLE_/, '') === 'TECNICO'),
-        );
+        setTechnicians(technicianData);
       })
       .catch((error) => {
         if (!cancelled) setLoadError(describeError(error));
@@ -282,6 +280,7 @@ export default function PreventiveMaintenance({ predictivePrefill, onPredictiveP
         outcome: 'COMPLETED',
         nextMaintenanceDate: suggestedDate,
         confirmed: false,
+        horometerReading: maintenance.currentHorometer ?? '',
       });
       setEvidences([]);
       setPanel({ mode: 'execute', maintenance });
@@ -321,7 +320,12 @@ export default function PreventiveMaintenance({ predictivePrefill, onPredictiveP
     try {
       const result = await executePreventiveMaintenance(
         panel.maintenance.id,
-        execution,
+        {
+          ...execution,
+          horometerReading: execution.horometerReading === ''
+            ? null
+            : Number(execution.horometerReading),
+        },
         evidences,
       );
       setPanel(null);
@@ -843,8 +847,9 @@ export default function PreventiveMaintenance({ predictivePrefill, onPredictiveP
                       >
                         <option value="">Selecciona un técnico</option>
                         {technicians.map((technician) => (
-                          <option key={technician.id} value={technician.id}>
-                            {technician.nombre}
+                          <option key={technician.id} value={technician.id} disabled={!technician.available}>
+                            {technician.nombre} · {technician.activeWorkload}/{technician.workloadCapacity} trabajos ·{' '}
+                            {technician.available ? 'Disponible' : 'No disponible'}
                           </option>
                         ))}
                       </select>
@@ -1078,6 +1083,20 @@ export default function PreventiveMaintenance({ predictivePrefill, onPredictiveP
 
                 <Section title="Informe de ejecución">
                   <div className="grid gap-3.5 sm:grid-cols-2">
+                    <label className="block text-xs font-medium text-slate-300">
+                      <span>Lectura actual del horómetro (h)</span>
+                      <input
+                        type="number"
+                        min={panel.maintenance.currentHorometer ?? 0}
+                        step="0.01"
+                        value={execution.horometerReading}
+                        onChange={(event) => updateExecution('horometerReading', event.target.value)}
+                        className={fieldClass}
+                      />
+                      <span className="mt-1 block text-[11px] text-slate-400">
+                        Última lectura: {panel.maintenance.currentHorometer ?? 0} h. No se admiten valores menores.
+                      </span>
+                    </label>
                     <label className="block text-xs font-medium text-slate-300">
                       <span>Piezas reemplazadas / repuestos</span>
                       <textarea

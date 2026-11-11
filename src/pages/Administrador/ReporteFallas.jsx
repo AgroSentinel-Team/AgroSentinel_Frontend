@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { AlertTriangle, Plus, RefreshCw, UserCheck, Calendar, MapPin, User } from 'lucide-react';
 import FailureReportModal from '../../components/FailureReportModal';
+import FailureClosureModal from '../../components/FailureClosureModal';
 import { getFailureReports } from '../../services/assetService';
 
 const PRIORITY_LABELS = { BAJA: 'Baja', MEDIA: 'Media', ALTA: 'Alta', CRITICA: 'Crítica' };
@@ -10,7 +11,15 @@ const PRIORITY_TONES = {
     ALTA: 'border-red-400/20 bg-red-400/10 text-red-200',
     CRITICA: 'border-red-400/20 bg-red-400/10 text-red-200',
 };
-const STATUS_LABELS = { PENDIENTE: 'Pendiente', EN_REVISION: 'En revisión', RESUELTO: 'Resuelto' };
+const STATUS_LABELS = {
+    PENDIENTE: 'Pendiente',
+    ASIGNADA: 'Asignada',
+    EN_EJECUCION: 'En ejecución',
+    EN_CIERRE: 'Pendiente de cierre',
+    EN_REVISION: 'En revisión',
+    ESPERA_REPUESTO: 'Espera repuesto',
+    RESUELTO: 'Cerrada',
+};
 
 function describeError(error) {
     if (error.response?.status === 401) return 'El servidor no aceptó la sesión para cargar los reportes. La sesión sigue activa.';
@@ -28,6 +37,7 @@ export default function ReporteFallas() {
     const [feedback, setFeedback] = useState('');
     const [refreshKey, setRefreshKey] = useState(0);
     const [showModal, setShowModal] = useState(false);
+    const [reportToReview, setReportToReview] = useState(null);
 
     useEffect(() => {
         let cancelled = false;
@@ -143,9 +153,16 @@ export default function ReporteFallas() {
                                 </div>
 
                                 <div className="pt-2 border-t border-white/5 flex justify-end">
-                                    <span className="rounded-full bg-white/5 px-3 py-1 text-[11px] font-medium text-slate-300 border border-white/10">
-                                        {STATUS_LABELS[report.estado] || report.estado}
-                                    </span>
+                                    <div className="flex items-center gap-2">
+                                        <span className="rounded-full bg-white/5 px-3 py-1 text-[11px] font-medium text-slate-300 border border-white/10">
+                                            {STATUS_LABELS[report.estado] || report.estado}
+                                        </span>
+                                        {report.estado === 'EN_CIERRE' && (
+                                            <button type="button" onClick={() => setReportToReview(report)} className="rounded-md bg-emerald-600 px-2.5 py-1.5 text-[11px] font-bold text-white">
+                                                Revisar cierre
+                                            </button>
+                                        )}
+                                    </div>
                                 </div>
                             </article>
                         ))}
@@ -162,7 +179,7 @@ export default function ReporteFallas() {
                                     <th className="px-4 py-3.5 font-semibold">Técnico asignado</th>
                                     <th className="px-4 py-3.5 font-semibold">Fecha</th>
                                     <th className="px-4 py-3.5 font-semibold">Prioridad</th>
-                                    <th className="px-4 py-3.5 font-semibold">Estado</th>
+                                    <th className="px-4 py-3.5 font-semibold">Estado / acción</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-white/5">
@@ -188,7 +205,16 @@ export default function ReporteFallas() {
                                                 {PRIORITY_LABELS[report.prioridad] || report.prioridad}
                                             </span>
                                         </td>
-                                        <td className="px-4 py-3.5 text-slate-300 font-medium">{STATUS_LABELS[report.estado] || report.estado}</td>
+                                        <td className="px-4 py-3.5 text-slate-300 font-medium">
+                                            <div className="flex items-center gap-2">
+                                                <span>{STATUS_LABELS[report.estado] || report.estado}</span>
+                                                {report.estado === 'EN_CIERRE' && (
+                                                    <button type="button" onClick={() => setReportToReview(report)} className="rounded-md bg-emerald-600 px-2.5 py-1.5 text-[11px] font-bold text-white">
+                                                        Revisar y cerrar
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </td>
                                     </tr>
                                 ))}
                             </tbody>
@@ -201,6 +227,17 @@ export default function ReporteFallas() {
                 <FailureReportModal
                     onClose={() => setShowModal(false)}
                     onSaved={() => { setFeedback('Reporte de falla registrado.'); refreshReports(); }}
+                />
+            )}
+            {reportToReview && (
+                <FailureClosureModal
+                    report={reportToReview}
+                    onClose={() => setReportToReview(null)}
+                    onClosed={() => {
+                        setReportToReview(null);
+                        setFeedback('La orden fue revisada y cerrada definitivamente.');
+                        refreshReports();
+                    }}
                 />
             )}
         </section>

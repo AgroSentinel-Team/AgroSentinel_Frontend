@@ -10,13 +10,16 @@ import {
     RefreshCw,
     Search,
     Trash2,
+    TrendingUp,
     Wrench,
     X,
 } from 'lucide-react';
 import {
+    API_ORIGIN,
     deactivateAsset,
     deleteAsset,
     getAssetResume,
+    getAssetFailureTrends,
     getAssets,
     getPredictiveHistory,
 } from '../../services/assetService';
@@ -85,6 +88,9 @@ export default function Activos() {
     const [predictiveAsset, setPredictiveAsset] = useState(null);
     const [predictiveLoading, setPredictiveLoading] = useState(false);
     const [maintenanceEvidencePreview, setMaintenanceEvidencePreview] = useState('');
+    const [failureTrends, setFailureTrends] = useState(null);
+    const [failureTrendAsset, setFailureTrendAsset] = useState(null);
+    const [failureTrendsLoading, setFailureTrendsLoading] = useState(false);
 
     useEffect(
         () => () => {
@@ -192,6 +198,21 @@ export default function Activos() {
         }
     };
 
+    const openFailureTrends = async (asset) => {
+        setFailureTrendAsset(asset);
+        setFailureTrends(null);
+        setFailureTrendsLoading(true);
+        setModal('failureTrends');
+        try {
+            setFailureTrends(await getAssetFailureTrends(asset.id));
+        } catch (error) {
+            setFeedback(`No se pudo analizar el historial de fallas: ${describeError(error)}`);
+            setModal('');
+        } finally {
+            setFailureTrendsLoading(false);
+        }
+    };
+
     return (
         <section className="rounded-xl border border-white/10 bg-[#13293a] p-4 sm:p-6 shadow-xl min-w-0">
             {/* Header de la vista */}
@@ -295,7 +316,18 @@ export default function Activos() {
                                     key={asset.id}
                                     className="rounded-xl border border-white/10 bg-[#0b1d2a] p-3 sm:p-4 space-y-3 shadow-md min-w-0"
                                 >
-                                    <div className="flex flex-col items-start gap-2">
+                                    <div className="flex items-start gap-2">
+                                        <div className="flex h-14 w-16 shrink-0 items-center justify-center overflow-hidden rounded-md border border-white/10 bg-white/5">
+                                            {asset.imageUrl ? (
+                                                <img
+                                                    src={`${API_ORIGIN}${asset.imageUrl}`}
+                                                    alt={`Imagen de ${asset.name}`}
+                                                    className="h-full w-full object-cover"
+                                                />
+                                            ) : (
+                                                <Wrench size={18} className="text-slate-500" />
+                                            )}
+                                        </div>
                                         <div className="min-w-0">
                                             <h3 className="break-words font-semibold text-white text-xs sm:text-base">
                                                 {asset.name}
@@ -304,6 +336,9 @@ export default function Activos() {
                                                 {[asset.brand, asset.model, asset.serialNumber]
                                                     .filter(Boolean)
                                                     .join(' · ') || 'Sin ficha técnica'}
+                                            </p>
+                                            <p className="mt-1 text-[10px] text-cyan-200">
+                                                Horómetro: {asset.currentHorometer ?? 0} h
                                             </p>
                                             {asset.hasMotor && (
                                                 <span className="inline-block mt-1.5 max-w-full break-words text-[10px] sm:text-xs text-cyan-300 font-medium bg-cyan-950/50 px-2 py-1 rounded border border-cyan-800/40">
@@ -370,6 +405,15 @@ export default function Activos() {
                                         )}
                                         <button
                                             type="button"
+                                            title="Tendencia de fallas"
+                                            aria-label={`Análisis de tendencia de fallas de ${asset.name}`}
+                                            onClick={() => openFailureTrends(asset)}
+                                            className="flex h-11 w-11 items-center justify-center rounded-lg bg-white/5 text-slate-300 hover:bg-amber-500/10 hover:text-amber-300 active:bg-amber-500/20 transition-colors"
+                                        >
+                                            <TrendingUp size={18} />
+                                        </button>
+                                        <button
+                                            type="button"
                                             title="Editar"
                                             aria-label={`Editar ${asset.name}`}
                                             onClick={() => openEditForm(asset)}
@@ -419,17 +463,44 @@ export default function Activos() {
                                     {visibleAssets.map((asset) => (
                                         <tr key={asset.id} className="hover:bg-white/[0.03] transition-colors">
                                             <td className="px-4 py-3.5">
-                                                <p className="font-semibold text-white">{asset.name}</p>
-                                                <p className="mt-0.5 text-xs text-slate-400">
-                                                    {[asset.brand, asset.model, asset.serialNumber]
-                                                        .filter(Boolean)
-                                                        .join(' · ') || 'Sin ficha técnica'}
-                                                </p>
-                                                {asset.hasMotor && (
-                                                    <p className="mt-0.5 text-xs text-cyan-300 font-medium">
-                                                        ID predictivo: {asset.predictiveId}
-                                                    </p>
-                                                )}
+                                                <div className="flex items-center gap-3">
+                                                    <div className="flex h-12 w-14 shrink-0 items-center justify-center overflow-hidden rounded-md border border-white/10 bg-white/5">
+                                                        {asset.imageUrl ? (
+                                                            <img
+                                                                src={`${API_ORIGIN}${asset.imageUrl}`}
+                                                                alt={`Imagen de ${asset.name}`}
+                                                                className="h-full w-full object-cover"
+                                                            />
+                                                        ) : (
+                                                            <Wrench size={16} className="text-slate-500" />
+                                                        )}
+                                                    </div>
+                                                    <div>
+                                                        <p className="font-semibold text-white">{asset.name}</p>
+                                                        <p className="mt-0.5 text-xs text-slate-400">
+                                                            {[asset.brand, asset.model, asset.serialNumber]
+                                                                .filter(Boolean)
+                                                                .join(' · ') || 'Sin ficha técnica'}
+                                                        </p>
+                                                        <p className="mt-1 text-[11px] text-cyan-200">
+                                                            Horómetro: {asset.currentHorometer ?? 0} h
+                                                        </p>
+                                                        {asset.hasMotor && (
+                                                            <p className="mt-0.5 text-xs text-cyan-300 font-medium">
+                                                                ID predictivo: {asset.predictiveId}
+                                                            </p>
+                                                        )}
+                                                        <button
+                                                            type="button"
+                                                            title="Tendencia de fallas"
+                                                            aria-label={`Análisis de tendencia de fallas de ${asset.name}`}
+                                                            onClick={() => openFailureTrends(asset)}
+                                                            className="flex h-9 w-9 items-center justify-center rounded-lg hover:bg-amber-500/10 hover:text-amber-300 transition-colors"
+                                                        >
+                                                            <TrendingUp size={16} />
+                                                        </button>
+                                                    </div>
+                                                </div>
                                             </td>
                                             <td className="px-4 py-3.5 text-slate-300">
                                                 {asset.categoryName || `ID ${asset.categoryId}`}
@@ -654,6 +725,67 @@ export default function Activos() {
                             </p>
                         )}
                     </div>
+                </div>
+            )}
+
+            {modal === 'failureTrends' && (
+                <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/80 p-4">
+                    <section
+                        role="dialog"
+                        aria-modal="true"
+                        aria-labelledby="failure-trends-title"
+                        className="w-full max-w-xl rounded-xl border border-white/10 bg-[#102637] p-5 text-white shadow-2xl"
+                    >
+                        <div className="flex items-start justify-between gap-3">
+                            <div>
+                                <h2 id="failure-trends-title" className="text-lg font-bold">Tendencia histórica de fallas</h2>
+                                <p className="mt-1 text-xs text-slate-400">{failureTrendAsset?.name}</p>
+                            </div>
+                            <button type="button" onClick={() => setModal('')} aria-label="Cerrar análisis" className="rounded-lg p-2 text-slate-400 hover:bg-white/10 hover:text-white">
+                                <X size={18} />
+                            </button>
+                        </div>
+                        {failureTrendsLoading ? (
+                            <p className="py-10 text-center text-sm text-slate-300">Analizando historial…</p>
+                        ) : failureTrends && (
+                            <div className="mt-5 space-y-4">
+                                <dl className="grid grid-cols-2 gap-3 text-xs">
+                                    <div className="rounded-lg border border-white/10 bg-[#0b1d2a] p-3">
+                                        <dt className="text-slate-400">Fallas registradas</dt>
+                                        <dd className="mt-1 text-xl font-bold">{failureTrends.failureCount}</dd>
+                                    </div>
+                                    <div className="rounded-lg border border-white/10 bg-[#0b1d2a] p-3">
+                                        <dt className="text-slate-400">Horómetro acumulado</dt>
+                                        <dd className="mt-1 text-xl font-bold">{failureTrends.currentHorometer ?? 0} h</dd>
+                                    </div>
+                                    <div className="rounded-lg border border-white/10 bg-[#0b1d2a] p-3">
+                                        <dt className="text-slate-400">Frecuencia base</dt>
+                                        <dd className="mt-1 font-semibold">{failureTrends.baseIntervalDays} días</dd>
+                                    </div>
+                                    <div className="rounded-lg border border-cyan-400/20 bg-cyan-500/10 p-3">
+                                        <dt className="text-cyan-200">Intervalo sugerido</dt>
+                                        <dd className="mt-1 text-xl font-bold text-cyan-100">{failureTrends.suggestedIntervalDays} días</dd>
+                                    </div>
+                                </dl>
+                                <p className="rounded-lg border border-white/10 bg-[#0b1d2a] p-3 text-xs leading-relaxed text-slate-200">
+                                    {failureTrends.summary}
+                                </p>
+                                {failureTrends.averageDaysBetweenFailures != null && (
+                                    <p className="text-xs text-slate-400">
+                                        Promedio entre fallas: {failureTrends.averageDaysBetweenFailures.toFixed(1)} días.
+                                    </p>
+                                )}
+                                {failureTrends.recurringFailures?.length > 0 && (
+                                    <div>
+                                        <h3 className="text-xs font-bold uppercase text-amber-200">Fallas recurrentes</h3>
+                                        <ul className="mt-2 list-inside list-disc space-y-1 text-xs text-slate-300">
+                                            {failureTrends.recurringFailures.map((failure) => <li key={failure}>{failure}</li>)}
+                                        </ul>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </section>
                 </div>
             )}
 

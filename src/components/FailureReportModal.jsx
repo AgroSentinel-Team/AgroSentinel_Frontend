@@ -1,6 +1,13 @@
 import { useEffect, useState } from 'react';
 import { AlertTriangle, ImagePlus, LoaderCircle, Search, X } from 'lucide-react';
-import { createFailureReport, getFailureReportAssets, getFailureReportGroups } from '../services/assetService';
+import {
+    canAssignFailureTechnician,
+    canReportFailure,
+    createFailureReport,
+    getFailureReportAssets,
+    getFailureReportGroups,
+    isFailureReportAdministrator,
+} from '../services/assetService';
 
 const PRIORITIES = [
     { value: 'BAJA', label: 'Baja' },
@@ -44,29 +51,8 @@ export default function FailureReportModal({ onClose, onSaved }) {
     const [submitError, setSubmitError] = useState('');
     const [submitting, setSubmitting] = useState(false);
 
-    const roleAccess = (() => {
-        const role = (localStorage.getItem('rol') ?? '').toUpperCase().replace(/^ROLE_/, '');
-        try {
-            const roles = JSON.parse(localStorage.getItem('roles') ?? '[]');
-            const effectiveRoles = new Set(
-                [role, ...(Array.isArray(roles) ? roles : [])]
-                    .map((item) => (item ?? '').toUpperCase().replace(/^ROLE_/, '')),
-            );
-            return {
-                isAdministrator: effectiveRoles.has('ADMIN') || effectiveRoles.has('ADMINISTRADOR'),
-                canChooseTechnician:
-                    effectiveRoles.has('ADMIN') ||
-                    effectiveRoles.has('ADMINISTRADOR') ||
-                    effectiveRoles.has('SUPERVISOR'),
-            };
-        } catch {
-            return {
-                isAdministrator: ['ADMIN', 'ADMINISTRADOR'].includes(role),
-                canChooseTechnician: ['ADMIN', 'ADMINISTRADOR', 'SUPERVISOR'].includes(role),
-            };
-        }
-    })();
-    const { isAdministrator, canChooseTechnician } = roleAccess;
+    const isAdministrator = isFailureReportAdministrator();
+    const canChooseTechnician = canAssignFailureTechnician();
 
     useEffect(() => {
         let cancelled = false;
@@ -116,6 +102,7 @@ export default function FailureReportModal({ onClose, onSaved }) {
             (role) => String(role ?? '').toUpperCase().replace(/^ROLE_/, '') === 'TECNICO',
         );
     });
+    const selectableTechnicians = availableTechnicians.filter((technician) => technician.available !== false);
 
     const updateField = (event) => {
         setSubmitError('');
@@ -140,6 +127,10 @@ export default function FailureReportModal({ onClose, onSaved }) {
 
     const handleSubmit = async (event) => {
         event.preventDefault();
+        if (!canReportFailure()) {
+            setSubmitError('Tu perfil no tiene permiso para registrar reportes de falla.');
+            return;
+        }
         if (groupsLoading) {
             setSubmitError('Espera a que carguen los grupos de trabajo.');
             return;
@@ -154,6 +145,14 @@ export default function FailureReportModal({ onClose, onSaved }) {
         }
         if (groups.length === 0) {
             setSubmitError('No hay un grupo de trabajo activo disponible para asignar la falla.');
+            return;
+        }
+        if (
+            canChooseTechnician &&
+            selectedGroup &&
+            selectableTechnicians.length === 0
+        ) {
+            setSubmitError('No hay técnicos disponibles en este grupo. Cada técnico puede tener hasta 3 trabajos activos.');
             return;
         }
         setSubmitting(true);
@@ -346,18 +345,24 @@ export default function FailureReportModal({ onClose, onSaved }) {
                                 <option value="">
                                     {!selectedGroup
                                         ? 'Selecciona primero un grupo'
-                                        : availableTechnicians.length
-                                        ? 'Asignación automática por rotación'
-                                        : 'Este grupo no tiene técnicos activos'}
+                                        : selectableTechnicians.length
+                                        ? 'Asignación automática al técnico con menor carga'
+                                        : 'No hay técnicos disponibles'}
                                 </option>
                                 {availableTechnicians.map((technician) => (
-                                    <option key={technician.id} value={technician.id}>
-                                        {technician.nombre}{technician.lider ? ' · Líder' : ''}
+                                    <option
+                                        key={technician.id}
+                                        value={technician.id}
+                                        disabled={technician.available === false}
+                                    >
+                                        {technician.nombre}{technician.lider ? ' · Líder' : ''} · Carga:{' '}
+                                        {technician.activeWorkload ?? 0}/{technician.workloadCapacity ?? 3}
+                                        {technician.available === false ? ' · No disponible' : ' · Disponible'}
                                     </option>
                                 ))}
                             </select>
                             <p className="mt-1 text-[11px] leading-relaxed text-slate-400">
-                                Solo se muestran técnicos activos del grupo seleccionado. Si no eliges uno, el sistema asigna por rotación.
+                                La carga cuenta trabajos activos. El sistema asigna automáticamente al técnico disponible con menor carga; el límite es de 3.
                             </p>
                         </div>
                     )}

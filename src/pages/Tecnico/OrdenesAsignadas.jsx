@@ -34,6 +34,16 @@ const equipmentStates = [
   ['INOPERATIVE_WAITING_PART', 'Inoperativo a la espera de repuesto'],
 ];
 
+const FAILURE_STATUS_LABELS = {
+  PENDIENTE: 'Pendiente',
+  ASIGNADA: 'Asignada',
+  EN_EJECUCION: 'En ejecución',
+  EN_CIERRE: 'Pendiente de aprobación',
+  EN_REVISION: 'En ejecución',
+  ESPERA_REPUESTO: 'En ejecución · espera repuesto',
+  RESUELTO: 'Cerrada',
+};
+
 const localDateTime = (value) => (value ? value.slice(0, 16) : '');
 
 const localDateTimePayload = (value) => (value ? `${value}:00` : null);
@@ -86,6 +96,7 @@ function InterventionForm({ report, assetResume, onClose, onSaved }) {
     pendingTasks: '',
     technicianName: currentName,
     receivedBy: '',
+    horometerReading: '',
   });
   const [parts, setParts] = useState([]);
   const [technicianGroups, setTechnicianGroups] = useState([]);
@@ -101,6 +112,7 @@ function InterventionForm({ report, assetResume, onClose, onSaved }) {
   const [partSelectionError, setPartSelectionError] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [evidences, setEvidences] = useState([]);
 
   const change = (event) =>
     setForm((current) => ({
@@ -260,7 +272,8 @@ function InterventionForm({ report, assetResume, onClose, onSaved }) {
         replacedParts: parts,
         pendingTasks: form.pendingTasks || null,
         receivedBy: form.receivedBy || null,
-      });
+        horometerReading: form.horometerReading === '' ? null : Number(form.horometerReading),
+      }, evidences);
       onSaved();
     } catch (requestError) {
       setError(
@@ -506,8 +519,12 @@ function InterventionForm({ report, assetResume, onClose, onSaved }) {
           <h3 className="text-xs font-bold uppercase tracking-wider text-cyan-300 border-b border-white/10 pb-1.5">
             1. Identificación y reporte inicial
           </h3>
+          <p className="text-xs text-slate-400">
+            Última lectura del horómetro: {assetResume?.asset?.currentHorometer ?? 0} h
+          </p>
           <div className="grid grid-cols-2 gap-2 sm:gap-4">
             {textField('equipmentIntervened', 'Equipo intervenido')}
+            {textField('horometerReading', 'Lectura actual del horómetro (h)', { type: 'number', required: false })}
             {textField('reportedAt', 'Fecha y hora de reporte', {
               type: 'datetime-local',
             })}
@@ -540,6 +557,31 @@ function InterventionForm({ report, assetResume, onClose, onSaved }) {
               type: 'number',
             })}
           </div>
+          <label className="block space-y-1.5 text-xs font-semibold text-slate-300">
+            <span>Evidencia fotográfica (hasta 10 imágenes, máximo 10 MB por imagen)</span>
+            <input
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              multiple
+              onChange={(event) => {
+                const files = Array.from(event.target.files || []);
+                if (files.length > 10 || files.some((file) => file.size > 10 * 1024 * 1024)) {
+                  setError('Adjunta hasta 10 imágenes y verifica que cada una pese máximo 10 MB.');
+                  event.target.value = '';
+                  setEvidences([]);
+                  return;
+                }
+                setError('');
+                setEvidences(files);
+              }}
+              className={fieldClass}
+            />
+            {evidences.length > 0 && (
+              <span className="block text-[11px] font-normal text-slate-400">
+                {evidences.map((file) => file.name).join(' · ')}
+              </span>
+            )}
+          </label>
 
           {/* Selector Controlado de Repuestos e Insumos */}
           <div className="space-y-4 rounded-xl border border-[#30485a] bg-[#0d2030] p-4 sm:p-5">
@@ -847,7 +889,7 @@ function OrderCard({ item, onStart, busy }) {
                 ? 'PENDIENTE DE SINCRONIZACIÓN'
                 : item.reviewStartPending
                   ? 'INICIO DE REVISIÓN PENDIENTE'
-                : item.estado || item.status}
+                : FAILURE_STATUS_LABELS[item.estado] || item.estado || item.status}
             </span>
             {item.groupName && (
               <span className="inline-flex rounded-full border border-slate-500/30 bg-slate-500/15 px-2.5 py-0.5 text-xs font-semibold text-slate-300">
@@ -875,26 +917,33 @@ function OrderCard({ item, onStart, busy }) {
           </span>
 
           {isFailure ? (
-            <button
-              type="button"
-              onClick={() => onStart(item)}
-              disabled={busy || item.localSyncPending}
-              className="flex min-h-[40px] items-center justify-center gap-1.5 rounded-lg bg-cyan-600 px-4 text-xs font-bold uppercase tracking-wider text-white hover:bg-cyan-500 transition-colors disabled:opacity-50 shadow-md shadow-cyan-950/40"
-            >
-              {busy ? (
-                <LoaderCircle size={14} className="animate-spin" />
-              ) : (
-                <Wrench size={14} />
-              )}
-              <span>
-                {item.localSyncPending
-                  ? 'Pendiente de sincronización'
-                  : item.estado === 'EN_REVISION' ||
-                    item.estado === 'ESPERA_REPUESTO'
-                  ? 'Continuar revisión'
-                  : 'Iniciar revisión'}
+            item.estado === 'EN_CIERRE' ? (
+              <span className="rounded-lg border border-amber-400/20 bg-amber-500/10 px-3 py-2 text-xs font-semibold text-amber-200">
+                Esperando revisión del supervisor
               </span>
-            </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => onStart(item)}
+                disabled={busy || item.localSyncPending}
+                className="flex min-h-[40px] items-center justify-center gap-1.5 rounded-lg bg-cyan-600 px-4 text-xs font-bold uppercase tracking-wider text-white hover:bg-cyan-500 transition-colors disabled:opacity-50 shadow-md shadow-cyan-950/40"
+              >
+                {busy ? (
+                  <LoaderCircle size={14} className="animate-spin" />
+                ) : (
+                  <Wrench size={14} />
+                )}
+                <span>
+                  {item.localSyncPending
+                    ? 'Pendiente de sincronización'
+                    : item.estado === 'EN_EJECUCION' ||
+                      item.estado === 'EN_REVISION' ||
+                      item.estado === 'ESPERA_REPUESTO'
+                    ? 'Continuar intervención'
+                    : 'Iniciar ejecución'}
+                </span>
+              </button>
+            )
           ) : (
             <span className="text-xs font-semibold text-cyan-300 bg-cyan-500/10 px-3 py-1.5 rounded-lg border border-cyan-400/20">
               Técnico: {item.technicianName || 'Asignado'}
@@ -957,7 +1006,9 @@ export default function OrdenesAsignadas({ onOpenPreventive }) {
     setError('');
     try {
       const reviewedReport =
-        report.estado !== 'EN_REVISION' && report.estado !== 'ESPERA_REPUESTO'
+        report.estado !== 'EN_EJECUCION' &&
+        report.estado !== 'EN_REVISION' &&
+        report.estado !== 'ESPERA_REPUESTO'
           ? await startFailureReview(report.id)
           : report;
       const resume = await getFailureAssetResume(report.id);
