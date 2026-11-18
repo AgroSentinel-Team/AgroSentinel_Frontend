@@ -368,7 +368,7 @@ export default function FailureReportModal({ onClose, onSaved }) {
                                 })}
                             </select>
                             {selectedTechnician && selectedTechnician.activeWorkload >= selectedTechnician.workloadCapacity && (
-                                <span className="mt-2 inline-flex rounded-full border border-lime-300/30 bg-lime-300/10 px-2.5 py-1 text-[10px] font-semibold text-lime-200">
+                                <span className="mt-2 inline-flex rounded-full border border-cyan-400/30 bg-cyan-500/10 px-2.5 py-1 text-[10px] font-semibold text-cyan-200">
                                     Carga alta: {selectedTechnician.activeWorkload} activas
                                 </span>
                             )}

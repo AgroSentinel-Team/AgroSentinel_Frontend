@@ -414,7 +414,7 @@ export default function GruposTrabajo() {
                                             getGroupRoles(group).map((role) => (
                                                 <span
                                                     key={`${group.id}-${role}`}
-                                                    className="rounded-full border border-lime-300/25 bg-lime-300/10 px-2.5 py-1 text-[10px] font-medium text-lime-200"
+                                                    className="rounded-full border border-cyan-400/25 bg-cyan-500/10 px-2.5 py-1 text-[10px] font-medium text-cyan-200"
                                                 >
                                                     {roleLabel(role)}
                                                 </span>

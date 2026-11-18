@@ -46,7 +46,7 @@ export default function PaginationControls({
                         value={pageSize}
                         onChange={(event) => onPageSizeChange(event.target.value)}
                         aria-label="Registros por página"
-                        className="min-h-9 rounded-lg border border-white/10 bg-[#102637] px-2.5 text-xs text-white outline-none focus:border-cyan-400"
+                        className="min-h-9 rounded-lg border border-[#1e3256] bg-surface-hover px-2.5 text-xs text-white outline-none focus:border-blue-400"
                     >
                         {[10, 20, 50].map((size) => (
                             <option key={size} value={size}>{size}</option>
@@ -60,7 +60,7 @@ export default function PaginationControls({
                     type="button"
                     onClick={() => onPageChange(page - 1)}
                     disabled={page <= 1}
-                    className="min-h-9 rounded-lg border border-white/10 px-3 text-xs font-semibold text-slate-200 transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40"
+                    className="min-h-9 rounded-lg border border-[#1e3256] bg-[#0d172a] px-3 text-xs font-semibold text-slate-200 transition hover:bg-[#13223d] disabled:cursor-not-allowed disabled:opacity-40"
                 >
                     Anterior
                 </button>
@@ -76,8 +76,8 @@ export default function PaginationControls({
                             aria-current={page === value ? 'page' : undefined}
                             className={`min-h-9 min-w-9 rounded-lg border px-2 text-xs font-semibold transition ${
                                 page === value
-                                    ? 'border-lime-400/40 bg-lime-400 text-[#043e07]'
-                                    : 'border-white/10 text-slate-200 hover:bg-white/10'
+                                    ? 'border-blue-400/40 bg-blue-600 text-white'
+                                    : 'border-[#1e3256] bg-[#0d172a] text-slate-200 hover:bg-[#13223d]'
                             }`}
                         >
                             {value}
@@ -88,7 +88,7 @@ export default function PaginationControls({
                     type="button"
                     onClick={() => onPageChange(page + 1)}
                     disabled={page >= totalPages}
-                    className="min-h-9 rounded-lg border border-white/10 px-3 text-xs font-semibold text-slate-200 transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40"
+                    className="min-h-9 rounded-lg border border-[#1e3256] bg-[#0d172a] px-3 text-xs font-semibold text-slate-200 transition hover:bg-[#13223d] disabled:cursor-not-allowed disabled:opacity-40"
                 >
                     Siguiente
                 </button>

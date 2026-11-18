@@ -178,7 +178,7 @@ export default function App({ startupError = '' }) {
       <OfflineStatusBar />
       <Suspense
         fallback={
-          <div role="status" className="p-8 text-center text-sm text-lime-300">
+          <div role="status" className="p-8 text-center text-sm text-sky-300">
             Cargando módulo...
           </div>
         }

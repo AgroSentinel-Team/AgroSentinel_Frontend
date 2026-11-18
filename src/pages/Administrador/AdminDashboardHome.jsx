@@ -393,7 +393,7 @@ export default function AdminDashboardHome({
       </section>
 
       {/* Listas Recientes */}
-      <section className="grid grid-cols-2 gap-2 sm:gap-5">
+      <section className="grid grid-cols-1 gap-2 sm:gap-5 xl:grid-cols-2">
         <Panel title="Reportes recientes" description="Últimas fallas registradas por los usuarios.">
           {!data.reports ? (
             <EmptyChart message="No fue posible consultar los reportes recientes." />
@@ -409,9 +409,9 @@ export default function AdminDashboardHome({
                       <p className="mt-0.5 truncate text-xs text-cyan-300 font-medium">{report.tipoFalla || 'Falla sin clasificar'}</p>
                       <p className="mt-1 line-clamp-2 text-xs text-slate-400 leading-relaxed">{report.descripcion || 'Sin descripción'}</p>
                     </div>
-                    <div className="flex shrink-0 items-center justify-between gap-2 pt-1 border-t border-white/5 text-xs">
-                      <span className="rounded-full border border-white/10 px-2 py-0.5 text-[10px] text-slate-300 bg-white/5 font-medium">{statusLabel(report.estado)}</span>
-                      <span className="text-[11px] text-slate-400">{formatDate(report.fechaReporte)}</span>
+                    <div className="flex min-w-0 flex-wrap items-center justify-between gap-2 border-t border-white/5 pt-1 text-xs">
+                      <span className="max-w-full rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] font-medium text-slate-300">{statusLabel(report.estado)}</span>
+                      <span className="shrink-0 whitespace-nowrap text-[11px] text-slate-400">{formatDate(report.fechaReporte)}</span>
                     </div>
                   </article>
                 ))}

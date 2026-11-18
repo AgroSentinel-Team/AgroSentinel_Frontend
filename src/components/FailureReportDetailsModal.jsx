@@ -39,7 +39,7 @@ function Detail({ label, value }) {
 function Section({ title, icon: Icon, children }) {
     return (
         <section className="space-y-3">
-            <h3 className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-lime-300">
+            <h3 className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-emerald-300">
                 <Icon size={15} />
                 {title}
             </h3>
@@ -138,15 +138,15 @@ export default function FailureReportDetailsModal({ report, onClose }) {
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby="failure-life-title"
-                className="agro-gradient max-h-[92vh] w-full max-w-5xl overflow-y-auto rounded-2xl border border-white/15 p-4 text-white shadow-2xl sm:p-6"
+                className="max-h-[92vh] w-full max-w-5xl overflow-y-auto rounded-2xl border border-[#1e3256] bg-[#0d172a] p-4 text-white shadow-2xl shadow-black/30 sm:p-6"
             >
                 <header className="mb-5 flex items-start justify-between gap-3 border-b border-white/15 pb-4">
                     <div className="flex min-w-0 items-start gap-3">
-                        <span className="rounded-xl bg-lime-400 p-2.5 text-[#043e07]">
+                        <span className="rounded-xl bg-emerald-500/15 p-2.5 text-emerald-300">
                             <Wrench size={20} />
                         </span>
                         <div className="min-w-0">
-                            <p className="text-[10px] font-bold uppercase tracking-widest text-lime-200">
+                            <p className="text-[10px] font-bold uppercase tracking-widest text-emerald-200">
                                 Hoja de vida · Reporte #{report.id}
                             </p>
                             <h2 id="failure-life-title" className="mt-1 truncate text-lg font-bold sm:text-xl">
@@ -168,7 +168,7 @@ export default function FailureReportDetailsModal({ report, onClose }) {
                 </header>
 
                 <div className="mb-5 flex flex-wrap gap-2">
-                    <span className="rounded-full border border-lime-300/40 bg-lime-300/15 px-3 py-1 text-xs font-semibold text-lime-100">
+                    <span className="rounded-full border border-emerald-300/40 bg-emerald-300/15 px-3 py-1 text-xs font-semibold text-emerald-100">
                         {STATUS_LABELS[report.estado] || report.estado || 'Sin estado'}
                     </span>
                     <span className="rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-semibold text-white">
@@ -216,10 +216,10 @@ export default function FailureReportDetailsModal({ report, onClose }) {
                     <div className="space-y-5">
                         <Section title="Tiempos e hitos" icon={CalendarClock}>
                             {timeline.length ? (
-                                <ol className="space-y-2 border-l border-lime-300/40 pl-4">
+                                <ol className="space-y-2 border-l border-emerald-300/40 pl-4">
                                     {timeline.map(([label, date]) => (
                                         <li key={label} className="relative text-xs">
-                                            <span className="absolute -left-[21px] top-1 h-2.5 w-2.5 rounded-full bg-lime-300" />
+                                            <span className="absolute -left-[21px] top-1 h-2.5 w-2.5 rounded-full bg-emerald-300" />
                                             <span className="font-semibold text-white">{label}</span>
                                             <span className="mt-0.5 block text-white/70">{formatDate(date)}</span>
                                         </li>
@@ -239,7 +239,7 @@ export default function FailureReportDetailsModal({ report, onClose }) {
                             {loadingIntervention ? (
                                 <p className="text-xs text-white/70">Cargando intervención...</p>
                             ) : interventionError ? (
-                                <p role="alert" className="rounded-lg border border-lime-200/30 bg-lime-200/10 p-3 text-xs text-white">
+                                <p role="alert" className="rounded-lg border border-emerald-200/30 bg-emerald-200/10 p-3 text-xs text-white">
                                     {interventionError}
                                 </p>
                             ) : intervention ? (
@@ -301,7 +301,7 @@ export default function FailureReportDetailsModal({ report, onClose }) {
                     <button
                         type="button"
                         onClick={onClose}
-                        className="min-h-11 rounded-lg bg-lime-400 px-5 text-xs font-bold text-[#043e07] transition hover:bg-lime-300"
+                        className="min-h-11 rounded-lg bg-blue-600 px-5 text-xs font-bold text-white transition hover:bg-blue-500"
                     >
                         Cerrar hoja de vida
                     </button>

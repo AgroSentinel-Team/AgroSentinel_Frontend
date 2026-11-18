@@ -61,7 +61,7 @@ export default function Registro() {
   };
 
   return (
-    <div className="flex min-h-screen bg-[#0b1220] font-sans text-white min-w-0">
+    <div className="flex min-h-screen bg-[#070d19] font-sans text-white min-w-0">
       {/* Panel Izquierdo Ilustrativo (Escritorio) */}
       <div className="hidden lg:flex lg:w-1/2 relative bg-[url('https://images.unsplash.com/photo-1586771107445-d3ca888129ff?q=80&w=2000&auto=format&fit=crop')] bg-cover bg-center">
         <div className="agro-brand-overlay absolute inset-0" />
@@ -72,14 +72,14 @@ export default function Registro() {
           </div>
 
           <div className="space-y-4 max-w-lg">
-            <span className="inline-block rounded-full bg-cyan-400/10 border border-cyan-400/20 px-3.5 py-1 text-xs font-semibold text-cyan-300">
+            <span className="inline-block rounded-full bg-cyan-400/10 border border-cyan-400/20 px-4 py-1.5 text-sm font-semibold text-cyan-300">
               Transformación Digital Agrícola
             </span>
-            <h1 className="text-4xl font-extrabold text-white leading-tight">
+            <h1 className="text-4xl xl:text-5xl font-extrabold text-white leading-tight">
               Únete a la <br />
               <span className="text-cyan-400">Plataforma Inteligente</span>
             </h1>
-            <p className="text-slate-300 text-base leading-relaxed">
+            <p className="text-slate-200 text-lg leading-relaxed">
               Registra a tu personal operativo, técnico y de almacén para digitalizar el mantenimiento y maximizar la productividad en campo.
             </p>
           </div>
@@ -91,8 +91,8 @@ export default function Registro() {
       </div>
 
       {/* Formulario de Registro */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-12 bg-[#0b1220]">
-        <div className="w-full max-w-md space-y-6">
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-4 sm:p-8 lg:p-10 bg-[#070d19]">
+        <div className="login-card my-4 w-full max-w-[640px] space-y-7 rounded-3xl p-6 sm:p-9 lg:p-10">
           {/* Logo Móvil */}
           <div className="flex items-center gap-2.5 lg:hidden mb-2">
             <BrandLogo className="h-12 w-12" />
@@ -100,10 +100,10 @@ export default function Registro() {
           </div>
 
           <div>
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
               Crear nueva cuenta
             </h2>
-            <p className="mt-1 text-xs sm:text-sm text-cyan-300">
+            <p className="mt-2 text-base text-slate-400">
               Completa los datos para registrar un usuario en el sistema
             </p>
           </div>
@@ -129,13 +129,13 @@ export default function Registro() {
             </div>
           )}
 
-          <form onSubmit={handleRegister} className="space-y-4">
+          <form onSubmit={handleRegister} className="space-y-5">
             <div>
-              <label htmlFor="reg-nombre" className="block text-xs font-medium text-slate-300 mb-1.5">
+              <label htmlFor="reg-nombre" className="mb-2 block text-sm font-semibold text-slate-200">
                 Nombre Completo
               </label>
-              <div className="flex items-center bg-[#182638] border border-slate-700 rounded-xl px-3.5 py-2.5 transition focus-within:border-cyan-400 focus-within:ring-1 focus-within:ring-cyan-400/50 min-h-[44px]">
-                <User className="text-slate-400 w-5 h-5 mr-3 shrink-0" />
+              <div className="login-field flex items-center rounded-xl px-4 py-3 transition">
+                <User className="mr-3 h-5 w-5 shrink-0 text-[#38bdf8]" />
                 <input
                   id="reg-nombre"
                   type="text"
@@ -143,18 +143,18 @@ export default function Registro() {
                   value={formData.nombre}
                   onChange={handleChange}
                   placeholder="Ej. Juan Carlos Pérez"
-                  className="w-full bg-transparent text-white outline-none text-xs sm:text-sm placeholder:text-slate-500"
+                  className="w-full bg-transparent text-base text-white outline-none placeholder:text-slate-500"
                   required
                 />
               </div>
             </div>
 
             <div>
-              <label htmlFor="reg-email" className="block text-xs font-medium text-slate-300 mb-1.5">
+              <label htmlFor="reg-email" className="mb-2 block text-sm font-semibold text-slate-200">
                 Correo electrónico
               </label>
-              <div className="flex items-center bg-[#182638] border border-slate-700 rounded-xl px-3.5 py-2.5 transition focus-within:border-cyan-400 focus-within:ring-1 focus-within:ring-cyan-400/50 min-h-[44px]">
-                <Mail className="text-slate-400 w-5 h-5 mr-3 shrink-0" />
+              <div className="login-field flex items-center rounded-xl px-4 py-3 transition">
+                <Mail className="mr-3 h-5 w-5 shrink-0 text-[#38bdf8]" />
                 <input
                   id="reg-email"
                   type="email"
@@ -162,18 +162,18 @@ export default function Registro() {
                   value={formData.email}
                   onChange={handleChange}
                   placeholder="correo@agrosentinel.com"
-                  className="w-full bg-transparent text-white outline-none text-xs sm:text-sm placeholder:text-slate-500"
+                  className="w-full bg-transparent text-base text-white outline-none placeholder:text-slate-500"
                   required
                 />
               </div>
             </div>
 
             <div>
-              <label htmlFor="reg-password" className="block text-xs font-medium text-slate-300 mb-1.5">
+              <label htmlFor="reg-password" className="mb-2 block text-sm font-semibold text-slate-200">
                 Contraseña
               </label>
-              <div className="flex items-center bg-[#182638] border border-slate-700 rounded-xl px-3.5 py-2.5 transition focus-within:border-cyan-400 focus-within:ring-1 focus-within:ring-cyan-400/50 min-h-[44px]">
-                <Lock className="text-slate-400 w-5 h-5 mr-3 shrink-0" />
+              <div className="login-field flex items-center rounded-xl px-4 py-3 transition">
+                <Lock className="mr-3 h-5 w-5 shrink-0 text-[#38bdf8]" />
                 <input
                   id="reg-password"
                   type={showPassword ? 'text' : 'password'}
@@ -181,14 +181,14 @@ export default function Registro() {
                   value={formData.password}
                   onChange={handleChange}
                   placeholder="••••••••••••"
-                  className="w-full bg-transparent text-white outline-none text-xs sm:text-sm tracking-widest placeholder:text-slate-500 placeholder:tracking-normal"
+                  className="w-full bg-transparent text-base text-white outline-none tracking-widest placeholder:text-slate-500 placeholder:tracking-normal"
                   required
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
-                  className="p-1 text-slate-400 hover:text-white transition-colors"
+                  className="rounded-lg p-2 text-slate-400 transition-colors hover:bg-surface-hover hover:text-white"
                 >
                   {showPassword ? <Eye className="w-5 h-5" /> : <EyeOff className="w-5 h-5" />}
                 </button>
@@ -196,32 +196,32 @@ export default function Registro() {
             </div>
 
             <div>
-              <label htmlFor="reg-rol" className="block text-xs font-medium text-slate-300 mb-1.5">
+              <label htmlFor="reg-rol" className="mb-2 block text-sm font-semibold text-slate-200">
                 Rol en el sistema
               </label>
-              <div className="flex items-center bg-[#182638] border border-slate-700 rounded-xl px-3.5 py-2.5 transition focus-within:border-cyan-400 focus-within:ring-1 focus-within:ring-cyan-400/50 min-h-[44px]">
-                <Briefcase className="text-slate-400 w-5 h-5 mr-3 shrink-0" />
+              <div className="login-field flex items-center rounded-xl px-4 py-3 transition">
+                <Briefcase className="mr-3 h-5 w-5 shrink-0 text-[#38bdf8]" />
                 <select
                   id="reg-rol"
                   name="rol"
                   value={formData.rol}
                   onChange={handleChange}
-                  className="w-full bg-transparent text-white outline-none text-xs sm:text-sm cursor-pointer"
+                  className="w-full cursor-pointer bg-transparent text-base text-white outline-none"
                   required
                 >
-                  <option value="" disabled className="bg-[#102637] text-slate-300">
+                  <option value="" disabled className="bg-[#0d172a] text-slate-300">
                     Seleccione un rol...
                   </option>
-                  <option value="TECNICO" className="bg-[#102637] text-white">
+                  <option value="TECNICO" className="bg-[#0d172a] text-white">
                     Técnico de Mantenimiento
                   </option>
-                  <option value="SUPERVISOR" className="bg-[#102637] text-white">
+                  <option value="SUPERVISOR" className="bg-[#0d172a] text-white">
                     Supervisor
                   </option>
-                  <option value="ALMACENISTA" className="bg-[#102637] text-white">
+                  <option value="ALMACENISTA" className="bg-[#0d172a] text-white">
                     Almacenista
                   </option>
-                  <option value="OPERATIVO_CAMPO" className="bg-[#102637] text-white">
+                  <option value="OPERATIVO_CAMPO" className="bg-[#0d172a] text-white">
                     Usuario Operativo de Campo
                   </option>
                 </select>
@@ -231,7 +231,7 @@ export default function Registro() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full min-h-[46px] bg-cyan-500 hover:bg-cyan-400 active:bg-cyan-600 text-[#07101f] font-bold text-xs sm:text-sm uppercase tracking-wider rounded-xl transition shadow-lg shadow-cyan-950/50 flex justify-center items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed mt-6"
+              className="login-submit mt-2 flex min-h-[58px] w-full items-center justify-center gap-2 rounded-xl text-base font-bold uppercase tracking-wider transition disabled:cursor-not-allowed disabled:opacity-50"
             >
               {loading ? (
                 <>
@@ -244,11 +244,11 @@ export default function Registro() {
             </button>
           </form>
 
-          <div className="text-center text-xs text-slate-400 pt-2 border-t border-white/5">
+          <div className="border-t border-white/10 pt-5 text-center text-sm text-slate-400">
             ¿Ya tienes cuenta?{' '}
             <Link
               to="/login"
-              className="font-semibold text-cyan-400 hover:text-cyan-300 underline underline-offset-4 transition-colors"
+              className="font-semibold text-sky-400 underline underline-offset-4 transition-colors hover:text-sky-300"
             >
               Inicia sesión
             </Link>

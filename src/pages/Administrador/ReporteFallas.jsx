@@ -165,7 +165,7 @@ export default function ReporteFallas() {
                                         <button
                                             type="button"
                                             onClick={() => setSelectedReport(report)}
-                                            className="rounded-md border border-lime-300/30 bg-lime-300/10 px-2.5 py-1.5 text-[11px] font-bold text-lime-200"
+                                            className="rounded-md border border-blue-400/30 bg-blue-500/15 px-2.5 py-1.5 text-[11px] font-bold text-blue-200"
                                         >
                                             Ver Detalle / Hoja de Vida
                                         </button>
@@ -223,7 +223,7 @@ export default function ReporteFallas() {
                                                 <button
                                                     type="button"
                                                     onClick={() => setSelectedReport(report)}
-                                                    className="rounded-md border border-lime-300/30 bg-lime-300/10 px-2.5 py-1.5 text-[11px] font-bold text-lime-200"
+                                                    className="rounded-md border border-blue-400/30 bg-blue-500/15 px-2.5 py-1.5 text-[11px] font-bold text-blue-200"
                                                 >
                                                     Ver Detalle / Hoja de Vida
                                                 </button>
