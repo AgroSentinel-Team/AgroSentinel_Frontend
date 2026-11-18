@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import LogoutButton from '../../components/LogoutButton';
 import DashboardRoleSwitcher from '../../components/DashboardRoleSwitcher';
+import BrandLogo from '../../components/BrandLogo';
 import { getAssets, getFailureReports, getPredictiveAssets } from '../../services/assetService';
 import { getCurrentUser } from '../../services/technicianService';
 import { getPreventiveMaintenances } from '../../services/preventiveMaintenanceService';
@@ -190,9 +191,7 @@ export default function AdminDashboard() {
         {/* Sidebar Escritorio */}
         <aside className="hidden w-[220px] lg:w-[240px] shrink-0 border-r border-[#1b2f3f] bg-[#0d1f2d] md:block min-h-screen">
           <div className="flex h-[60px] items-center gap-2.5 border-b border-[#1b2f3f] px-4">
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#0f9ec7] text-xs font-bold text-white shadow-md shadow-cyan-950/40">
-              A
-            </div>
+            <BrandLogo className="h-9 w-9" />
             <span className="text-base font-bold text-cyan-300 tracking-wide">AgroSentinel</span>
           </div>
 

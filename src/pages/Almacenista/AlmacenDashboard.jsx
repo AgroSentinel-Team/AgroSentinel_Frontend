@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import LogoutButton from "../../components/LogoutButton";
 import DashboardRoleSwitcher from "../../components/DashboardRoleSwitcher";
+import BrandLogo from "../../components/BrandLogo";
 import Inventario from "../Compartido/Inventario";
 import Reportes from "../Compartido/Reportes";
 import Entradas from "../Compartido/Entradas";
@@ -471,9 +472,7 @@ export default function SgaControlDashboard() {
         {/* SIDEBAR ESCRITORIO */}
         <aside className="hidden w-[220px] lg:w-[240px] shrink-0 border-r border-[#1b2f3f] bg-[#0d1f2d] md:block min-h-screen">
           <div className="flex h-[60px] items-center gap-2.5 border-b border-[#1b2f3f] px-4">
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#0f9ec7] text-white shadow-md shadow-cyan-950/40">
-              <Package size={16} strokeWidth={2.2} />
-            </div>
+            <BrandLogo className="h-9 w-9" />
             <div>
               <p className="text-sm font-bold leading-none text-cyan-300 tracking-wide">
                 SGA CONTROL

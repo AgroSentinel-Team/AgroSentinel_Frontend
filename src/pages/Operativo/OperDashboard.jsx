@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import LogoutButton from "../../components/LogoutButton";
 import DashboardRoleSwitcher from "../../components/DashboardRoleSwitcher";
+import BrandLogo from "../../components/BrandLogo";
 import Maquinaria from "./Maquinaria";
 import MisReportes from "./MisReportes";
 import MantenimientoPredictivo from "../Compartido/MantenimientoPredictivo";
@@ -76,9 +77,7 @@ export default function OperDashboard() {
       >
         <div className="flex h-[70px] items-center justify-between border-b border-[#1f3446] px-5">
           <div className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-cyan-500 shadow-md shadow-cyan-950/40 text-[#020d16]">
-              <Tractor size={18} />
-            </div>
+            <BrandLogo className="h-10 w-10" />
             <span className="text-base font-bold text-cyan-400 tracking-wide">
               AgroSentinel
             </span>

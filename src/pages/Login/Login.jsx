@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Mail, Lock, EyeOff, Eye, ShieldCheck, LoaderCircle, Sprout, AlertCircle } from 'lucide-react';
+import { Mail, Lock, EyeOff, Eye, ShieldCheck, LoaderCircle, AlertCircle } from 'lucide-react';
 import { API_ROOT } from '../../services/apiClient';
 import { establishSession } from '../../services/sessionService';
+import BrandLogo from '../../components/BrandLogo';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -102,9 +103,7 @@ export default function Login() {
         <div className="agro-brand-overlay absolute inset-0" />
         <div className="relative z-10 flex flex-col justify-between p-12 w-full h-full">
           <div className="flex items-center gap-3 text-white">
-            <div className="bg-cyan-500 p-2 rounded-xl shadow-lg shadow-cyan-950/50 flex items-center justify-center">
-              <Sprout size={24} className="text-[#07101f]" />
-            </div>
+            <BrandLogo className="h-14 w-14" />
             <span className="text-2xl font-bold tracking-wide">AgroSentinel</span>
           </div>
 
@@ -132,9 +131,7 @@ export default function Login() {
         <div className="w-full max-w-md space-y-6">
           {/* Logo Móvil */}
           <div className="flex items-center gap-2.5 lg:hidden mb-2">
-            <div className="bg-cyan-500 p-2 rounded-xl flex items-center justify-center">
-              <Sprout size={20} className="text-[#07101f]" />
-            </div>
+            <BrandLogo className="h-12 w-12" />
             <span className="text-xl font-bold tracking-wide text-white">AgroSentinel</span>
           </div>
 
