@@ -44,6 +44,13 @@ function traducirDiagnostico(texto) {
   );
 }
 
+function formatRecordTimestamp(timestamp) {
+  if (typeof timestamp !== 'string') return null;
+  const match = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})/.exec(timestamp);
+  if (!match) return timestamp;
+  return `${match[3]}/${match[2]}/${match[1]} ${match[4]}:${match[5]}:${match[6]} UTC`;
+}
+
 const riskStyles = {
   Alto: 'border-red-400/30 bg-red-500/15 text-red-300',
   Medio: 'border-amber-400/30 bg-amber-500/15 text-amber-300',
@@ -679,6 +686,14 @@ export default function MantenimientoPredictivo({ assignedOnly = false }) {
                 <h2 className="mt-0.5 text-base sm:text-lg font-bold text-white leading-tight">
                   {selected.name}
                 </h2>
+                <p className="mt-1 flex items-center gap-1.5 text-xs text-slate-400">
+                  <Clock3 size={13} className="shrink-0" />
+                  {selected.record?.timestamp
+                    ? `Última lectura: ${formatRecordTimestamp(selected.record.timestamp)}`
+                    : selected.record
+                      ? 'Hora de lectura no disponible'
+                      : 'Sin lecturas registradas'}
+                </p>
               </div>
               <span
                 className={`shrink-0 rounded-full border px-2.5 py-0.5 text-xs font-semibold ${
