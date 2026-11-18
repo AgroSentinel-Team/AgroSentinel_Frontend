@@ -1,5 +1,5 @@
 import { API_ORIGIN, API_ROOT, createApi } from './apiClient';
-import { cachedRequest, sendOrQueueForm } from './offlineApi';
+import { cachedRequest, sendOrQueueForm, sendOrQueueJson } from './offlineApi';
 
 export { API_ORIGIN, API_ROOT };
 
@@ -36,19 +36,31 @@ export const getAssignedAssetResume = async (id) => (await assetApi.get(`/assign
 
 export const getPredictiveAssets = async () => {
   try {
-    return (await predictiveApi.get('/predictive/assets')).data;
+    return await cachedRequest('predictive-assets', async () =>
+      (await predictiveApi.get('/predictive/assets')).data);
   } catch (error) {
     if (error.response?.status === 401) return [];
     throw error;
   }
 };
 
-export const getPredictiveHistory = async (id) => {
-  return (await predictiveApi.get(`/predictive/assets/${id}/history`)).data;
-};
+export const getPredictiveHistory = async (id) =>
+	cachedRequest(`predictive-history:${id}`, async () =>
+		(await predictiveApi.get(`/predictive/assets/${id}/history`)).data);
 
-export const savePredictiveFeedback = async (id, fallaRealConfirmada) =>
-    (await predictiveApi.put(`/predictive/records/${id}/feedback`, { fallaRealConfirmada })).data;
+export const savePredictiveFeedback = async (
+	id,
+	fallaRealConfirmada,
+	guardarParaReentrenamiento = true,
+	assetId,
+) =>
+	sendOrQueueJson({
+		endpoint: `/predictive/records/${id}/feedback`,
+		method: 'PUT',
+		payload: { fallaRealConfirmada, guardarParaReentrenamiento },
+		operationType: 'predictive.feedback',
+		metadata: { recordId: id, assetId },
+	});
 
 export const getCategories = async () =>
 	cachedRequest('categories', async () => (await directoryApi.get('/categories')).data);
@@ -65,7 +77,8 @@ export const getFailureReports = async () =>
 	cachedRequest('failure-reports', async () => (await failureReportApi.get('')).data);
 
 export const getFailureIntervention = async (id) =>
-	(await failureReportApi.get(`/${id}/intervention`)).data;
+	cachedRequest(`failure-intervention:${id}`, async () =>
+		(await failureReportApi.get(`/${id}/intervention`)).data);
 
 export const closeFailureReport = async (id, reviewObservations) =>
 	(await failureReportApi.post(`/${id}/close`, { reviewObservations })).data;

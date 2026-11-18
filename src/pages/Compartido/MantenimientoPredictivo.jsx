@@ -12,9 +12,13 @@ import {
 import {
   getAssignedAssets,
   getPredictiveAssets,
+  getPredictiveHistory,
   savePredictiveFeedback,
 } from '../../services/assetService';
+import { isNetworkAvailable, subscribeToNetworkChanges } from '../../services/offlineNetwork';
 import { requestPreventiveSchedule } from '../../services/preventiveMaintenanceNavigation';
+
+const TELEMETRY_POLL_INTERVAL = 30_000;
 
 const FAILURE_TYPES = [
   'Normal',
@@ -215,6 +219,153 @@ export default function MantenimientoPredictivo({ assignedOnly = false }) {
   }, [assignedOnly]);
 
   const selected = equipment.find((item) => item.id === selectedId) || equipment[0];
+  const selectedAssetId = selected?.assetId;
+
+  useEffect(() => {
+    let active = true;
+    let interval;
+    let unsubscribe;
+    let refreshing = false;
+
+    const refreshEquipment = async () => {
+      if (refreshing) return;
+      refreshing = true;
+      try {
+        if (!(await isNetworkAvailable())) return;
+        const mappedData = await loadPredictiveEquipment(assignedOnly);
+        if (!active) return;
+        setEquipment(mappedData);
+        setSelectedId((current) =>
+          mappedData.some((item) => item.id === current) ? current : mappedData[0]?.id ?? null,
+        );
+        setLoadError('');
+      } catch (error) {
+        if (active) {
+          setLoadError(
+            error.response?.data?.message ||
+              error.message ||
+              'No fue posible actualizar la telemetría predictiva.',
+          );
+        }
+      } finally {
+        refreshing = false;
+      }
+    };
+
+    const setPolling = (connected) => {
+      if (!active) return;
+      window.clearInterval(interval);
+      interval = undefined;
+      if (connected) {
+        interval = window.setInterval(() => {
+          void refreshEquipment();
+        }, TELEMETRY_POLL_INTERVAL);
+      }
+    };
+
+    void isNetworkAvailable()
+      .then(setPolling)
+      .catch((error) => {
+        if (active) setLoadError(error.message || 'No se pudo consultar la conectividad.');
+      });
+    void subscribeToNetworkChanges((connected) => {
+      setPolling(connected);
+      if (connected) void refreshEquipment();
+    })
+      .then((stop) => {
+        if (active) unsubscribe = stop;
+        else void stop();
+      })
+      .catch((error) => {
+        if (active) setLoadError(error.message || 'No se pudo iniciar el listener de red.');
+      });
+
+    return () => {
+      active = false;
+      window.clearInterval(interval);
+      void unsubscribe?.();
+    };
+  }, [assignedOnly]);
+
+  useEffect(() => {
+    if (selectedAssetId == null) return undefined;
+    let active = true;
+    let interval;
+    let unsubscribe;
+    let refreshing = false;
+
+    const refreshHistory = async () => {
+      if (refreshing) return;
+      refreshing = true;
+      try {
+        if (!(await isNetworkAvailable())) return;
+        const history = await getPredictiveHistory(selectedAssetId);
+        if (!active || !Array.isArray(history) || history.length === 0) return;
+        const latestRecord = history[0];
+        setEquipment((current) =>
+          current.map((item) => {
+            if (item.assetId !== selectedAssetId) return item;
+            const mapped = mapPredictiveAssets([{
+              assetId: item.assetId,
+              machineId: item.id,
+              name: item.name,
+              location: item.location,
+              latestRecord,
+            }])[0];
+            return { ...item, ...mapped };
+          }),
+        );
+      } catch (error) {
+        if (active) {
+          setLoadError(
+            error.response?.data?.message ||
+              error.message ||
+              'No fue posible actualizar el historial predictivo.',
+          );
+        }
+      } finally {
+        refreshing = false;
+      }
+    };
+
+    const setPolling = (connected) => {
+      if (!active) return;
+      window.clearInterval(interval);
+      interval = undefined;
+      if (connected) {
+        interval = window.setInterval(() => {
+          void refreshHistory();
+        }, TELEMETRY_POLL_INTERVAL);
+      }
+    };
+
+    void isNetworkAvailable()
+      .then((connected) => {
+        setPolling(connected);
+        if (connected) void refreshHistory();
+      })
+      .catch((error) => {
+        if (active) setLoadError(error.message || 'No se pudo consultar la conectividad.');
+      });
+    void subscribeToNetworkChanges((connected) => {
+      setPolling(connected);
+      if (connected) void refreshHistory();
+    })
+      .then((stop) => {
+        if (active) unsubscribe = stop;
+        else void stop();
+      })
+      .catch((error) => {
+        if (active) setLoadError(error.message || 'No se pudo iniciar el listener de red.');
+      });
+
+    return () => {
+      active = false;
+      window.clearInterval(interval);
+      void unsubscribe?.();
+    };
+  }, [selectedAssetId]);
+
   const feedbackValue =
     feedbackDraft?.recordId != null && feedbackDraft.recordId === selected?.record?.id
       ? feedbackDraft.value
@@ -267,17 +418,34 @@ export default function MantenimientoPredictivo({ assignedOnly = false }) {
     setMessage('');
     setLoadError('');
     try {
-      const updatedRecord = await savePredictiveFeedback(selected.record.id, fallaRealConfirmada);
+      const result = await savePredictiveFeedback(
+        selected.record.id,
+        fallaRealConfirmada,
+        true,
+        selected.assetId,
+      );
+      const updatedRecord = result.queued
+        ? {
+            ...selected.record,
+            fallaRealConfirmada,
+            guardarParaReentrenamiento: true,
+            localSyncPending: true,
+          }
+        : result;
       setEquipment((current) =>
         current.map((item) =>
           item.id === selected.id ? { ...item, record: updatedRecord } : item,
         ),
       );
       setFeedbackDraft({
-        recordId: updatedRecord.id,
+        recordId: selected.record.id,
         value: updatedRecord.fallaRealConfirmada,
       });
-      setMessage('La falla real quedó guardada para futuras evaluaciones del modelo.');
+      setMessage(
+        result.queued
+          ? 'Confirmación guardada en este dispositivo; se sincronizará al recuperar la conexión.'
+          : 'La falla real quedó guardada para futuras evaluaciones del modelo.',
+      );
     } catch (error) {
       setLoadError(
         error.response?.data?.message ||
@@ -603,6 +771,11 @@ export default function MantenimientoPredictivo({ assignedOnly = false }) {
                       Falla confirmada: {traducirDiagnostico(selected.record.fallaRealConfirmada)}
                     </p>
                   )}
+                  {selected.record.localSyncPending && (
+                    <p className="mt-0.5 text-xs text-amber-300 font-medium">
+                      Confirmación pendiente de sincronización
+                    </p>
+                  )}
                 </div>
 
                 <div className="space-y-1.5">
@@ -636,14 +809,16 @@ export default function MantenimientoPredictivo({ assignedOnly = false }) {
                   </select>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                   <button
                     type="button"
                     disabled={feedbackSaving || !selected.record.tipoFallaPredicha}
                     onClick={() => saveFeedback(selected.record.tipoFallaPredicha)}
                     className="flex min-h-[44px] items-center justify-center rounded-lg border border-cyan-400/40 bg-cyan-700 px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-cyan-600 disabled:opacity-50"
                   >
-                    {feedbackSaving ? 'Guardando...' : 'Confirmar predicción IA'}
+                    {feedbackSaving
+                      ? 'Guardando...'
+                      : 'Confirmar diagnóstico / Guardar para reentrenamiento'}
                   </button>
                   <button
                     type="button"

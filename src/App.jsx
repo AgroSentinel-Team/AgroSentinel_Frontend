@@ -1,24 +1,28 @@
-import { useEffect, useReducer, useState } from 'react';
+import { lazy, Suspense, useEffect, useReducer, useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import {
   getAuthToken,
+  hasUnexpiredToken,
   isSessionAuthenticated,
   SESSION_CHANGED_EVENT,
   SESSION_EXPIRED_EVENT,
 } from './services/sessionService';
+import { isNetworkAvailable } from './services/offlineNetwork';
+import { syncPendingOfflineOperations } from './services/offlineSync';
 
 import Login from './pages/Login/Login';
 import Registro from './pages/Registro/Registro';
-import AdminDashboard from './pages/Administrador/AdminDashboard';
-import SuperDashboard from './pages/Supervisor/SuperDashboard';
-import TecDashboard from './pages/Tecnico/TecDashboard';
-import AlmacenDashboard from './pages/Almacenista/AlmacenDashboard';
-import OperDashboard from './pages/Operativo/OperDashboard';
-import PreventiveMaintenance from './pages/Compartido/PreventiveMaintenance';
 import OfflineStatusBar from './components/OfflineStatusBar';
 import AccesoDenegado from './pages/AccesoDenegado';
 import { ACCESS_DENIED_EVENT } from './services/apiClient';
 import NotificationInbox from './components/NotificationInbox';
+
+const AdminDashboard = lazy(() => import('./pages/Administrador/AdminDashboard'));
+const SuperDashboard = lazy(() => import('./pages/Supervisor/SuperDashboard'));
+const TecDashboard = lazy(() => import('./pages/Tecnico/TecDashboard'));
+const AlmacenDashboard = lazy(() => import('./pages/Almacenista/AlmacenDashboard'));
+const OperDashboard = lazy(() => import('./pages/Operativo/OperDashboard'));
+const PreventiveMaintenance = lazy(() => import('./pages/Compartido/PreventiveMaintenance'));
 
 function getStoredRoles() {
   try {
@@ -139,6 +143,20 @@ function SessionEntryRoute() {
 export default function App({ startupError = '' }) {
   const [, refreshSession] = useReducer((revision) => revision + 1, 0);
   useEffect(() => {
+    const syncAtStartup = async () => {
+      const token = getAuthToken();
+      if (!token || !hasUnexpiredToken(token) || !(await isNetworkAvailable())) {
+        return;
+      }
+      await syncPendingOfflineOperations();
+    };
+
+    void syncAtStartup().catch((error) => {
+      console.error('No se pudo sincronizar la cola offline al iniciar:', error);
+    });
+  }, []);
+
+  useEffect(() => {
     const refresh = () => {
       getAuthToken();
       refreshSession();
@@ -158,69 +176,77 @@ export default function App({ startupError = '' }) {
         </div>
       )}
       <OfflineStatusBar />
-      <Routes>
-        <Route path="/" element={<SessionEntryRoute />} />
-        <Route path="/login" element={<SessionEntryRoute />} />
-        <Route path="/registro" element={<Registro />} />
-        <Route path="/403" element={<AccesoDenegado />} />
-        <Route
-          path="/admin/dashboard"
-          element={
-            <ProtectedRoute allowedRoles={['ADMIN', 'ADMINISTRADOR']}>
-              <AdminDashboard />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/supervisor/dashboard"
-          element={
-            <ProtectedRoute allowedRoles={['SUPERVISOR']}>
-              <SuperDashboard />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/tecnico/dashboard"
-          element={
-            <ProtectedRoute allowedRoles={['TECNICO']}>
-              <TecDashboard />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/mantenimiento-preventivo"
-          element={
-            <ProtectedRoute allowedRoles={['ADMIN', 'ADMINISTRADOR']}>
-              <PreventiveMaintenance />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/tecnico/mantenimiento-preventivo"
-          element={
-            <ProtectedRoute allowedRoles={['TECNICO']}>
-              <PreventiveMaintenance />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/almacen/dashboard"
-          element={
-            <ProtectedRoute allowedRoles={['ALMACENISTA']}>
-              <AlmacenDashboard />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/operativo/dashboard"
-          element={
-            <ProtectedRoute allowedRoles={['OPERARIO_CAMPO', 'OPERATIVO_CAMPO']}>
-              <OperDashboard />
-            </ProtectedRoute>
-          }
-        />
-        <Route path="*" element={<Navigate to="/login" replace />} />
-      </Routes>
+      <Suspense
+        fallback={
+          <div role="status" className="p-8 text-center text-sm text-lime-300">
+            Cargando módulo...
+          </div>
+        }
+      >
+        <Routes>
+          <Route path="/" element={<SessionEntryRoute />} />
+          <Route path="/login" element={<SessionEntryRoute />} />
+          <Route path="/registro" element={<Registro />} />
+          <Route path="/403" element={<AccesoDenegado />} />
+          <Route
+            path="/admin/dashboard"
+            element={
+              <ProtectedRoute allowedRoles={['ADMIN', 'ADMINISTRADOR']}>
+                <AdminDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/supervisor/dashboard"
+            element={
+              <ProtectedRoute allowedRoles={['SUPERVISOR']}>
+                <SuperDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/tecnico/dashboard"
+            element={
+              <ProtectedRoute allowedRoles={['TECNICO']}>
+                <TecDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/mantenimiento-preventivo"
+            element={
+              <ProtectedRoute allowedRoles={['ADMIN', 'ADMINISTRADOR']}>
+                <PreventiveMaintenance />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/tecnico/mantenimiento-preventivo"
+            element={
+              <ProtectedRoute allowedRoles={['TECNICO']}>
+                <PreventiveMaintenance />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/almacen/dashboard"
+            element={
+              <ProtectedRoute allowedRoles={['ALMACENISTA']}>
+                <AlmacenDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/operativo/dashboard"
+            element={
+              <ProtectedRoute allowedRoles={['OPERARIO_CAMPO', 'OPERATIVO_CAMPO']}>
+                <OperDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route path="*" element={<Navigate to="/login" replace />} />
+        </Routes>
+      </Suspense>
     </BrowserRouter>
   );
 }

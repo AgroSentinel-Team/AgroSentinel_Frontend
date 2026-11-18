@@ -18,26 +18,19 @@ import {
     API_ORIGIN,
     deactivateAsset,
     deleteAsset,
-    getAssetResume,
     getAssetFailureTrends,
     getAssets,
     getPredictiveHistory,
 } from '../../services/assetService';
-import { getPreventiveMaintenanceEvidence } from '../../services/preventiveMaintenanceService';
 import CreateAssetForm from '../../components/CreateAssetForm';
 import AssetReportModal from '../../components/AssetReportModal';
+import PaginationControls from '../../components/PaginationControls';
+import usePagination from '../../hooks/usePagination';
 
 const STATUS_LABELS = {
     OPERATIONAL: 'Operativo',
     IN_REPAIR: 'En reparación',
     OBSOLETE: 'Obsoleto',
-};
-
-const MAINTENANCE_STATUS_LABELS = {
-    SCHEDULED: 'Programado',
-    COMPLETED: 'Completado',
-    PARTIALLY_COMPLETED: 'Parcialmente completado',
-    URGENT_CORRECTIVE: 'Requiere correctivo urgente',
 };
 
 function describeError(error) {
@@ -56,19 +49,10 @@ function describeError(error) {
     );
 }
 
-function formatDate(value) {
-    return value ? value.split('-').reverse().join('/') : 'Sin registro';
-}
-
 function formatDateTime(value) {
     return value
         ? new Intl.DateTimeFormat('es-CO', { dateStyle: 'short', timeStyle: 'medium' }).format(new Date(value))
         : 'Sin registro';
-}
-
-function formatCurrency(value) {
-    if (value === null || value === undefined) return 'Sin registro';
-    return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(value);
 }
 
 export default function Activos() {
@@ -82,8 +66,6 @@ export default function Activos() {
     const [modal, setModal] = useState('');
     const [editingAsset, setEditingAsset] = useState(null);
     const [selectedReportAsset, setSelectedReportAsset] = useState(null);
-    const [resume, setResume] = useState(null);
-    const [resumeLoading, setResumeLoading] = useState(false);
     const [predictiveHistory, setPredictiveHistory] = useState([]);
     const [predictiveAsset, setPredictiveAsset] = useState(null);
     const [predictiveLoading, setPredictiveLoading] = useState(false);
@@ -123,6 +105,7 @@ export default function Activos() {
         } ${asset.location || ''}`;
         return matchesStatus && searchable.toLowerCase().includes(query.trim().toLowerCase());
     });
+    const pagination = usePagination(visibleAssets);
 
     const openCreateForm = () => {
         setEditingAsset(null);
@@ -172,15 +155,6 @@ export default function Activos() {
     const openResume = (asset) => {
         setSelectedReportAsset(asset);
         setModal('reportModal');
-    };
-
-    const openMaintenanceEvidence = async (url) => {
-        try {
-            const evidence = await getPreventiveMaintenanceEvidence(url);
-            setMaintenanceEvidencePreview(URL.createObjectURL(evidence));
-        } catch (error) {
-            setFeedback(`No se pudo abrir la evidencia: ${describeError(error)}`);
-        }
     };
 
     const openPredictiveHistory = async (asset) => {
@@ -270,7 +244,10 @@ export default function Activos() {
                     />
                     <input
                         value={query}
-                        onChange={(event) => setQuery(event.target.value)}
+                        onChange={(event) => {
+                            setQuery(event.target.value);
+                            pagination.setPage(1);
+                        }}
                         placeholder="Buscar por nombre, serial o categoría..."
                         className="w-full rounded-lg border border-white/10 bg-[#081723] py-2.5 pl-10 pr-3.5 text-xs sm:text-sm text-white outline-none placeholder:text-slate-500 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/50 min-h-[44px] transition-colors"
                     />
@@ -279,7 +256,10 @@ export default function Activos() {
                     <span>Estado:</span>
                     <select
                         value={statusFilter}
-                        onChange={(event) => setStatusFilter(event.target.value)}
+                        onChange={(event) => {
+                            setStatusFilter(event.target.value);
+                            pagination.setPage(1);
+                        }}
                         className="rounded-lg border border-white/10 bg-[#081723] px-3 py-2.5 text-xs sm:text-sm text-white outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/50 min-h-[44px] transition-colors"
                     >
                         <option value="ALL">Todos los estados</option>
@@ -311,7 +291,7 @@ export default function Activos() {
                     <>
                         {/* Vista Móvil / Tablet (Tarjetas) */}
                         <div className="grid min-w-0 grid-cols-2 gap-2 md:gap-3.5 lg:hidden">
-                            {visibleAssets.map((asset) => (
+                            {pagination.pageItems.map((asset) => (
                                 <div
                                     key={asset.id}
                                     className="rounded-xl border border-white/10 bg-[#0b1d2a] p-3 sm:p-4 space-y-3 shadow-md min-w-0"
@@ -460,7 +440,7 @@ export default function Activos() {
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-white/5">
-                                    {visibleAssets.map((asset) => (
+                                    {pagination.pageItems.map((asset) => (
                                         <tr key={asset.id} className="hover:bg-white/[0.03] transition-colors">
                                             <td className="px-4 py-3.5">
                                                 <div className="flex items-center gap-3">
@@ -590,6 +570,12 @@ export default function Activos() {
                                 No hay activos que coincidan con los filtros.
                             </p>
                         )}
+                        <PaginationControls
+                            {...pagination}
+                            totalItems={visibleAssets.length}
+                            onPageChange={pagination.setPage}
+                            onPageSizeChange={pagination.changePageSize}
+                        />
                     </>
                 )
             )}

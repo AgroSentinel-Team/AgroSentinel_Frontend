@@ -21,30 +21,33 @@ export default function Inventario({ variant = 'dark', groupId, groupName, scope
   const dark = variant === 'dark';
   const [inventory, setInventory] = useState([]);
   const [query, setQuery] = useState('');
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [reloadKey, setReloadKey] = useState(0);
+  const requestKey = `${reloadKey}:${groupId ?? 'central'}:${scoped}`;
+  const [loadedRequestKey, setLoadedRequestKey] = useState('');
+  const loading = loadedRequestKey !== requestKey;
 
   useEffect(() => {
     let active = true;
-    setLoading(true);
     getInventoryItems(groupId, scoped)
       .then((items) => {
-        if (active) setInventory(items);
+        if (active) {
+          setInventory(items);
+          setError('');
+        }
       })
       .catch((loadError) => {
         if (active) setError(getErrorMessage(loadError));
       })
       .finally(() => {
-        if (active) setLoading(false);
+        if (active) setLoadedRequestKey(requestKey);
       });
     return () => {
       active = false;
     };
-  }, [reloadKey, groupId, scoped]);
+  }, [requestKey, groupId, scoped]);
 
   const retryLoading = () => {
-    setLoading(true);
     setError('');
     setReloadKey((current) => current + 1);
   };

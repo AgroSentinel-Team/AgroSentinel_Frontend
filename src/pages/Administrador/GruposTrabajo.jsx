@@ -15,6 +15,15 @@ function roleLabel(role) {
     return roles.find((item) => item.value === normalizedRole)?.label ?? normalizedRole;
 }
 
+function getGroupRoles(group) {
+    const memberRoles = (group.members ?? []).flatMap((member) =>
+        member.roles?.length ? member.roles : [member.rol],
+    );
+    return [...new Set([...(group.grantedRoles ?? []), ...memberRoles]
+        .filter(Boolean)
+        .map((role) => String(role).toUpperCase().replace(/^ROLE_/, '')))];
+}
+
 const emptyForm = {
     name: '',
     description: '',
@@ -396,60 +405,22 @@ export default function GruposTrabajo() {
                                     </span>
                                 </div>
 
-                                <div className="space-y-2 text-xs">
-                                    <div className="flex justify-between gap-2">
-                                        <span className="text-slate-400 shrink-0">Líder:</span>
-                                        <span className="text-right text-slate-200 font-medium truncate">
-                                            {group.leaderName || 'Sin asignar'}
-                                        </span>
-                                    </div>
-                                    <div className="flex justify-between gap-2">
-                                        <span className="text-slate-400 shrink-0">Miembros:</span>
-                                        <span className="text-slate-200 font-medium">{group.members.length}</span>
-                                    </div>
-
-                                    <div className="border-t border-[#2d4055] pt-2">
-                                        <p className="text-slate-400 text-[11px] font-medium uppercase tracking-wider mb-0.5">
-                                            Permisos adicionales
-                                        </p>
-                                        <p className="text-slate-200 leading-relaxed">
-                                            {group.grantedRoles.length
-                                                ? group.grantedRoles
-                                                      .map(
-                                                          (role) =>
-                                                              roles.find((item) => item.value === role)?.label ?? role
-                                                      )
-                                                      .join(', ')
-                                                : 'Sin permisos adicionales'}
-                                        </p>
-                                    </div>
-
-                                    <div className="border-t border-[#2d4055] pt-2">
-                                        <p className="text-slate-400 text-[11px] font-medium uppercase tracking-wider mb-0.5">
-                                            Integrantes y roles efectivos
-                                        </p>
-                                        {group.members.length ? (
-                                            <ul className="space-y-2">
-                                                {group.members.map((member) => (
-                                                    <li key={member.id} className="min-w-0">
-                                                        <p className="truncate text-slate-200">
-                                                            {member.nombre}{member.lider ? ' · Líder' : ''}
-                                                        </p>
-                                                        <div className="mt-1 flex flex-wrap gap-1">
-                                                            {(member.roles?.length ? member.roles : [member.rol]).map((role) => (
-                                                                <span
-                                                                    key={`${member.id}-${role}`}
-                                                                    className="rounded-full border border-cyan-400/20 bg-cyan-500/10 px-2 py-0.5 text-[10px] text-cyan-200"
-                                                                >
-                                                                    {roleLabel(role)}
-                                                                </span>
-                                                            ))}
-                                                        </div>
-                                                    </li>
-                                                ))}
-                                            </ul>
+                                <div className="border-t border-[#2d4055] pt-3">
+                                    <p className="mb-2 text-[11px] font-medium uppercase tracking-wider text-slate-400">
+                                        Roles asociados a la zona
+                                    </p>
+                                    <div className="flex flex-wrap gap-1.5">
+                                        {getGroupRoles(group).length ? (
+                                            getGroupRoles(group).map((role) => (
+                                                <span
+                                                    key={`${group.id}-${role}`}
+                                                    className="rounded-full border border-lime-300/25 bg-lime-300/10 px-2.5 py-1 text-[10px] font-medium text-lime-200"
+                                                >
+                                                    {roleLabel(role)}
+                                                </span>
+                                            ))
                                         ) : (
-                                            <p className="text-slate-400">Sin miembros</p>
+                                            <span className="text-xs text-slate-400">Sin roles asociados</span>
                                         )}
                                     </div>
                                 </div>

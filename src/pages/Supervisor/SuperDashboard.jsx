@@ -24,6 +24,8 @@ import LogoutButton from '../../components/LogoutButton';
 import DashboardRoleSwitcher from '../../components/DashboardRoleSwitcher';
 import FailureReportModal from '../../components/FailureReportModal';
 import FailureClosureModal from '../../components/FailureClosureModal';
+import FailureReportDetailsModal from '../../components/FailureReportDetailsModal';
+import PaginationControls from '../../components/PaginationControls';
 import Inventario from '../Compartido/Inventario';
 import Entradas from '../Compartido/Entradas';
 import Salidas from '../Compartido/Salidas';
@@ -32,6 +34,7 @@ import MantenimientoPredictivo from '../Compartido/MantenimientoPredictivo';
 import { getAssets, getFailureReports } from '../../services/assetService';
 import { getInventoryGroups } from '../../services/inventoryService';
 import { getPreventiveMaintenances } from '../../services/preventiveMaintenanceService';
+import usePagination from '../../hooks/usePagination';
 
 const NAVIGATION = [
   { id: 'Dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -164,102 +167,6 @@ function SectionHeading({ eyebrow, title, description, children }) {
         <p className="mt-0.5 text-xs text-slate-400">{description}</p>
       </div>
       {children}
-    </div>
-  );
-}
-
-function ReportDetails({ report, onClose }) {
-  if (!report) return null;
-  return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-xs p-3 sm:p-6 overflow-y-auto"
-      role="presentation"
-      onMouseDown={(event) => {
-        if (event.target === event.currentTarget) onClose();
-      }}
-    >
-      <section
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="report-details-title"
-        className="max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-xl border border-[#36556f] bg-[#102637] p-5 sm:p-6 shadow-2xl space-y-5 min-w-0 text-white"
-      >
-        <div className="flex items-start justify-between gap-4 border-b border-white/10 pb-3">
-          <div>
-            <p className="text-xs font-bold uppercase tracking-wider text-cyan-300">
-              Seguimiento de falla · #{report.id}
-            </p>
-            <h2 id="report-details-title" className="mt-1 text-base sm:text-lg font-bold text-white">
-              {report.assetName || 'Activo sin nombre'}
-            </h2>
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-white/10 hover:text-white transition-colors shrink-0"
-          >
-            <X size={18} />
-          </button>
-        </div>
-
-        <div className="flex flex-wrap gap-2">
-          <Badge tone={statusTone(report.estado)}>
-            {REPORT_STATUSES[report.estado] || report.estado || 'Sin estado'}
-          </Badge>
-          <Badge tone={statusTone(report.prioridad)}>
-            {PRIORITIES[report.prioridad] || report.prioridad || 'Sin prioridad'}
-          </Badge>
-        </div>
-
-        <dl className="grid grid-cols-2 gap-2 rounded-xl border border-[#2d4055] bg-[#0d2030] p-3 text-[10px] sm:gap-3 sm:p-4 sm:text-xs">
-          <div>
-            <dt className="font-semibold uppercase text-slate-400 text-[10px]">Tipo de falla</dt>
-            <dd className="mt-1 font-medium text-slate-200">{report.tipoFalla || 'No especificado'}</dd>
-          </div>
-          <div>
-            <dt className="font-semibold uppercase text-slate-400 text-[10px]">Fecha de reporte</dt>
-            <dd className="mt-1 font-mono text-slate-200">{formatDate(report.fechaReporte, true)}</dd>
-          </div>
-          <div>
-            <dt className="font-semibold uppercase text-slate-400 text-[10px]">Reportado por</dt>
-            <dd className="mt-1 font-medium text-slate-200">{report.userName || 'No disponible'}</dd>
-          </div>
-          <div>
-            <dt className="font-semibold uppercase text-slate-400 text-[10px]">Técnico asignado</dt>
-            <dd className="mt-1 font-medium text-slate-200">
-              {report.assignedTechnicianName || 'Pendiente de asignación'}
-            </dd>
-          </div>
-          <div>
-            <dt className="font-semibold uppercase text-slate-400 text-[10px]">Grupo / zona</dt>
-            <dd className="mt-1 font-medium text-slate-200">{report.groupName || 'Sin grupo asignado'}</dd>
-          </div>
-          <div>
-            <dt className="font-semibold uppercase text-slate-400 text-[10px]">Código de activo</dt>
-            <dd className="mt-1 font-mono text-slate-200">{report.assetInventoryCode || 'No disponible'}</dd>
-          </div>
-        </dl>
-
-        <div className="space-y-1.5">
-          <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400">
-            Descripción reportada
-          </h3>
-          <p className="whitespace-pre-wrap rounded-xl border border-[#2d4055] bg-[#0d2030] p-4 text-xs sm:text-sm text-slate-200 leading-relaxed">
-            {report.descripcion || 'Sin descripción.'}
-          </p>
-        </div>
-
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2 border-t border-white/10 text-xs text-slate-400">
-          <span>Vista de supervisión: este panel no modifica ni asigna la orden.</span>
-          <button
-            type="button"
-            onClick={onClose}
-            className="flex min-h-[40px] w-full sm:w-auto items-center justify-center rounded-lg border border-white/10 bg-[#163044] px-5 text-xs font-bold uppercase tracking-wider text-slate-200 hover:bg-white/10 transition-colors"
-          >
-            Cerrar
-          </button>
-        </div>
-      </section>
     </div>
   );
 }
@@ -455,6 +362,8 @@ function OrdersView({ reports, error, title = 'Reporte de Fallas', onReportCreat
       return matchesQuery && (statusFilter === 'TODOS' || report.estado === statusFilter);
     });
   }, [reports, query, statusFilter]);
+  const pagination = usePagination(visibleReports);
+  const pageReports = pagination.pageItems;
 
   return (
     <div className="space-y-5 text-white min-w-0">
@@ -478,7 +387,10 @@ function OrdersView({ reports, error, title = 'Reporte de Fallas', onReportCreat
           <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
             value={query}
-            onChange={(event) => setQuery(event.target.value)}
+            onChange={(event) => {
+              setQuery(event.target.value);
+              pagination.setPage(1);
+            }}
             className={`${inputClass} pl-10`}
             placeholder="Buscar activo, falla, grupo o técnico..."
             aria-label="Buscar reportes de fallas"
@@ -487,7 +399,10 @@ function OrdersView({ reports, error, title = 'Reporte de Fallas', onReportCreat
 
         <select
           value={statusFilter}
-          onChange={(event) => setStatusFilter(event.target.value)}
+          onChange={(event) => {
+            setStatusFilter(event.target.value);
+            pagination.setPage(1);
+          }}
           className={`${inputClass} sm:w-auto`}
           aria-label="Filtrar por estado"
         >
@@ -506,7 +421,7 @@ function OrdersView({ reports, error, title = 'Reporte de Fallas', onReportCreat
 
       {/* Vista Móvil (Tarjetas) */}
       <div className="grid grid-cols-2 gap-2 lg:hidden">
-        {visibleReports.map((report) => (
+        {pageReports.map((report) => (
           <article
             key={report.id}
             className="rounded-xl border border-[#2d4055] bg-[#13293a] p-4 shadow-md space-y-3"
@@ -542,7 +457,7 @@ function OrdersView({ reports, error, title = 'Reporte de Fallas', onReportCreat
                   onClick={() => setSelectedReport(report)}
                   className="font-bold text-cyan-300 hover:text-cyan-200 p-1"
                 >
-                  Ver detalle
+                  Ver Detalle / Hoja de Vida
                 </button>
                 {report.estado === 'EN_CIERRE' && (
                   <button
@@ -581,7 +496,7 @@ function OrdersView({ reports, error, title = 'Reporte de Fallas', onReportCreat
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
-              {visibleReports.map((report) => (
+              {pageReports.map((report) => (
                 <tr key={report.id} className="hover:bg-white/[0.03] transition-colors">
                   <td className="max-w-[240px] px-4 py-3.5">
                     <p className="truncate font-bold text-white">
@@ -615,7 +530,7 @@ function OrdersView({ reports, error, title = 'Reporte de Fallas', onReportCreat
                         onClick={() => setSelectedReport(report)}
                         className="font-bold text-cyan-300 hover:text-cyan-200 transition-colors"
                       >
-                        Ver detalle
+                        Ver Detalle / Hoja de Vida
                       </button>
                       {report.estado === 'EN_CIERRE' && (
                         <button
@@ -644,7 +559,18 @@ function OrdersView({ reports, error, title = 'Reporte de Fallas', onReportCreat
         </div>
       </div>
 
-      <ReportDetails report={selectedReport} onClose={() => setSelectedReport(null)} />
+      <PaginationControls
+        {...pagination}
+        totalItems={visibleReports.length}
+        onPageChange={pagination.setPage}
+        onPageSizeChange={pagination.changePageSize}
+      />
+      {selectedReport && (
+        <FailureReportDetailsModal
+          report={selectedReport}
+          onClose={() => setSelectedReport(null)}
+        />
+      )}
       {reportToReview && (
         <FailureClosureModal
           report={reportToReview}

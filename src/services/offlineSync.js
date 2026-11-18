@@ -1,4 +1,5 @@
 import { createApi } from './apiClient';
+import { updatePredictiveFeedbackCache } from './offlineApi';
 import {
   cacheCollection,
   countPendingOperations,
@@ -55,6 +56,14 @@ async function performSync() {
         data: body,
       });
       await removePendingOperation(operation.id, ownerKey);
+      if (operation.operationType === 'predictive.feedback') {
+        await updatePredictiveFeedbackCache(
+          ownerKey,
+          operation.metadata,
+          response.data ?? operation.payload,
+          false,
+        );
+      }
       await reconcileCachedView(operation, ownerKey, response.data);
       successful++;
     } catch (error) {

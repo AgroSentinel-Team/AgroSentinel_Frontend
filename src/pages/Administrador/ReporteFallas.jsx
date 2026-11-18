@@ -3,6 +3,9 @@ import { AlertTriangle, Plus, RefreshCw, UserCheck, Calendar, MapPin, User } fro
 import FailureReportModal from '../../components/FailureReportModal';
 import FailureClosureModal from '../../components/FailureClosureModal';
 import { getFailureReports } from '../../services/assetService';
+import PaginationControls from '../../components/PaginationControls';
+import FailureReportDetailsModal from '../../components/FailureReportDetailsModal';
+import usePagination from '../../hooks/usePagination';
 
 const PRIORITY_LABELS = { BAJA: 'Baja', MEDIA: 'Media', ALTA: 'Alta', CRITICA: 'Crítica' };
 const PRIORITY_TONES = {
@@ -38,6 +41,8 @@ export default function ReporteFallas() {
     const [refreshKey, setRefreshKey] = useState(0);
     const [showModal, setShowModal] = useState(false);
     const [reportToReview, setReportToReview] = useState(null);
+    const [selectedReport, setSelectedReport] = useState(null);
+    const pagination = usePagination(reports);
 
     useEffect(() => {
         let cancelled = false;
@@ -105,8 +110,8 @@ export default function ReporteFallas() {
             ) : !error && (
                 <>
                     {/* Vista Tarjetas para Pantallas Pequeñas (Móviles) */}
-                    <div className="grid grid-cols-2 gap-2 md:hidden">
-                        {reports.map((report) => (
+                    <div className="grid grid-cols-1 gap-2 min-[480px]:grid-cols-2 md:hidden">
+                        {pagination.pageItems.map((report) => (
                             <article key={report.id} className="rounded-xl border border-[#294255] bg-[#0c1e2c] p-4 space-y-3 shadow-md">
                                 <div className="flex items-start justify-between gap-2 border-b border-white/5 pb-2.5">
                                     <div className="min-w-0 flex-1">
@@ -153,10 +158,17 @@ export default function ReporteFallas() {
                                 </div>
 
                                 <div className="pt-2 border-t border-white/5 flex justify-end">
-                                    <div className="flex items-center gap-2">
+                                    <div className="flex flex-wrap items-center justify-end gap-2">
                                         <span className="rounded-full bg-white/5 px-3 py-1 text-[11px] font-medium text-slate-300 border border-white/10">
                                             {STATUS_LABELS[report.estado] || report.estado}
                                         </span>
+                                        <button
+                                            type="button"
+                                            onClick={() => setSelectedReport(report)}
+                                            className="rounded-md border border-lime-300/30 bg-lime-300/10 px-2.5 py-1.5 text-[11px] font-bold text-lime-200"
+                                        >
+                                            Ver Detalle / Hoja de Vida
+                                        </button>
                                         {report.estado === 'EN_CIERRE' && (
                                             <button type="button" onClick={() => setReportToReview(report)} className="rounded-md bg-emerald-600 px-2.5 py-1.5 text-[11px] font-bold text-white">
                                                 Revisar cierre
@@ -183,7 +195,7 @@ export default function ReporteFallas() {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-white/5">
-                                {reports.map((report) => (
+                                {pagination.pageItems.map((report) => (
                                     <tr key={report.id} className="align-top hover:bg-white/[0.03] transition-colors">
                                         <td className="max-w-md px-4 py-3.5">
                                             <p className="font-semibold text-white">{report.assetName}</p>
@@ -206,8 +218,15 @@ export default function ReporteFallas() {
                                             </span>
                                         </td>
                                         <td className="px-4 py-3.5 text-slate-300 font-medium">
-                                            <div className="flex items-center gap-2">
+                                            <div className="flex flex-wrap items-center gap-2">
                                                 <span>{STATUS_LABELS[report.estado] || report.estado}</span>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setSelectedReport(report)}
+                                                    className="rounded-md border border-lime-300/30 bg-lime-300/10 px-2.5 py-1.5 text-[11px] font-bold text-lime-200"
+                                                >
+                                                    Ver Detalle / Hoja de Vida
+                                                </button>
                                                 {report.estado === 'EN_CIERRE' && (
                                                     <button type="button" onClick={() => setReportToReview(report)} className="rounded-md bg-emerald-600 px-2.5 py-1.5 text-[11px] font-bold text-white">
                                                         Revisar y cerrar
@@ -220,6 +239,12 @@ export default function ReporteFallas() {
                             </tbody>
                         </table>
                     </div>
+                    <PaginationControls
+                        {...pagination}
+                        totalItems={reports.length}
+                        onPageChange={pagination.setPage}
+                        onPageSizeChange={pagination.changePageSize}
+                    />
                 </>
             )}
 
@@ -238,6 +263,12 @@ export default function ReporteFallas() {
                         setFeedback('La orden fue revisada y cerrada definitivamente.');
                         refreshReports();
                     }}
+                />
+            )}
+            {selectedReport && (
+                <FailureReportDetailsModal
+                    report={selectedReport}
+                    onClose={() => setSelectedReport(null)}
                 />
             )}
         </section>

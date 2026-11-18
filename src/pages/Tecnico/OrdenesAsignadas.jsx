@@ -27,6 +27,8 @@ import {
   getInventoryGroups,
   getAllWorkGroups,
 } from '../../services/inventoryService';
+import PaginationControls from '../../components/PaginationControls';
+import usePagination from '../../hooks/usePagination';
 
 const equipmentStates = [
   ['OPERATIONAL', '100% operativo'],
@@ -962,6 +964,7 @@ export default function OrdenesAsignadas({ onOpenPreventive }) {
   const [selected, setSelected] = useState(null);
   const [assetResume, setAssetResume] = useState(null);
   const [error, setError] = useState('');
+  const pagination = usePagination(orders);
 
   const refresh = useCallback(async () => {
     setLoading(true);
@@ -1098,7 +1101,7 @@ export default function OrdenesAsignadas({ onOpenPreventive }) {
         </div>
       ) : (
         <div className="space-y-3">
-          {orders.map((item) => (
+          {pagination.pageItems.map((item) => (
             <OrderCard
               key={`${item.kind}-${item.id}`}
               item={item}
@@ -1107,6 +1110,14 @@ export default function OrdenesAsignadas({ onOpenPreventive }) {
             />
           ))}
         </div>
+      )}
+      {!loading && orders.length > 0 && (
+        <PaginationControls
+          {...pagination}
+          totalItems={orders.length}
+          onPageChange={pagination.setPage}
+          onPageSizeChange={pagination.changePageSize}
+        />
       )}
 
       {/* Modal de Formulario */}

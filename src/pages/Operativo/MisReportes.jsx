@@ -11,6 +11,8 @@ import {
 } from 'lucide-react';
 import { getFailureReports } from '../../services/assetService';
 import { getCurrentUser } from '../../services/technicianService';
+import PaginationControls from '../../components/PaginationControls';
+import usePagination from '../../hooks/usePagination';
 
 const STATUS_LABELS = {
   PENDIENTE: 'Pendiente',
@@ -53,6 +55,7 @@ export default function MisReportes() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [refreshKey, setRefreshKey] = useState(0);
+  const pagination = usePagination(reports);
 
   useEffect(() => {
     let cancelled = false;
@@ -144,7 +147,7 @@ export default function MisReportes() {
       ) : (
         !error && (
           <div className="grid grid-cols-2 gap-2 sm:gap-3">
-            {reports.map((report) => (
+            {pagination.pageItems.map((report) => (
               <article
                 key={report.id}
                 className="flex flex-col gap-3 rounded-xl border border-[#2d4055] bg-[#13293a] p-4 shadow-md sm:flex-row sm:items-center sm:justify-between transition-all hover:border-[#3d5873]"
@@ -194,6 +197,14 @@ export default function MisReportes() {
             ))}
           </div>
         )
+      )}
+      {!loading && !error && reports.length > 0 && (
+        <PaginationControls
+          {...pagination}
+          totalItems={reports.length}
+          onPageChange={pagination.setPage}
+          onPageSizeChange={pagination.changePageSize}
+        />
       )}
 
       {/* Modal Detalle Reporte */}

@@ -102,7 +102,12 @@ export default function FailureReportModal({ onClose, onSaved }) {
             (role) => String(role ?? '').toUpperCase().replace(/^ROLE_/, '') === 'TECNICO',
         );
     });
-    const selectableTechnicians = availableTechnicians.filter((technician) => technician.available !== false);
+    const selectableTechnicians = availableTechnicians.filter(
+        (technician) => technician.active === true || (technician.active == null && technician.available !== false),
+    );
+    const selectedTechnician = selectableTechnicians.find(
+        (technician) => String(technician.id) === String(form.assignedTechnicianId),
+    );
 
     const updateField = (event) => {
         setSubmitError('');
@@ -147,12 +152,8 @@ export default function FailureReportModal({ onClose, onSaved }) {
             setSubmitError('No hay un grupo de trabajo activo disponible para asignar la falla.');
             return;
         }
-        if (
-            canChooseTechnician &&
-            selectedGroup &&
-            selectableTechnicians.length === 0
-        ) {
-            setSubmitError('No hay técnicos disponibles en este grupo. Cada técnico puede tener hasta 3 trabajos activos.');
+        if (canChooseTechnician && selectedGroup && selectableTechnicians.length === 0) {
+            setSubmitError('No hay técnicos activos en este grupo para asignar la falla.');
             return;
         }
         setSubmitting(true);
@@ -339,7 +340,7 @@ export default function FailureReportModal({ onClose, onSaved }) {
                                 name="assignedTechnicianId"
                                 value={form.assignedTechnicianId}
                                 onChange={updateField}
-                                disabled={!selectedGroup || availableTechnicians.length === 0}
+                                disabled={!selectedGroup || selectableTechnicians.length === 0}
                                 className={inputClass}
                             >
                                 <option value="">
@@ -347,22 +348,32 @@ export default function FailureReportModal({ onClose, onSaved }) {
                                         ? 'Selecciona primero un grupo'
                                         : selectableTechnicians.length
                                         ? 'Asignación automática al técnico con menor carga'
-                                        : 'No hay técnicos disponibles'}
+                                        : 'No hay técnicos activos en este grupo'}
                                 </option>
-                                {availableTechnicians.map((technician) => (
+                                {selectableTechnicians.map((technician) => {
+                                    const workload = technician.activeWorkload ?? 0;
+                                    const capacity = technician.workloadCapacity ?? 3;
+                                    const highWorkload = workload >= capacity;
+                                    return (
                                     <option
                                         key={technician.id}
                                         value={technician.id}
-                                        disabled={technician.available === false}
                                     >
-                                        {technician.nombre}{technician.lider ? ' · Líder' : ''} · Carga:{' '}
-                                        {technician.activeWorkload ?? 0}/{technician.workloadCapacity ?? 3}
-                                        {technician.available === false ? ' · No disponible' : ' · Disponible'}
+                                        {technician.nombre}{technician.lider ? ' · Líder' : ''} ·{' '}
+                                        {highWorkload
+                                            ? `Carga alta: ${workload} activas`
+                                            : `Carga: ${workload}/${capacity}`}
                                     </option>
-                                ))}
+                                    );
+                                })}
                             </select>
+                            {selectedTechnician && selectedTechnician.activeWorkload >= selectedTechnician.workloadCapacity && (
+                                <span className="mt-2 inline-flex rounded-full border border-lime-300/30 bg-lime-300/10 px-2.5 py-1 text-[10px] font-semibold text-lime-200">
+                                    Carga alta: {selectedTechnician.activeWorkload} activas
+                                </span>
+                            )}
                             <p className="mt-1 text-[11px] leading-relaxed text-slate-400">
-                                La carga cuenta trabajos activos. El sistema asigna automáticamente al técnico disponible con menor carga; el límite es de 3.
+                                La asignación automática sigue priorizando la menor carga disponible. Administradores y supervisores pueden asignar manualmente a cualquier técnico activo, sin bloqueo por carga.
                             </p>
                         </div>
                     )}

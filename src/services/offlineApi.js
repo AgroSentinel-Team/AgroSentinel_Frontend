@@ -42,6 +42,16 @@ async function enqueueAndUpdateLocalView(operation) {
   const result = await enqueue(operation);
   const ownerKey = getSessionOwnerKey();
   const metadata = operation.metadata ?? {};
+  if (operation.operationType === 'predictive.feedback') {
+    await updatePredictiveFeedbackCache(
+      ownerKey,
+      metadata,
+      operation.payload,
+      true,
+    );
+    return result;
+  }
+
   const cachedCollections = {
     'failure_report.create': 'failure-reports',
     'failure_report.start_review': 'assigned-failure-reports',
@@ -97,6 +107,49 @@ async function enqueueAndUpdateLocalView(operation) {
   }
   await cacheCollection(ownerKey, collection, updated);
   return result;
+}
+
+export async function updatePredictiveFeedbackCache(
+  ownerKey,
+  metadata,
+  feedback,
+  pending,
+) {
+  if (!ownerKey || metadata?.assetId == null || metadata?.recordId == null) return;
+  const recordId = String(metadata.recordId);
+  const collections = [
+    'predictive-assets',
+    `predictive-history:${metadata.assetId}`,
+  ];
+
+  for (const collection of collections) {
+    try {
+      const cached = await readCachedCollection(ownerKey, collection);
+      if (!Array.isArray(cached)) continue;
+      const updated = collection === 'predictive-assets'
+        ? cached.map((asset) =>
+            String(asset.latestRecord?.id) === recordId
+              ? {
+                  ...asset,
+                  latestRecord: {
+                    ...asset.latestRecord,
+                    ...feedback,
+                    id: asset.latestRecord.id,
+                    localSyncPending: pending,
+                  },
+                }
+              : asset,
+          )
+        : cached.map((record) =>
+            String(record.id) === recordId
+              ? { ...record, ...feedback, id: record.id, localSyncPending: pending }
+              : record,
+          );
+      await cacheCollection(ownerKey, collection, updated);
+    } catch (error) {
+      console.error(`No se pudo actualizar la caché ${collection} del feedback predictivo:`, error);
+    }
+  }
 }
 
 export async function cachedRequest(collection, request) {
@@ -157,6 +210,14 @@ export async function sendOrQueueJson({
       url: endpoint,
       data: payload,
     });
+    if (operationType === 'predictive.feedback') {
+      await updatePredictiveFeedbackCache(
+        getSessionOwnerKey(),
+        queueMetadata,
+        response.data,
+        false,
+      );
+    }
     return response.data;
   } catch (error) {
     if (!isTransportFailure(error)) {

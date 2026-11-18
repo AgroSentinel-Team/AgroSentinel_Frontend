@@ -64,7 +64,7 @@ export default function Registro() {
     <div className="flex min-h-screen bg-[#0b1220] font-sans text-white min-w-0">
       {/* Panel Izquierdo Ilustrativo (Escritorio) */}
       <div className="hidden lg:flex lg:w-1/2 relative bg-[url('https://images.unsplash.com/photo-1586771107445-d3ca888129ff?q=80&w=2000&auto=format&fit=crop')] bg-cover bg-center">
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0b1220] via-[#0e1729]/85 to-[#0e1729]/70" />
+        <div className="agro-brand-overlay absolute inset-0" />
         <div className="relative z-10 flex flex-col justify-between p-12 w-full h-full">
           <div className="flex items-center gap-3 text-white">
             <div className="bg-cyan-500 p-2 rounded-xl shadow-lg shadow-cyan-950/50 flex items-center justify-center">

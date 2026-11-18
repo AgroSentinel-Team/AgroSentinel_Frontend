@@ -16,7 +16,11 @@ import {
   getAssignedAssetResume,
   getAssignedAssets,
   getPredictiveAssets,
+  getPredictiveHistory,
 } from '../../services/assetService';
+import { isNetworkAvailable, subscribeToNetworkChanges } from '../../services/offlineNetwork';
+
+const TELEMETRY_POLL_INTERVAL = 30_000;
 
 const OPERATIONAL_STATUS = {
   OPERATIONAL: {
@@ -98,6 +102,153 @@ export default function Maquinaria() {
       cancelled = true;
     };
   }, [refreshKey]);
+
+  useEffect(() => {
+    let active = true;
+    let interval;
+    let unsubscribe;
+    let refreshing = false;
+
+    const refreshOverview = async () => {
+      if (refreshing) return;
+      refreshing = true;
+      try {
+        if (!(await isNetworkAvailable())) return;
+        const [assetsResult, predictiveResult] = await Promise.allSettled([
+          getAssignedAssets(),
+          getPredictiveAssets(),
+        ]);
+        if (!active) return;
+
+        if (assetsResult.status === 'fulfilled') {
+          setAssets(assetsResult.value);
+          setError('');
+          setSelectedId((current) =>
+            assetsResult.value.some((asset) => asset.id === current)
+              ? current
+              : assetsResult.value[0]?.id ?? null,
+          );
+        } else {
+          setError(describeError(assetsResult.reason));
+        }
+
+        if (predictiveResult.status === 'fulfilled') {
+          setPredictiveAssets(predictiveResult.value);
+          setPredictiveError('');
+        } else {
+          setPredictiveError(describeError(predictiveResult.reason));
+        }
+      } catch (requestError) {
+        if (active) setPredictiveError(describeError(requestError));
+      } finally {
+        refreshing = false;
+      }
+    };
+
+    const setPolling = (connected) => {
+      if (!active) return;
+      window.clearInterval(interval);
+      interval = undefined;
+      if (connected) {
+        interval = window.setInterval(() => {
+          void refreshOverview();
+        }, TELEMETRY_POLL_INTERVAL);
+      }
+    };
+
+    void isNetworkAvailable()
+      .then(setPolling)
+      .catch((networkError) => {
+        if (active) setPredictiveError(describeError(networkError));
+      });
+    void subscribeToNetworkChanges((connected) => {
+      setPolling(connected);
+      if (connected) void refreshOverview();
+    })
+      .then((stop) => {
+        if (active) unsubscribe = stop;
+        else void stop();
+      })
+      .catch((networkError) => {
+        if (active) setPredictiveError(describeError(networkError));
+      });
+
+    return () => {
+      active = false;
+      window.clearInterval(interval);
+      void unsubscribe?.();
+    };
+  }, []);
+
+  const selectedHasMotor = assets.some(
+    (asset) => asset.id === selectedId && asset.hasMotor,
+  );
+
+  useEffect(() => {
+    if (selectedId == null || !selectedHasMotor) return undefined;
+    let active = true;
+    let interval;
+    let unsubscribe;
+    let refreshing = false;
+
+    const refreshHistory = async () => {
+      if (refreshing) return;
+      refreshing = true;
+      try {
+        if (!(await isNetworkAvailable())) return;
+        const history = await getPredictiveHistory(selectedId);
+        if (!active || !Array.isArray(history) || history.length === 0) return;
+        const latestRecord = history[0];
+        setPredictiveAssets((current) =>
+          current.map((asset) =>
+            asset.assetId === selectedId ? { ...asset, latestRecord } : asset,
+          ),
+        );
+        setPredictiveError('');
+      } catch (requestError) {
+        if (active) setPredictiveError(describeError(requestError));
+      } finally {
+        refreshing = false;
+      }
+    };
+
+    const setPolling = (connected) => {
+      if (!active) return;
+      window.clearInterval(interval);
+      interval = undefined;
+      if (connected) {
+        interval = window.setInterval(() => {
+          void refreshHistory();
+        }, TELEMETRY_POLL_INTERVAL);
+      }
+    };
+
+    void isNetworkAvailable()
+      .then((connected) => {
+        setPolling(connected);
+        if (connected) void refreshHistory();
+      })
+      .catch((networkError) => {
+        if (active) setPredictiveError(describeError(networkError));
+      });
+    void subscribeToNetworkChanges((connected) => {
+      setPolling(connected);
+      if (connected) void refreshHistory();
+    })
+      .then((stop) => {
+        if (active) unsubscribe = stop;
+        else void stop();
+      })
+      .catch((networkError) => {
+        if (active) setPredictiveError(describeError(networkError));
+      });
+
+    return () => {
+      active = false;
+      window.clearInterval(interval);
+      void unsubscribe?.();
+    };
+  }, [selectedId, selectedHasMotor]);
 
   useEffect(() => {
     if (selectedId == null) return undefined;
