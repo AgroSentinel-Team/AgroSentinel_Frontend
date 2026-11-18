@@ -99,6 +99,17 @@ function mapPredictiveAssets(data) {
   });
 }
 
+function mergeLatestRecord(item, latestRecord) {
+  const refreshed = mapPredictiveAssets([{
+    assetId: item.assetId,
+    machineId: item.id,
+    name: item.name,
+    location: item.location,
+    latestRecord,
+  }])[0];
+  return { ...item, ...refreshed };
+}
+
 async function loadPredictiveEquipment(assignedOnly) {
   if (!assignedOnly) return mapPredictiveAssets(await getPredictiveAssets());
 
@@ -178,15 +189,36 @@ export default function MantenimientoPredictivo({ assignedOnly = false }) {
   );
   const [feedbackDraft, setFeedbackDraft] = useState(null);
   const [feedbackSaving, setFeedbackSaving] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   const cargarEquipos = async () => {
-    setLoading(true);
+    if (refreshing) return;
+    setRefreshing(true);
     setLoadError('');
+    setMessage('');
     try {
-      const mappedData = await loadPredictiveEquipment(assignedOnly);
+      let mappedData = await loadPredictiveEquipment(assignedOnly);
+      const selectedEquipment =
+        mappedData.find((item) => item.id === selectedId) || mappedData[0];
+      const connected = await isNetworkAvailable();
+      if (selectedEquipment?.assetId != null && connected) {
+        const history = await getPredictiveHistory(selectedEquipment.assetId);
+        if (Array.isArray(history) && history.length > 0) {
+          mappedData = mappedData.map((item) =>
+            item.assetId === selectedEquipment.assetId
+              ? mergeLatestRecord(item, history[0])
+              : item,
+          );
+        }
+      }
       setEquipment(mappedData);
       setSelectedId((current) =>
         mappedData.some((item) => item.id === current) ? current : mappedData[0]?.id ?? null,
+      );
+      setMessage(
+        connected
+          ? 'Telemetría e historial actualizados desde Spring Boot.'
+          : 'Sin conexión: se muestran los últimos datos guardados en este dispositivo.',
       );
     } catch (error) {
       setLoadError(
@@ -195,7 +227,7 @@ export default function MantenimientoPredictivo({ assignedOnly = false }) {
           'No fue posible consultar el historial predictivo.',
       );
     } finally {
-      setLoading(false);
+      setRefreshing(false);
     }
   };
 
@@ -312,14 +344,7 @@ export default function MantenimientoPredictivo({ assignedOnly = false }) {
         setEquipment((current) =>
           current.map((item) => {
             if (item.assetId !== selectedAssetId) return item;
-            const mapped = mapPredictiveAssets([{
-              assetId: item.assetId,
-              machineId: item.id,
-              name: item.name,
-              location: item.location,
-              latestRecord,
-            }])[0];
-            return { ...item, ...mapped };
+            return mergeLatestRecord(item, latestRecord);
           }),
         );
       } catch (error) {
@@ -508,10 +533,13 @@ export default function MantenimientoPredictivo({ assignedOnly = false }) {
           <button
             type="button"
             onClick={cargarEquipos}
-            className="flex min-h-[44px] items-center gap-2 rounded-lg bg-[#102a3d] border border-[#2d4055] px-3.5 py-2 text-xs font-semibold text-slate-200 transition-colors hover:bg-[#1d3d52] hover:text-white"
+            disabled={refreshing}
+            aria-label="Actualizar telemetría"
+            title="Actualizar telemetría"
+            className="flex min-h-[44px] items-center gap-2 rounded-lg bg-[#102a3d] border border-[#2d4055] px-3.5 py-2 text-xs font-semibold text-slate-200 transition-colors hover:bg-[#1d3d52] hover:text-white disabled:cursor-wait disabled:opacity-60"
           >
-            <RefreshCcw size={16} />
-            <span>Actualizar Modelo</span>
+            <RefreshCcw size={16} className={refreshing ? 'animate-spin' : ''} />
+            <span>{refreshing ? 'Actualizando…' : 'Actualizar'}</span>
           </button>
           <div className="flex min-h-[44px] items-center gap-2 rounded-lg border border-emerald-400/30 bg-emerald-500/10 px-3.5 py-2 text-xs font-semibold text-emerald-200">
             <Gauge size={16} />
