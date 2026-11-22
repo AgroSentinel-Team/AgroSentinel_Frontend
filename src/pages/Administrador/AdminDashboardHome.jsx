@@ -56,6 +56,7 @@ function statusLabel(status) {
     OPERATIONAL: 'Operativo',
     OPERATIONAL_WITH_RESTRICTIONS: 'Con restricciones',
     IN_REPAIR: 'En reparación',
+    OUT_OF_SERVICE: 'Fuera de servicio',
     OBSOLETE: 'Obsoleto',
   };
   return labels[status] || status || 'Sin estado';
@@ -281,6 +282,7 @@ export default function AdminDashboardHome({
     { label: 'Operativo', value: activeAssets.filter((asset) => asset.operationalStatus === 'OPERATIONAL').length },
     { label: 'Con restricciones', value: activeAssets.filter((asset) => asset.operationalStatus === 'OPERATIONAL_WITH_RESTRICTIONS').length },
     { label: 'En reparación', value: activeAssets.filter((asset) => asset.operationalStatus === 'IN_REPAIR').length },
+    { label: 'Fuera de servicio', value: activeAssets.filter((asset) => asset.operationalStatus === 'OUT_OF_SERVICE').length },
     { label: 'Obsoleto', value: activeAssets.filter((asset) => asset.operationalStatus === 'OBSOLETE').length },
   ];
 

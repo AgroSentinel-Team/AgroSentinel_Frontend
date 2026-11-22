@@ -67,6 +67,28 @@ export const getCategories = async () =>
 
 export const createCategory = async (category) => (await directoryApi.post('/categories', category)).data;
 
+/** Plantillas sugeridas de datos técnicos por familia de equipo. */
+export const getSpecPresets = async () =>
+	cachedRequest('category-spec-presets', async () => (await directoryApi.get('/categories/spec-presets')).data);
+
+/** Campos de datos técnicos que pide una categoría. */
+export const getCategorySpecTemplate = async (categoryId) =>
+	cachedRequest(`category-spec-template:${categoryId}`, async () =>
+		(await directoryApi.get(`/categories/${categoryId}/spec-template`)).data);
+
+export const saveCategorySpecTemplate = async (categoryId, fields) =>
+	(await directoryApi.put(`/categories/${categoryId}/spec-template`, { fields })).data;
+
+/** Activos que ya usan ese serial o código de inventario (solo para advertir). */
+export const findAssetDuplicates = async ({ serialNumber, inventoryCode, excludeId }) =>
+	(await assetApi.get('/duplicates', {
+		params: {
+			serialNumber: serialNumber || undefined,
+			inventoryCode: inventoryCode || undefined,
+			excludeId: excludeId || undefined,
+		},
+	})).data;
+
 export const getUsers = async () =>
 	cachedRequest('users', async () => (await directoryApi.get('/users')).data);
 
@@ -115,6 +137,10 @@ export const canReportFailure = () =>
 		'SUPERVISOR',
 		'TECNICO',
 	]);
+
+/** Administradores y supervisores consultan diagnósticos e informes técnicos. */
+export const canViewTechnicalReport = () =>
+	hasStoredRole(['ADMIN', 'ADMINISTRADOR', 'SUPERVISOR']);
 
 export const canAssignFailureTechnician = () =>
 	hasStoredRole(['ADMIN', 'ADMINISTRADOR', 'SUPERVISOR']);

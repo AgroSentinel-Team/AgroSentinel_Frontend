@@ -4,11 +4,13 @@ import {
     Activity,
     CheckCircle2,
     ClipboardList,
+    FileSpreadsheet,
     FileText,
     Plus,
     Power,
     RefreshCw,
     Search,
+    Stethoscope,
     Trash2,
     TrendingUp,
     Wrench,
@@ -24,13 +26,17 @@ import {
 } from '../../services/assetService';
 import CreateAssetForm from '../../components/CreateAssetForm';
 import AssetReportModal from '../../components/AssetReportModal';
+import AssetDiagnosisModal from '../../components/AssetDiagnosisModal';
+import AssetImportModal from '../../components/AssetImportModal';
 import PaginationControls from '../../components/PaginationControls';
 import usePagination from '../../hooks/usePagination';
 import { Badge, Button, EmptyState, Input, PageHeader, Select, Skeleton, StatCard } from '../../components/ui';
 
 const STATUS_LABELS = {
     OPERATIONAL: 'Operativo',
+    OPERATIONAL_WITH_RESTRICTIONS: 'Operativo con restricciones',
     IN_REPAIR: 'En reparación',
+    OUT_OF_SERVICE: 'Fuera de servicio',
     OBSOLETE: 'Obsoleto',
 };
 
@@ -65,6 +71,7 @@ export default function Activos() {
     const [query, setQuery] = useState('');
     const [statusFilter, setStatusFilter] = useState('ALL');
     const [modal, setModal] = useState('');
+    const [diagnosisAsset, setDiagnosisAsset] = useState(null);
     const [editingAsset, setEditingAsset] = useState(null);
     const [selectedReportAsset, setSelectedReportAsset] = useState(null);
     const [predictiveHistory, setPredictiveHistory] = useState([]);
@@ -153,6 +160,11 @@ export default function Activos() {
         }
     };
 
+    const openDiagnosis = (asset) => {
+        setDiagnosisAsset(asset);
+        setModal('diagnosis');
+    };
+
     const openResume = (asset) => {
         setSelectedReportAsset(asset);
         setModal('reportModal');
@@ -204,6 +216,15 @@ export default function Activos() {
                         onClick={reloadAssets}
                     >
                         <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
+                    </Button>
+                    <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => setModal('import')}
+                        title="Importar equipos desde Excel"
+                        className="flex-1 sm:flex-initial"
+                    >
+                        <FileSpreadsheet size={18} /> Importar
                     </Button>
                     <Button
                         type="button"
@@ -397,6 +418,15 @@ export default function Activos() {
                                         </button>
                                         <button
                                             type="button"
+                                            title="Diagnóstico"
+                                            aria-label={`Fichas de diagnóstico de ${asset.name}`}
+                                            onClick={() => openDiagnosis(asset)}
+                                            className="flex size-11 items-center justify-center rounded-xl text-ink-600 transition-all duration-200 hover:bg-gold-100 hover:text-forest-900 focus-visible:outline-2 focus-visible:outline-gold-600"
+                                        >
+                                            <Stethoscope size={18} />
+                                        </button>
+                                        <button
+                                            type="button"
                                             title="Editar"
                                             aria-label={`Editar ${asset.name}`}
                                             onClick={() => openEditForm(asset)}
@@ -527,6 +557,15 @@ export default function Activos() {
                                                     )}
                                                     <button
                                                         type="button"
+                                                        title="Diagnóstico"
+                                                        aria-label={`Fichas de diagnóstico de ${asset.name}`}
+                                                        onClick={() => openDiagnosis(asset)}
+                                                        className="flex size-9 items-center justify-center rounded-lg transition-all duration-200 hover:bg-gold-100 hover:text-forest-900 focus-visible:outline-2 focus-visible:outline-gold-600"
+                                                    >
+                                                        <Stethoscope size={16} />
+                                                    </button>
+                                                    <button
+                                                        type="button"
                                                         title="Editar"
                                                         aria-label={`Editar ${asset.name}`}
                                                         onClick={() => openEditForm(asset)}
@@ -579,6 +618,22 @@ export default function Activos() {
             {modal === 'form' && (
                 <CreateAssetForm asset={editingAsset} onCancel={() => setModal('')} onSaved={handleAssetSaved} />
             )}
+
+            <AssetImportModal
+                isOpen={modal === 'import'}
+                onClose={() => setModal('')}
+                onImported={reloadAssets}
+            />
+
+            <AssetDiagnosisModal
+                asset={assets.find((item) => item.id === diagnosisAsset?.id) || diagnosisAsset}
+                isOpen={modal === 'diagnosis'}
+                onClose={() => {
+                    setModal('');
+                    setDiagnosisAsset(null);
+                }}
+                onAssetChanged={reloadAssets}
+            />
 
             {/* Generador de Reportes Completos y Hoja de Vida */}
             <AssetReportModal

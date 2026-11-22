@@ -107,7 +107,8 @@ function statusTone(status) {
     status === 'ALTA' ||
     status === 'CRITICA' ||
     status === 'URGENT_CORRECTIVE' ||
-    status === 'IN_REPAIR'
+    status === 'IN_REPAIR' ||
+    status === 'OUT_OF_SERVICE'
   ) {
     return 'border-error/30 bg-error-soft text-error-text';
   }

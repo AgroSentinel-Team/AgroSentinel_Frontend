@@ -23,7 +23,9 @@ import { getPreventiveMaintenanceEvidence } from '../services/preventiveMaintena
 
 const STATUS_LABELS = {
   OPERATIONAL: 'Operativo',
+  OPERATIONAL_WITH_RESTRICTIONS: 'Operativo con restricciones',
   IN_REPAIR: 'En reparación',
+  OUT_OF_SERVICE: 'Fuera de servicio',
   OBSOLETE: 'Obsoleto',
 };
 

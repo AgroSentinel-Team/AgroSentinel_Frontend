@@ -19,8 +19,9 @@ import {
   getInventoryMovements,
   getInventoryTasks,
 } from '../../services/inventoryService';
-import { getAssets } from '../../services/assetService';
+import { canViewTechnicalReport, getAssets } from '../../services/assetService';
 import AssetReportModal from '../../components/AssetReportModal';
+import TechnicalReportPanel from '../../components/TechnicalReportPanel';
 import { Badge, Button, Card, Select } from '../../components/ui';
 
 const SECTIONS = [
@@ -412,6 +413,21 @@ export default function Reportes({ variant = 'dark', groupId, groupName, scoped 
           <ClipboardList size={16} />
           <span>Hoja de Vida y Mantenimientos por Activo</span>
         </button>
+
+        {canViewTechnicalReport() && (
+          <button
+            type="button"
+            onClick={() => setActiveTab('technical')}
+            className={`min-h-11 inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition-all duration-200 ease-out focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-600 ${
+              activeTab === 'technical'
+                ? 'bg-gold-500 text-pine-900 shadow-sm shadow-gold-600/20'
+                : 'border border-sand-200 bg-surface text-ink-600 hover:bg-sand-100'
+            }`}
+          >
+            <FileText size={16} />
+            <span>Informe técnico de maquinaria</span>
+          </button>
+        )}
       </div>
 
       {/* Alerta de Error */}
@@ -738,6 +754,9 @@ export default function Reportes({ variant = 'dark', groupId, groupName, scoped 
           </div>
         </Card>
       )}
+
+      {/* TAB 3: Informe técnico (fichas de diagnóstico, matriz y necesidades) */}
+      {activeTab === 'technical' && <TechnicalReportPanel />}
 
       {/* Modal Integral de Reporte por Activo */}
       {selectedAsset && (

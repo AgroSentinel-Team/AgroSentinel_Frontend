@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { X } from 'lucide-react';
-import { createCategory } from '../services/assetService';
+import { createCategory, getSpecPresets, saveCategorySpecTemplate } from '../services/assetService';
 
 const fieldClass =
     'mt-1 w-full rounded-lg border border-sand-200 bg-surface px-3.5 py-2.5 text-xs sm:text-sm text-ink-900 outline-none placeholder:text-ink-600 focus-visible:border-gold-600 focus:ring-1 focus-visible:ring-gold-500/25 min-h-[44px] transition-all duration-200 ease-out disabled:opacity-50 disabled:cursor-not-allowed';
@@ -21,6 +21,22 @@ export default function CreateCategoryForm({ onCreated, onCancel }) {
     const [maintenanceFrequencyDays, setMaintenanceFrequencyDays] = useState('90');
     const [error, setError] = useState('');
     const [saving, setSaving] = useState(false);
+    const [presets, setPresets] = useState([]);
+    const [presetKey, setPresetKey] = useState('');
+
+    useEffect(() => {
+        let cancelled = false;
+        getSpecPresets()
+            .then((list) => {
+                if (!cancelled) setPresets(list);
+            })
+            .catch(() => {
+                // Sin plantillas sugeridas: la categoría se crea igual y se configura después.
+            });
+        return () => {
+            cancelled = true;
+        };
+    }, []);
 
     const submit = async (event) => {
         event.preventDefault();
@@ -32,6 +48,14 @@ export default function CreateCategoryForm({ onCreated, onCancel }) {
                 description: description.trim(),
                 maintenanceFrequencyDays: Number(maintenanceFrequencyDays),
             });
+            const preset = presets.find((item) => item.key === presetKey);
+            if (preset) {
+                try {
+                    await saveCategorySpecTemplate(category.id, preset.fields);
+                } catch {
+                    // La categoría ya existe; la plantilla se puede aplicar luego desde "Datos técnicos".
+                }
+            }
             onCreated(category);
         } catch (requestError) {
             setError(describeError(requestError));
@@ -112,6 +136,28 @@ export default function CreateCategoryForm({ onCreated, onCancel }) {
                             className={fieldClass}
                         />
                     </label>
+
+                    {presets.length > 0 && (
+                        <label className="block text-xs font-medium text-ink-600">
+                            <span>Datos técnicos que se pedirán</span>
+                            <select
+                                value={presetKey}
+                                onChange={(event) => setPresetKey(event.target.value)}
+                                className={fieldClass}
+                            >
+                                <option value="">Sin plantilla (configurar después)</option>
+                                {presets.map((preset) => (
+                                    <option key={preset.key} value={preset.key}>
+                                        {preset.name}
+                                    </option>
+                                ))}
+                            </select>
+                            <span className="mt-1 block text-[11px] leading-relaxed text-ink-600">
+                                {presets.find((item) => item.key === presetKey)?.description ||
+                                    'Por ejemplo, para tractores se pide potencia, motor, transmisión y llantas.'}
+                            </span>
+                        </label>
+                    )}
 
                     {error && (
                         <p

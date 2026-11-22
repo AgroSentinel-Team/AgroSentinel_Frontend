@@ -407,7 +407,8 @@ function StatusBadge({ status, report = false }) {
         OPERATIONAL: "Operativa",
         OPERATIONAL_WITH_RESTRICTIONS: "Con restricciones",
         IN_REPAIR: "En reparación",
-        OBSOLETE: "Fuera de servicio",
+        OUT_OF_SERVICE: "Fuera de servicio",
+        OBSOLETE: "Obsoleto",
       };
 
   const tones = report
@@ -420,6 +421,7 @@ function StatusBadge({ status, report = false }) {
         OPERATIONAL: "border-forest-300/30 bg-success-soft text-forest-700",
         OPERATIONAL_WITH_RESTRICTIONS: "border-gold-600/30 bg-warning-soft text-forest-900",
         IN_REPAIR: "border-gold-600/30 bg-warning-soft text-forest-900",
+        OUT_OF_SERVICE: "border-error/30 bg-error-soft text-error-text",
         OBSOLETE: "border-sand-200/30 bg-sand-50/15 text-ink-600",
       };
 

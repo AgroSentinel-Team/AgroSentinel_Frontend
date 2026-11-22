@@ -1,3 +1,4 @@
+import { INVENTORY_CODE_STATUS_LABELS } from '../../services/assetSpecs';
 import { useEffect, useMemo, useState } from 'react';
 import {
   Activity,
@@ -35,8 +36,12 @@ const OPERATIONAL_STATUS = {
     label: 'En reparación',
     tone: 'border-warning/30 bg-warning-soft text-forest-900',
   },
-  OBSOLETE: {
+  OUT_OF_SERVICE: {
     label: 'Fuera de servicio',
+    tone: 'border-error/30 bg-error-soft text-error-text',
+  },
+  OBSOLETE: {
+    label: 'Obsoleto',
     tone: 'border-sand-200/30 bg-sand-100 text-ink-600',
   },
 };
@@ -522,16 +527,24 @@ export default function Maquinaria() {
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-3">
+                    <Info label="Tipo de equipo" value={selectedAsset.equipmentType} />
                     <Info label="Marca" value={selectedAsset.brand} />
                     <Info label="Modelo" value={selectedAsset.model} />
+                    <Info label="Año" value={selectedAsset.manufactureYear} />
                     <Info label="Serial" value={selectedAsset.serialNumber} />
-                    <Info label="Código inventario" value={selectedAsset.inventoryCode} />
+                    <Info
+                      label="Código inventario"
+                      value={selectedAsset.inventoryCode || INVENTORY_CODE_STATUS_LABELS[selectedAsset.inventoryCodeStatus]}
+                    />
+                    {(selectedAsset.specifications || []).map((spec) => (
+                      <Info key={spec.specKey} label={spec.label} value={spec.displayValue} />
+                    ))}
                     <Info label="Ubicación" value={selectedAsset.location} />
                     <Info label="Responsable" value={selectedAsset.responsibleName} />
                     <Info label="Fecha adquisición" value={formatDate(selectedAsset.acquisitionDate)} />
                     <Info label="Proveedor" value={selectedAsset.provider} />
                     <Info label="Garantía hasta" value={formatDate(selectedAsset.warrantyExpirationDate)} />
-                    <Info label="Especificaciones" value={selectedAsset.extraSpecifications} />
+                    <Info label="Observaciones" value={selectedAsset.extraSpecifications} />
                   </div>
                 </section>
 
