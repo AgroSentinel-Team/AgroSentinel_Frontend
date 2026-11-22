@@ -232,8 +232,8 @@ h3 {
 
 .agro-brand-overlay {
 	background:
-		radial-gradient(circle at 20% 0%, rgb(212 166 58 / 25%), transparent 60%),
-		var(--agro-gradient);
+		radial-gradient(circle at 20% 0%, rgb(212 166 58 / 22%), transparent 60%),
+		linear-gradient(160deg, rgb(15 46 34 / 70%) 0%, rgb(27 77 62 / 62%) 45%, rgb(15 42 68 / 72%) 100%);
 }
 
 .agro-auth-background {
@@ -269,7 +269,11 @@ h3 {
 }
 
 .agro-auth-panel {
-	background: var(--agro-gradient);
+	background-color: var(--color-forest-900);
+	background-image: url("./assets/agro-field.svg");
+	background-position: center;
+	background-repeat: no-repeat;
+	background-size: cover;
 }
 
 .agro-auth-panel h1 {
