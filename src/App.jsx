@@ -16,6 +16,7 @@ import AccesoDenegado from './pages/AccesoDenegado';
 import { ACCESS_DENIED_EVENT } from './services/apiClient';
 import NotificationInbox from './components/NotificationInbox';
 import PwaNotices from './components/PwaNotices';
+import DesktopModeNotice from './components/DesktopModeNotice';
 
 const APP_SHELL_PATHS = new Set([
   '/admin/dashboard',
@@ -188,6 +189,7 @@ export default function App({ startupError = '' }) {
           {startupError}
         </div>
       )}
+      <DesktopModeNotice />
       <OfflineStatusBar />
       <PwaNotices />
       <Suspense
