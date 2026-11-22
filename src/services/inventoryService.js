@@ -1,6 +1,6 @@
 import { apiClient, createApi } from './apiClient';
-import { cachedRequest } from './offlineApi';
-import { getAuthToken } from './sessionService';
+import { applyPendingStockUsage, cachedRequest } from './offlineApi';
+import { getAuthToken, getSessionOwnerKey } from './sessionService';
 
 const directoryApi = createApi();
 
@@ -32,11 +32,14 @@ function filterByInventoryScope(rows, groupId, scoped, resourceName) {
 }
 
 export const getInventoryItems = async (groupId, scoped = false) =>
-  cachedRequest(`inventory-items:${scoped ? groupId ?? 'central' : 'all'}`, async () =>
-    filterByInventoryScope((await apiClient.get('/inventory/items', {
-    ...authConfig(),
-    params: groupScopeParams(groupId, scoped),
-  })).data, groupId, scoped, 'inventario'));
+  applyPendingStockUsage(
+    getSessionOwnerKey(),
+    await cachedRequest(`inventory-items:${scoped ? groupId ?? 'central' : 'all'}`, async () =>
+      filterByInventoryScope((await apiClient.get('/inventory/items', {
+        ...authConfig(),
+        params: groupScopeParams(groupId, scoped),
+      })).data, groupId, scoped, 'inventario')),
+  );
 
 export const registerInventoryMovement = async (itemId, movement, groupId, scoped = false) =>
   (await apiClient.post(`/inventory/${itemId}/movements`, {

@@ -3,6 +3,7 @@ import {
   Activity,
   AlertTriangle,
   Check,
+  CloudCheck,
   Layers,
   Package,
   Clock3,
@@ -28,6 +29,10 @@ import {
   getAllWorkGroups,
 } from '../../services/inventoryService';
 import PaginationControls from '../../components/PaginationControls';
+import WorkPackageStatus from '../../components/WorkPackageStatus';
+import useWorkPackage from '../../hooks/useWorkPackage';
+import useFormDraft from '../../hooks/useFormDraft';
+import { WORK_PACKAGE_CHANGED_EVENT } from '../../services/workPackageService';
 import usePagination from '../../hooks/usePagination';
 
 const equipmentStates = [
@@ -50,12 +55,21 @@ const localDateTime = (value) => (value ? value.slice(0, 16) : '');
 
 const localDateTimePayload = (value) => (value ? `${value}:00` : null);
 
+const PARTIAL_ORDERS_MESSAGE =
+  'Algunas órdenes no están disponibles sin conexión. Descarga tus órdenes cuando tengas internet.';
+
+// Si falta una de las dos listas (fallas o preventivos), se muestra la otra.
 async function fetchOrders() {
-  const [failures, preventive] = await Promise.all([
+  const results = await Promise.allSettled([
     getAssignedFailureReports(),
     getPreventiveMaintenances(),
   ]);
-  return [
+  const failed = results.filter((result) => result.status === 'rejected');
+  if (failed.length === results.length) throw failed[0].reason;
+  const [failures, preventive] = results.map((result) =>
+    result.status === 'fulfilled' && Array.isArray(result.value) ? result.value : [],
+  );
+  const orders = [
     ...failures
       .filter((item) => item.estado !== 'RESUELTO')
       .map((item) => ({ ...item, kind: 'failure' })),
@@ -69,12 +83,14 @@ async function fetchOrders() {
       new Date(b.fechaReporte || b.scheduledAt || 0) -
       new Date(a.fechaReporte || a.scheduledAt || 0),
   );
+  orders.partial = failed.length > 0;
+  return orders;
 }
 
 function InterventionForm({ report, assetResume, onClose, onSaved }) {
   const currentName =
     localStorage.getItem('nombre') || report.assignedTechnicianName || '';
-  const [form, setForm] = useState({
+  const buildInitialForm = () => ({
     equipmentIntervened: [
       report.assetName,
       report.assetBrand,
@@ -100,6 +116,7 @@ function InterventionForm({ report, assetResume, onClose, onSaved }) {
     receivedBy: '',
     horometerReading: '',
   });
+  const [form, setForm] = useState(buildInitialForm);
   const [parts, setParts] = useState([]);
   const [technicianGroups, setTechnicianGroups] = useState([]);
   const [allZones, setAllZones] = useState([]);
@@ -115,6 +132,20 @@ function InterventionForm({ report, assetResume, onClose, onSaved }) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [evidences, setEvidences] = useState([]);
+
+  // Borrador automático: si la app se cierra a mitad del formulario, se retoma aquí.
+  const draftValue = useMemo(() => ({ form, parts, evidences }), [form, parts, evidences]);
+  const draft = useFormDraft(`failure-intervention:${report.id}`, draftValue, (saved) => {
+    if (saved?.form) setForm((current) => ({ ...current, ...saved.form }));
+    if (Array.isArray(saved?.parts)) setParts(saved.parts);
+    if (Array.isArray(saved?.evidences)) setEvidences(saved.evidences);
+  });
+  const discardDraft = async () => {
+    await draft.discard();
+    setForm(buildInitialForm());
+    setParts([]);
+    setEvidences([]);
+  };
 
   const change = (event) =>
     setForm((current) => ({
@@ -266,7 +297,7 @@ function InterventionForm({ report, assetResume, onClose, onSaved }) {
     setError('');
     setSaving(true);
     try {
-      await saveFailureIntervention(report.id, {
+      const result = await saveFailureIntervention(report.id, {
         ...form,
         reportedAt: localDateTimePayload(form.reportedAt),
         inspectionStartedAt: localDateTimePayload(form.inspectionStartedAt),
@@ -275,8 +306,10 @@ function InterventionForm({ report, assetResume, onClose, onSaved }) {
         pendingTasks: form.pendingTasks || null,
         receivedBy: form.receivedBy || null,
         horometerReading: form.horometerReading === '' ? null : Number(form.horometerReading),
+        completedAt: new Date().toISOString(),
       }, evidences);
-      onSaved();
+      await draft.clear();
+      onSaved(result);
     } catch (requestError) {
       setError(
         requestError.response?.data?.message ||
@@ -289,17 +322,17 @@ function InterventionForm({ report, assetResume, onClose, onSaved }) {
   };
 
   const fieldClass =
-    'w-full min-h-[44px] rounded-lg border border-[#30485a] bg-[#0b1d2b] px-3.5 py-2.5 text-xs sm:text-sm text-white placeholder:text-slate-500 outline-none transition focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/50';
+    'w-full min-h-[44px] rounded-lg border border-sand-200 bg-sand-50 px-3.5 py-2.5 text-xs sm:text-sm text-ink-900 placeholder:text-ink-600 outline-none transition-all duration-200 ease-out focus:border-gold-600 focus:ring-1 focus:ring-gold-500/25';
 
   const textField = (
     name,
     label,
     { type = 'text', required = true } = {},
   ) => (
-    <label className="block space-y-1.5 text-xs font-semibold text-slate-300">
+    <label className="block space-y-1.5 text-xs font-semibold text-ink-600">
       <span>
         {label}
-        {required && <span className="text-cyan-400 ml-0.5">*</span>}
+        {required && <span className="text-ocean-700 ml-0.5">*</span>}
       </span>
       <input
         className={fieldClass}
@@ -313,10 +346,10 @@ function InterventionForm({ report, assetResume, onClose, onSaved }) {
   );
 
   const textArea = (name, label, { required = true } = {}) => (
-    <label className="block space-y-1.5 text-xs font-semibold text-slate-300">
+    <label className="block space-y-1.5 text-xs font-semibold text-ink-600">
       <span>
         {label}
-        {required && <span className="text-cyan-400 ml-0.5">*</span>}
+        {required && <span className="text-ocean-700 ml-0.5">*</span>}
       </span>
       <textarea
         className={`${fieldClass} min-h-[90px] leading-relaxed`}
@@ -330,19 +363,19 @@ function InterventionForm({ report, assetResume, onClose, onSaved }) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-xs p-3 sm:p-6 overflow-y-auto"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-pine-900/35 backdrop-blur-xs p-3 sm:p-6 overflow-y-auto"
       role="dialog"
       aria-modal="true"
       aria-labelledby="intervention-title"
     >
       <form
         onSubmit={submit}
-        className="max-h-[92vh] w-full max-w-4xl overflow-y-auto rounded-xl border border-[#30485a] bg-[#13293a] p-4 sm:p-6 shadow-2xl space-y-6 text-white min-w-0"
+        className="max-h-[92vh] w-full max-w-4xl overflow-y-auto rounded-xl border border-sand-200 bg-sand-50 p-4 sm:p-6 shadow-2xl space-y-6 text-ink-900 min-w-0"
       >
         {/* Encabezado Modal */}
-        <div className="flex items-start justify-between gap-4 border-b border-white/10 pb-4">
+        <div className="flex items-start justify-between gap-4 border-b border-sand-200 pb-4">
           <div>
-            <div className="flex items-center gap-2 text-cyan-300">
+            <div className="flex items-center gap-2 text-ocean-700">
               <Wrench size={18} />
               <span className="text-xs font-bold uppercase tracking-wider">
                 Intervención Técnica
@@ -350,27 +383,46 @@ function InterventionForm({ report, assetResume, onClose, onSaved }) {
             </div>
             <h2
               id="intervention-title"
-              className="mt-1 text-base sm:text-xl font-bold text-white"
+              className="mt-1 text-base sm:text-xl font-bold text-ink-900"
             >
               Revisión de falla F-{report.id}
             </h2>
-            <p className="mt-0.5 text-xs text-slate-400">
+            <p className="mt-0.5 text-xs text-ink-600">
               Completa la intervención; los datos precargados se pueden editar.
+              Tu avance se guarda automáticamente en el dispositivo.
             </p>
+            {draft.restoredAt && (
+              <p
+                role="status"
+                className="mt-2 flex flex-wrap items-center gap-2 rounded-lg border border-success/20 bg-success-soft px-3 py-2 text-xs text-forest-700"
+              >
+                <span>
+                  Se recuperó tu avance guardado el{' '}
+                  {new Date(draft.restoredAt).toLocaleString('es-CO')}.
+                </span>
+                <button
+                  type="button"
+                  onClick={discardDraft}
+                  className="font-semibold underline underline-offset-2"
+                >
+                  Empezar de cero
+                </button>
+              </p>
+            )}
           </div>
           <button
             type="button"
             onClick={onClose}
             aria-label="Cerrar modal"
-            className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-white/10 hover:text-white transition-colors shrink-0"
+            className="flex h-8 w-8 items-center justify-center rounded-lg text-ink-600 hover:bg-sand-100 hover:text-ink-900 transition-all duration-200 ease-out shrink-0"
           >
             <X size={20} />
           </button>
         </div>
 
         {/* Ficha Técnica e Historial */}
-        <section className="rounded-xl border border-[#2d4055] bg-[#0d2030] p-4 sm:p-5 shadow-inner space-y-4">
-          <div className="flex items-center gap-2 text-cyan-300 border-b border-white/5 pb-2">
+        <section className="rounded-xl border border-sand-200 bg-sand-50 p-4 sm:p-5 shadow-inner space-y-4">
+          <div className="flex items-center gap-2 text-ocean-700 border-b border-sand-200/70 pb-2">
             <FileText size={16} />
             <h3 className="text-xs sm:text-sm font-bold uppercase tracking-wider">
               Ficha Técnica del Activo
@@ -378,67 +430,67 @@ function InterventionForm({ report, assetResume, onClose, onSaved }) {
           </div>
 
           {assetResume?.asset ? (
-            <dl className="grid grid-cols-2 gap-2 text-[10px] sm:gap-3 sm:text-xs">
-              <div className="rounded-lg bg-[#102a3d] p-2.5 border border-white/5">
-                <dt className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+            <dl className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[10px] sm:gap-3 sm:text-xs">
+              <div className="rounded-lg bg-sand-50 p-2.5 border border-sand-200/70">
+                <dt className="text-[10px] font-bold uppercase tracking-wider text-ink-600">
                   Activo
                 </dt>
-                <dd className="mt-0.5 font-bold text-white">
+                <dd className="mt-0.5 font-bold text-ink-900">
                   {assetResume.asset.name || '—'}
                 </dd>
               </div>
 
-              <div className="rounded-lg bg-[#102a3d] p-2.5 border border-white/5">
-                <dt className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+              <div className="rounded-lg bg-sand-50 p-2.5 border border-sand-200/70">
+                <dt className="text-[10px] font-bold uppercase tracking-wider text-ink-600">
                   Marca / Modelo
                 </dt>
-                <dd className="mt-0.5 font-medium text-slate-200">
+                <dd className="mt-0.5 font-medium text-ink-900">
                   {[assetResume.asset.brand, assetResume.asset.model]
                     .filter(Boolean)
                     .join(' / ') || '—'}
                 </dd>
               </div>
 
-              <div className="rounded-lg bg-[#102a3d] p-2.5 border border-white/5">
-                <dt className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+              <div className="rounded-lg bg-sand-50 p-2.5 border border-sand-200/70">
+                <dt className="text-[10px] font-bold uppercase tracking-wider text-ink-600">
                   Serie / Inventario
                 </dt>
-                <dd className="mt-0.5 font-mono text-slate-200">
+                <dd className="mt-0.5 font-mono text-ink-900">
                   {[assetResume.asset.serialNumber, assetResume.asset.inventoryCode]
                     .filter(Boolean)
                     .join(' / ') || '—'}
                 </dd>
               </div>
 
-              <div className="rounded-lg bg-[#102a3d] p-2.5 border border-white/5">
-                <dt className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+              <div className="rounded-lg bg-sand-50 p-2.5 border border-sand-200/70">
+                <dt className="text-[10px] font-bold uppercase tracking-wider text-ink-600">
                   Ubicación / Estado
                 </dt>
-                <dd className="mt-0.5 font-medium text-slate-200">
+                <dd className="mt-0.5 font-medium text-ink-900">
                   {[assetResume.asset.location, assetResume.asset.operationalStatus]
                     .filter(Boolean)
                     .join(' / ') || '—'}
                 </dd>
               </div>
 
-              <div className="rounded-lg bg-[#102a3d] p-2.5 border border-white/5 sm:col-span-2">
-                <dt className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+              <div className="rounded-lg bg-sand-50 p-2.5 border border-sand-200/70 sm:col-span-2">
+                <dt className="text-[10px] font-bold uppercase tracking-wider text-ink-600">
                   Especificaciones
                 </dt>
-                <dd className="mt-0.5 text-slate-300 leading-relaxed">
+                <dd className="mt-0.5 text-ink-600 leading-relaxed">
                   {assetResume.asset.extraSpecifications ||
                     'Sin especificaciones registradas.'}
                 </dd>
               </div>
             </dl>
           ) : (
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-ink-600">
               No hay ficha técnica disponible para este activo.
             </p>
           )}
 
-          <div className="space-y-2 pt-2 border-t border-white/5">
-            <h4 className="text-xs font-bold text-slate-300">
+          <div className="space-y-2 pt-2 border-t border-sand-200/70">
+            <h4 className="text-xs font-bold text-ink-600">
               Hoja de vida ({assetResume?.maintenanceHistory?.length || 0}{' '}
               registros)
             </h4>
@@ -447,20 +499,20 @@ function InterventionForm({ report, assetResume, onClose, onSaved }) {
                 {assetResume.maintenanceHistory.map((record) => (
                   <details
                     key={record.id}
-                    className="group rounded-lg border border-[#30485a] bg-[#102a3d] p-3 text-xs"
+                    className="group rounded-lg border border-sand-200 bg-sand-50 p-3 text-xs"
                   >
-                    <summary className="cursor-pointer font-bold text-cyan-300 hover:text-cyan-200 transition-colors list-none flex items-center justify-between">
+                    <summary className="cursor-pointer font-bold text-ocean-700 hover:text-ocean-700 transition-all duration-200 ease-out list-none flex items-center justify-between">
                       <span>
                         {record.type || 'Mantenimiento'} ·{' '}
                         {record.executedAt
                           ? new Date(record.executedAt).toLocaleString('es-CO')
                           : 'Sin fecha de ejecución'}
                       </span>
-                      <span className="text-[10px] uppercase font-semibold text-slate-400 group-open:rotate-180 transition-transform">
+                      <span className="text-[10px] uppercase font-semibold text-ink-600 group-open:rotate-180 transition-transform">
                         ▼
                       </span>
                     </summary>
-                    <dl className="mt-3 grid grid-cols-2 gap-2 text-[10px] sm:text-xs pt-2 border-t border-white/5">
+                    <dl className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2 text-[10px] sm:text-xs pt-2 border-t border-sand-200/70">
                       {[
                         ['Técnico', record.technicianName],
                         [
@@ -494,12 +546,12 @@ function InterventionForm({ report, assetResume, onClose, onSaved }) {
                       ].map(([label, value]) => (
                         <div
                           key={label}
-                          className="rounded bg-[#0d2030] p-2 border border-white/5"
+                          className="rounded bg-sand-50 p-2 border border-sand-200/70"
                         >
-                          <dt className="text-[10px] font-bold uppercase text-slate-400">
+                          <dt className="text-[10px] font-bold uppercase text-ink-600">
                             {label}
                           </dt>
-                          <dd className="mt-0.5 whitespace-pre-wrap text-slate-200 font-medium">
+                          <dd className="mt-0.5 whitespace-pre-wrap text-ink-900 font-medium">
                             {value || 'No registrado'}
                           </dd>
                         </div>
@@ -509,7 +561,7 @@ function InterventionForm({ report, assetResume, onClose, onSaved }) {
                 ))}
               </div>
             ) : (
-              <p className="text-xs text-slate-500 italic">
+              <p className="text-xs text-ink-600 italic">
                 Aún no hay mantenimientos registrados para este activo.
               </p>
             )}
@@ -518,13 +570,13 @@ function InterventionForm({ report, assetResume, onClose, onSaved }) {
 
         {/* Sección 1 */}
         <section className="space-y-3">
-          <h3 className="text-xs font-bold uppercase tracking-wider text-cyan-300 border-b border-white/10 pb-1.5">
+          <h3 className="text-xs font-bold uppercase tracking-wider text-ocean-700 border-b border-sand-200 pb-1.5">
             1. Identificación y reporte inicial
           </h3>
-          <p className="text-xs text-slate-400">
+          <p className="text-xs text-ink-600">
             Última lectura del horómetro: {assetResume?.asset?.currentHorometer ?? 0} h
           </p>
-          <div className="grid grid-cols-2 gap-2 sm:gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4">
             {textField('equipmentIntervened', 'Equipo intervenido')}
             {textField('horometerReading', 'Lectura actual del horómetro (h)', { type: 'number', required: false })}
             {textField('reportedAt', 'Fecha y hora de reporte', {
@@ -539,10 +591,10 @@ function InterventionForm({ report, assetResume, onClose, onSaved }) {
 
         {/* Sección 2 */}
         <section className="space-y-3">
-          <h3 className="text-xs font-bold uppercase tracking-wider text-cyan-300 border-b border-white/10 pb-1.5">
+          <h3 className="text-xs font-bold uppercase tracking-wider text-ocean-700 border-b border-sand-200 pb-1.5">
             2. Diagnóstico y causa
           </h3>
-          <div className="grid grid-cols-2 gap-2 sm:gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4">
             {textArea('actualFailure', 'Falla real encontrada')}
             {textArea('rootCause', 'Causa raíz')}
           </div>
@@ -550,16 +602,16 @@ function InterventionForm({ report, assetResume, onClose, onSaved }) {
 
         {/* Sección 3 */}
         <section className="space-y-3">
-          <h3 className="text-xs font-bold uppercase tracking-wider text-cyan-300 border-b border-white/10 pb-1.5">
+          <h3 className="text-xs font-bold uppercase tracking-wider text-ocean-700 border-b border-sand-200 pb-1.5">
             3. Acciones ejecutadas
           </h3>
           {textArea('tasksPerformed', 'Tareas realizadas')}
-          <div className="grid grid-cols-2 gap-2 sm:gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4">
             {textField('workMinutes', 'Tiempo efectivo (minutos)', {
               type: 'number',
             })}
           </div>
-          <label className="block space-y-1.5 text-xs font-semibold text-slate-300">
+          <label className="block space-y-1.5 text-xs font-semibold text-ink-600">
             <span>Evidencia fotográfica (hasta 10 imágenes, máximo 10 MB por imagen)</span>
             <input
               type="file"
@@ -579,52 +631,52 @@ function InterventionForm({ report, assetResume, onClose, onSaved }) {
               className={fieldClass}
             />
             {evidences.length > 0 && (
-              <span className="block text-[11px] font-normal text-slate-400">
+              <span className="block text-[11px] font-normal text-ink-600">
                 {evidences.map((file) => file.name).join(' · ')}
               </span>
             )}
           </label>
 
           {/* Selector Controlado de Repuestos e Insumos */}
-          <div className="space-y-4 rounded-xl border border-[#30485a] bg-[#0d2030] p-4 sm:p-5">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/10 pb-3">
+          <div className="space-y-4 rounded-xl border border-sand-200 bg-sand-50 p-4 sm:p-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-sand-200 pb-3">
               <div>
-                <p className="text-xs font-bold uppercase tracking-wider text-cyan-300 flex items-center gap-2">
+                <p className="text-xs font-bold uppercase tracking-wider text-ocean-700 flex items-center gap-2">
                   <Package size={16} />
                   <span>Repuestos e Insumos Utilizados</span>
                 </p>
-                <p className="mt-0.5 text-[11px] text-slate-400">
+                <p className="mt-0.5 text-[11px] text-ink-600">
                   Selecciona piezas de tu inventario o solicita insumos a otra zona/bodega externa.
                 </p>
               </div>
 
               {/* Interruptor Repuesto de Otra Zona */}
-              <label className="inline-flex items-center gap-2.5 cursor-pointer bg-[#102a3d] px-3 py-1.5 rounded-lg border border-white/10 hover:border-cyan-400/40 transition-colors">
+              <label className="inline-flex items-center gap-2.5 cursor-pointer bg-sand-50 px-3 py-1.5 rounded-lg border border-sand-200 hover:border-ocean-300/60 transition-all duration-200 ease-out">
                 <input
                   type="checkbox"
                   checked={isExternalZone}
                   onChange={(e) => setIsExternalZone(e.target.checked)}
-                  className="h-4 w-4 rounded accent-cyan-500 cursor-pointer"
+                  className="h-4 w-4 rounded accent-gold-500 cursor-pointer"
                 />
-                <span className="text-xs font-semibold text-slate-200">
+                <span className="text-xs font-semibold text-ink-900">
                   Repuesto de otra zona o bodega externa
                 </span>
               </label>
             </div>
 
             {loadingGroups && (
-              <p className="text-xs text-slate-400">Cargando tus grupos y bodegas disponibles…</p>
+              <p className="text-xs text-ink-600">Cargando tus grupos y bodegas disponibles…</p>
             )}
             {groupError && (
-              <p role="alert" className="rounded-lg border border-amber-400/30 bg-amber-500/10 p-2.5 text-xs text-amber-200">
+              <p role="alert" className="rounded-lg border border-warning/30 bg-warning-soft p-2.5 text-xs text-forest-900">
                 No se pudo consultar toda la lista de zonas: {groupError}
               </p>
             )}
 
             {/* Zona seleccionada / Desplegable de Bodega Externa */}
             {isExternalZone ? (
-              <div className="rounded-lg border border-amber-400/30 bg-amber-500/10 p-3 space-y-2">
-                <div className="flex items-center gap-2 text-amber-300 text-xs font-bold">
+              <div className="rounded-lg border border-warning/30 bg-warning-soft p-3 space-y-2">
+                <div className="flex items-center gap-2 text-forest-900 text-xs font-bold">
                   <Layers size={14} />
                   <span>Bodega o Zona Externa de Origen:</span>
                 </div>
@@ -643,16 +695,16 @@ function InterventionForm({ report, assetResume, onClose, onSaved }) {
                     ))}
                 </select>
                 {!loadingGroups && allZones.length === 0 && (
-                  <p className="text-[11px] text-amber-200">
+                  <p className="text-[11px] text-forest-900">
                     No hay otras zonas disponibles además de la bodega central.
                   </p>
                 )}
               </div>
             ) : (
-              <div className="flex items-center gap-2 text-xs text-slate-300 bg-[#102a3d] p-2.5 rounded-lg border border-white/5">
-                <Check size={14} className="text-cyan-400 shrink-0" />
+              <div className="flex items-center gap-2 text-xs text-ink-600 bg-sand-50 p-2.5 rounded-lg border border-sand-200/70">
+                <Check size={14} className="text-ocean-700 shrink-0" />
                 <span>
-                  Consultando catálogo de tu grupo asignado: <strong className="text-cyan-300">{primaryGroup?.name || "Mi Grupo de Trabajo"}</strong>
+                  Consultando catálogo de tu grupo asignado: <strong className="text-ocean-700">{primaryGroup?.name || "Mi Grupo de Trabajo"}</strong>
                 </span>
               </div>
             )}
@@ -661,7 +713,7 @@ function InterventionForm({ report, assetResume, onClose, onSaved }) {
             <div className="space-y-3">
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div className="sm:col-span-2">
-                  <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                  <label className="block text-xs font-semibold text-ink-600 mb-1.5">
                     Pieza / Repuesto disponible ({availableItems.length} insumos)
                   </label>
                   <select
@@ -682,7 +734,9 @@ function InterventionForm({ report, assetResume, onClose, onSaved }) {
                           value={itm.id}
                           disabled={isOutOfStock}
                         >
-                          {itm.name || itm.item} [{itm.category || "General"}] · Stock: {itm.stock} {itm.unit} {isOutOfStock ? "(Agotado)" : ""}
+                          {itm.name || itm.item} [{itm.category || "General"}] · Stock: {itm.stock} {itm.unit}
+                          {itm.pendingReservedQuantity ? ` (${itm.pendingReservedQuantity} apartado sin enviar)` : ""}
+                          {isOutOfStock ? " (Agotado)" : ""}
                         </option>
                       );
                     })}
@@ -690,7 +744,7 @@ function InterventionForm({ report, assetResume, onClose, onSaved }) {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                  <label className="block text-xs font-semibold text-ink-600 mb-1.5">
                     Cantidad a usar {selectedItem ? "(" + selectedItem.unit + ")" : ""}
                   </label>
                   <input
@@ -712,19 +766,25 @@ function InterventionForm({ report, assetResume, onClose, onSaved }) {
 
               {/* Información de Stock y Alertas */}
               {selectedItem && (
-                <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-[#102a3d] p-2.5 text-xs border border-white/5">
-                  <div className="flex items-center gap-2">
-                    <span className="text-slate-400">Stock total: <strong>{selectedItem.stock} {selectedItem.unit}</strong></span>
-                    <span className="text-slate-500">·</span>
-                    <span className="text-cyan-300 font-bold">Disponible para esta orden: {currentAvailableStock} {selectedItem.unit}</span>
+                <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-sand-50 p-2.5 text-xs border border-sand-200/70">
+                  <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                    <span className="text-ink-600">Stock total: <strong>{selectedItem.stock} {selectedItem.unit}</strong></span>
+                    <span className="text-ink-600">·</span>
+                    <span className="text-ocean-700 font-bold">Disponible para esta orden: {currentAvailableStock} {selectedItem.unit}</span>
+                    {selectedItem.pendingReservedQuantity > 0 && (
+                      <span className="w-full text-ink-600">
+                        Ya se descontaron {selectedItem.pendingReservedQuantity} {selectedItem.unit} usados en
+                        intervenciones que aún no se envían.
+                      </span>
+                    )}
                   </div>
-                  <span className="text-slate-400 font-mono text-[11px]">Categoría: {selectedItem.category || "General"}</span>
+                  <span className="text-ink-600 font-mono text-[11px]">Categoría: {selectedItem.category || "General"}</span>
                 </div>
               )}
 
               {partSelectionError && (
-                <div className="flex items-center gap-2 rounded-lg border border-red-500/30 bg-red-500/10 p-2.5 text-xs text-red-200">
-                  <AlertTriangle size={14} className="shrink-0 text-red-400" />
+                <div className="flex items-center gap-2 rounded-lg border border-error/20 bg-error-soft p-2.5 text-xs text-error-text">
+                  <AlertTriangle size={14} className="shrink-0 text-error-text" />
                   <span>{partSelectionError}</span>
                 </div>
               )}
@@ -733,7 +793,7 @@ function InterventionForm({ report, assetResume, onClose, onSaved }) {
                 type="button"
                 onClick={addPart}
                 disabled={!selectedItem || !partQuantity || Number(partQuantity) <= 0}
-                className="inline-flex min-h-[38px] items-center gap-1.5 rounded-lg border border-cyan-400/30 bg-cyan-500/15 px-3.5 py-1.5 text-xs font-bold text-cyan-200 hover:bg-cyan-500/25 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="inline-flex min-h-[38px] items-center gap-1.5 rounded-lg border border-ocean-300/60 bg-info-soft px-3.5 py-1.5 text-xs font-bold text-ocean-700 hover:bg-ocean-300/30 transition-all duration-200 ease-out disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Plus size={14} />
                 <span>Agregar repuesto a la intervención</span>
@@ -742,32 +802,32 @@ function InterventionForm({ report, assetResume, onClose, onSaved }) {
 
             {/* Lista de Repuestos Utilizados en esta Intervención */}
             {parts.length > 0 && (
-              <div className="space-y-2 pt-3 border-t border-white/10">
-                <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+              <div className="space-y-2 pt-3 border-t border-sand-200">
+                <p className="text-[11px] font-bold uppercase tracking-wider text-ink-600">
                   Repuestos registrados en esta intervención ({parts.length}):
                 </p>
                 <div className="space-y-2">
                   {parts.map((part, index) => (
                     <div
                       key={"part-" + part.itemId + "-" + index}
-                      className="flex items-center justify-between rounded-lg bg-[#102a3d] p-3 border border-white/5 text-xs text-slate-200"
+                      className="flex items-center justify-between rounded-lg bg-sand-50 p-3 border border-sand-200/70 text-xs text-ink-900"
                     >
                       <div className="space-y-1">
                         <div className="flex items-center gap-2">
-                          <strong className="text-white font-medium">{part.name}</strong>
-                          <span className="font-mono text-[11px] text-slate-400">({part.partNumber})</span>
+                          <strong className="text-ink-900 font-medium">{part.name}</strong>
+                          <span className="font-mono text-[11px] text-ink-600">({part.partNumber})</span>
                           <span
                             className={"rounded-full px-2 py-0.5 text-[10px] font-semibold " + (
                               part.isExternal
-                                ? "bg-amber-500/15 text-amber-300 border border-amber-500/30"
-                                : "bg-cyan-500/15 text-cyan-300 border border-cyan-500/30"
+                                ? "bg-warning-soft text-forest-900 border border-warning/30"
+                                : "bg-info-soft text-ocean-700 border border-ocean-300/60"
                             )}
                           >
                             {part.isExternal ? ("Origen: " + part.sourceZoneName) : "Grupo Propio"}
                           </span>
                         </div>
-                        <p className="text-xs text-slate-300">
-                          Cantidad a descontar: <strong className="text-cyan-300 font-mono">{part.quantity} {part.unit}</strong>
+                        <p className="text-xs text-ink-600">
+                          Cantidad a descontar: <strong className="text-ocean-700 font-mono">{part.quantity} {part.unit}</strong>
                         </p>
                       </div>
                       <button
@@ -778,7 +838,7 @@ function InterventionForm({ report, assetResume, onClose, onSaved }) {
                           )
                         }
                         title="Quitar repuesto"
-                        className="text-red-300 hover:text-red-100 hover:bg-red-500/20 rounded p-1.5 transition-colors"
+                        className="text-error-text hover:text-error-text hover:bg-error/20 rounded p-1.5 transition-all duration-200 ease-out"
                       >
                         <Trash2 size={16} />
                       </button>
@@ -792,13 +852,13 @@ function InterventionForm({ report, assetResume, onClose, onSaved }) {
 
         {/* Sección 4 */}
         <section className="space-y-3">
-          <h3 className="text-xs font-bold uppercase tracking-wider text-cyan-300 border-b border-white/10 pb-1.5">
+          <h3 className="text-xs font-bold uppercase tracking-wider text-ocean-700 border-b border-sand-200 pb-1.5">
             4. Pruebas y estado final
           </h3>
           {textArea('testsPerformed', 'Pruebas realizadas')}
-          <label className="block space-y-1.5 text-xs font-semibold text-slate-300">
+          <label className="block space-y-1.5 text-xs font-semibold text-ink-600">
             <span>
-              Estado final del equipo <span className="text-cyan-400">*</span>
+              Estado final del equipo <span className="text-ocean-700">*</span>
             </span>
             <select
               className={fieldClass}
@@ -819,10 +879,10 @@ function InterventionForm({ report, assetResume, onClose, onSaved }) {
 
         {/* Sección 5 */}
         <section className="space-y-3">
-          <h3 className="text-xs font-bold uppercase tracking-wider text-cyan-300 border-b border-white/10 pb-1.5">
+          <h3 className="text-xs font-bold uppercase tracking-wider text-ocean-700 border-b border-sand-200 pb-1.5">
             5. Recomendaciones y cierre
           </h3>
-          <div className="grid grid-cols-2 gap-2 sm:gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4">
             {textArea('recommendations', 'Recomendaciones')}
             {textArea('pendingTasks', 'Tareas pendientes', {
               required: false,
@@ -838,25 +898,25 @@ function InterventionForm({ report, assetResume, onClose, onSaved }) {
         {error && (
           <div
             role="alert"
-            className="rounded-lg border border-red-500/30 bg-red-500/10 p-3.5 text-xs text-red-200"
+            className="rounded-lg border border-error/20 bg-error-soft p-3.5 text-xs text-error-text"
           >
             {error}
           </div>
         )}
 
         {/* Acciones Modal */}
-        <div className="flex flex-col sm:flex-row items-center justify-end gap-2.5 pt-4 border-t border-white/10">
+        <div className="flex flex-col sm:flex-row items-center justify-end gap-2.5 pt-4 border-t border-sand-200">
           <button
             type="button"
             onClick={onClose}
-            className="flex min-h-[44px] w-full sm:w-auto items-center justify-center rounded-lg border border-white/10 bg-[#163044] px-5 text-xs font-bold uppercase tracking-wider text-slate-200 hover:bg-white/10 transition-colors"
+            className="flex min-h-[44px] w-full sm:w-auto items-center justify-center rounded-lg border border-sand-200 bg-sand-50 px-5 text-xs font-bold uppercase tracking-wider text-ink-900 hover:bg-sand-100 transition-all duration-200 ease-out"
           >
             Cancelar
           </button>
           <button
             type="submit"
             disabled={saving}
-            className="flex min-h-[44px] w-full sm:w-auto items-center justify-center gap-2 rounded-lg bg-cyan-600 px-6 text-xs font-bold uppercase tracking-wider text-white hover:bg-cyan-500 transition-colors disabled:opacity-50 shadow-lg shadow-cyan-950/40"
+            className="flex min-h-[44px] w-full sm:w-auto items-center justify-center gap-2 rounded-lg bg-gold-500 px-6 text-xs font-bold uppercase tracking-wider text-pine-900 hover:bg-gold-600 transition-all duration-200 ease-out disabled:opacity-50 shadow-lg shadow-gold-600/20"
           >
             {saving ? (
               <>
@@ -873,42 +933,65 @@ function InterventionForm({ report, assetResume, onClose, onSaved }) {
   );
 }
 
-function OrderCard({ item, onStart, busy }) {
+function OrderCard({ item, onStart, busy, offlineReady }) {
   const isFailure = item.kind === 'failure';
   return (
-    <article className="rounded-xl border border-[#30485a] bg-[#102a3d] p-4 shadow-md transition-all hover:border-[#42617a] space-y-3">
+    <article className="rounded-xl border border-sand-200 bg-sand-50 p-4 shadow-md transition-all hover:border-sand-200 space-y-3">
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="font-mono text-xs font-bold text-cyan-300">
+            <span className="font-mono text-xs font-bold text-ocean-700">
               {isFailure ? `F-${item.id}` : `MP-${item.id}`}
             </span>
-            <span className="text-xs sm:text-sm font-bold text-white">
+            <span className="text-xs sm:text-sm font-bold text-ink-900">
               {item.assetName || 'Activo sin nombre'}
             </span>
-            <span className="inline-flex rounded-full border border-cyan-400/30 bg-cyan-500/15 px-2.5 py-0.5 text-xs font-semibold text-cyan-300">
-              {item.localSyncPending
+            <span
+              title={item.syncConflict || undefined}
+              className={`inline-flex rounded-full border px-2.5 py-0.5 text-xs font-semibold ${
+                item.syncConflict
+                  ? 'border-error/30 bg-error-soft text-error-text'
+                  : 'border-ocean-300/60 bg-info-soft text-ocean-700'
+              }`}
+            >
+              {item.syncConflict
+                ? 'RECHAZADA AL SINCRONIZAR'
+                : item.localSyncPending
                 ? 'PENDIENTE DE SINCRONIZACIÓN'
                 : item.reviewStartPending
                   ? 'INICIO DE REVISIÓN PENDIENTE'
                 : FAILURE_STATUS_LABELS[item.estado] || item.estado || item.status}
             </span>
             {item.groupName && (
-              <span className="inline-flex rounded-full border border-slate-500/30 bg-slate-500/15 px-2.5 py-0.5 text-xs font-semibold text-slate-300">
+              <span className="inline-flex rounded-full border border-sand-200/30 bg-sand-100 px-2.5 py-0.5 text-xs font-semibold text-ink-600">
                 Grupo: {item.groupName}
               </span>
             )}
+            {offlineReady && (
+              <span
+                title="Esta orden y su ficha están guardadas en el dispositivo"
+                className="inline-flex items-center gap-1 rounded-full border border-success/20 bg-success-soft px-2.5 py-0.5 text-xs font-semibold text-forest-700"
+              >
+                <CloudCheck size={13} aria-hidden="true" />
+                Disponible sin conexión
+              </span>
+            )}
           </div>
-          <p className="mt-1.5 text-xs text-slate-300 leading-relaxed">
+          {item.syncConflict && (
+            <p className="mt-1.5 text-xs font-semibold text-error-text">
+              {item.syncConflict} · Revísala en la barra superior, en “Revisar”.
+            </p>
+          )}
+          <p className="mt-1.5 text-xs text-ink-600 leading-relaxed">
             {item.descripcion ||
               item.workDescription ||
               'Mantenimiento preventivo programado'}
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center justify-between lg:justify-end gap-3 pt-2 lg:pt-0 border-t lg:border-t-0 border-white/5">
-          <span className="inline-flex items-center gap-1.5 font-mono text-xs text-slate-400">
-            <Clock3 size={14} className="text-slate-500 shrink-0" />
+        <div className="flex flex-wrap items-center justify-between lg:justify-end gap-3 pt-2 lg:pt-0 border-t lg:border-t-0 border-sand-200/70">
+          <span className="inline-flex items-center gap-1.5 font-mono text-xs text-ink-600">
+            <Clock3 size={14} className="text-ink-600 shrink-0" />
             <span>
               {item.fechaReporte || item.scheduledAt
                 ? new Date(
@@ -920,7 +1003,7 @@ function OrderCard({ item, onStart, busy }) {
 
           {isFailure ? (
             item.estado === 'EN_CIERRE' ? (
-              <span className="rounded-lg border border-amber-400/20 bg-amber-500/10 px-3 py-2 text-xs font-semibold text-amber-200">
+              <span className="rounded-lg border border-warning/30 bg-warning-soft px-3 py-2 text-xs font-semibold text-forest-900">
                 Esperando revisión del supervisor
               </span>
             ) : (
@@ -928,7 +1011,7 @@ function OrderCard({ item, onStart, busy }) {
                 type="button"
                 onClick={() => onStart(item)}
                 disabled={busy || item.localSyncPending}
-                className="flex min-h-[40px] items-center justify-center gap-1.5 rounded-lg bg-cyan-600 px-4 text-xs font-bold uppercase tracking-wider text-white hover:bg-cyan-500 transition-colors disabled:opacity-50 shadow-md shadow-cyan-950/40"
+                className="flex min-h-[40px] items-center justify-center gap-1.5 rounded-lg bg-gold-500 px-4 text-xs font-bold uppercase tracking-wider text-pine-900 hover:bg-gold-600 transition-all duration-200 ease-out disabled:opacity-50 shadow-md shadow-gold-600/20"
               >
                 {busy ? (
                   <LoaderCircle size={14} className="animate-spin" />
@@ -947,7 +1030,7 @@ function OrderCard({ item, onStart, busy }) {
               </button>
             )
           ) : (
-            <span className="text-xs font-semibold text-cyan-300 bg-cyan-500/10 px-3 py-1.5 rounded-lg border border-cyan-400/20">
+            <span className="text-xs font-semibold text-ocean-700 bg-info-soft px-3 py-1.5 rounded-lg border border-ocean-300/60">
               Técnico: {item.technicianName || 'Asignado'}
             </span>
           )}
@@ -964,13 +1047,25 @@ export default function OrdenesAsignadas({ onOpenPreventive }) {
   const [selected, setSelected] = useState(null);
   const [assetResume, setAssetResume] = useState(null);
   const [error, setError] = useState('');
+  const [notice, setNotice] = useState('');
   const pagination = usePagination(orders);
+  const { manifest } = useWorkPackage();
+  const offlineReadyKeys = useMemo(
+    () =>
+      new Set([
+        ...(manifest?.failureIds ?? []).map((id) => `failure-${id}`),
+        ...(manifest?.preventiveIds ?? []).map((id) => `preventive-${id}`),
+      ]),
+    [manifest],
+  );
 
   const refresh = useCallback(async () => {
     setLoading(true);
     setError('');
     try {
-      setOrders(await fetchOrders());
+      const result = await fetchOrders();
+      setOrders(result);
+      if (result.partial) setError(PARTIAL_ORDERS_MESSAGE);
     } catch (requestError) {
       setError(
         requestError.response?.data?.message ||
@@ -986,7 +1081,9 @@ export default function OrdenesAsignadas({ onOpenPreventive }) {
     let active = true;
     fetchOrders()
       .then((result) => {
-        if (active) setOrders(result);
+        if (!active) return;
+        setOrders(result);
+        if (result.partial) setError(PARTIAL_ORDERS_MESSAGE);
       })
       .catch((requestError) => {
         if (active)
@@ -999,22 +1096,64 @@ export default function OrdenesAsignadas({ onOpenPreventive }) {
       .finally(() => {
         if (active) setLoading(false);
       });
+    // Al terminar una descarga se recarga la lista con los datos nuevos.
+    const handleDownloaded = (event) => {
+      if (!event.detail?.manifest) return;
+      fetchOrders()
+        .then((result) => {
+          if (!active) return;
+          setOrders(result);
+          setError(result.partial ? PARTIAL_ORDERS_MESSAGE : '');
+        })
+        .catch(() => {});
+    };
+    globalThis.addEventListener(WORK_PACKAGE_CHANGED_EVENT, handleDownloaded);
     return () => {
       active = false;
+      globalThis.removeEventListener(WORK_PACKAGE_CHANGED_EVENT, handleDownloaded);
     };
   }, []);
 
   const openIntervention = async (report) => {
     setBusyId(report.id);
     setError('');
+    setNotice('');
     try {
-      const reviewedReport =
+      let reviewedReport = report;
+      if (
         report.estado !== 'EN_EJECUCION' &&
         report.estado !== 'EN_REVISION' &&
         report.estado !== 'ESPERA_REPUESTO'
-          ? await startFailureReview(report.id)
-          : report;
-      const resume = await getFailureAssetResume(report.id);
+      ) {
+        const startedAt = new Date().toISOString();
+        const result = await startFailureReview(report.id, startedAt);
+        // Sin internet el inicio queda en cola: se sigue con la orden local
+        // marcada como "en ejecución" en lugar de la respuesta del servidor.
+        reviewedReport = result?.queued || !result?.id
+          ? {
+              ...report,
+              estado: 'EN_EJECUCION',
+              fechaInicioRevision: report.fechaInicioRevision ?? startedAt,
+              reviewStartPending: true,
+            }
+          : { ...report, ...result };
+        if (result?.queued) {
+          setOrders((current) =>
+            current.map((order) =>
+              order.kind === 'failure' && String(order.id) === String(report.id)
+                ? { ...order, ...reviewedReport }
+                : order,
+            ),
+          );
+        }
+      }
+      // La ficha del activo es de apoyo: si no está descargada, el formulario se abre igual.
+      let resume = null;
+      try {
+        resume = await getFailureAssetResume(report.id);
+      } catch (resumeError) {
+        console.warn('Ficha del activo no disponible sin conexión:', resumeError);
+      }
       setAssetResume(resume);
       setSelected(reviewedReport);
     } catch (requestError) {
@@ -1028,25 +1167,30 @@ export default function OrdenesAsignadas({ onOpenPreventive }) {
     }
   };
 
-  const saved = async () => {
+  const saved = async (result) => {
     setSelected(null);
     setAssetResume(null);
+    setNotice(
+      result?.queued
+        ? 'Intervención guardada en este dispositivo. Se enviará automáticamente cuando vuelva la conexión.'
+        : 'Intervención enviada correctamente.',
+    );
     await refresh();
   };
 
   return (
-    <section className="rounded-xl border border-[#2d4055] bg-[#13293a] p-4 sm:p-5 shadow-xl space-y-5 text-white min-w-0">
+    <section className="rounded-xl border border-sand-200 bg-sand-50 p-4 sm:p-5 shadow-xl space-y-5 text-ink-900 min-w-0">
       {/* Encabezado */}
-      <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b border-white/10 pb-4">
+      <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b border-sand-200 pb-4">
         <div className="flex items-start gap-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-cyan-400/30 bg-cyan-500/15 text-cyan-300">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-ocean-300/60 bg-info-soft text-ocean-700">
             <ShieldCheck size={20} />
           </div>
           <div>
-            <h2 className="text-base sm:text-lg font-bold text-white">
+            <h2 className="text-base sm:text-lg font-bold text-ink-900">
               Órdenes de Trabajo Asignadas
             </h2>
-            <p className="mt-0.5 text-xs text-slate-400">
+            <p className="mt-0.5 text-xs text-ink-600">
               Fallas correctivas y mantenimientos preventivos asignados a tu usuario.
             </p>
           </div>
@@ -1058,17 +1202,17 @@ export default function OrdenesAsignadas({ onOpenPreventive }) {
             onClick={refresh}
             disabled={loading}
             aria-label="Actualizar órdenes"
-            className="flex min-h-[44px] items-center justify-center rounded-lg border border-white/10 bg-[#102a3d] px-3.5 text-xs font-semibold text-slate-200 hover:bg-white/10 transition-colors shrink-0"
+            className="flex min-h-[44px] items-center justify-center rounded-lg border border-sand-200 bg-sand-50 px-3.5 text-xs font-semibold text-ink-900 hover:bg-sand-100 transition-all duration-200 ease-out shrink-0"
           >
             <RefreshCw
               size={16}
-              className={loading ? 'animate-spin text-cyan-400' : ''}
+              className={loading ? 'animate-spin text-ocean-700' : ''}
             />
           </button>
           <button
             type="button"
             onClick={onOpenPreventive}
-            className="flex min-h-[44px] items-center gap-2 rounded-lg bg-cyan-600 px-4 text-xs font-bold uppercase tracking-wider text-white hover:bg-cyan-500 transition-colors shadow-lg shadow-cyan-950/40"
+            className="flex min-h-[44px] items-center gap-2 rounded-lg bg-gold-500 px-4 text-xs font-bold uppercase tracking-wider text-pine-900 hover:bg-gold-600 transition-all duration-200 ease-out shadow-lg shadow-gold-600/20"
           >
             <Activity size={16} />
             <span>Abrir preventivos</span>
@@ -1076,11 +1220,22 @@ export default function OrdenesAsignadas({ onOpenPreventive }) {
         </div>
       </header>
 
+      <WorkPackageStatus />
+
+      {notice && (
+        <div
+          role="status"
+          className="rounded-lg border border-success/20 bg-success-soft p-3.5 text-xs font-semibold text-forest-700"
+        >
+          {notice}
+        </div>
+      )}
+
       {/* Alerta de Error */}
       {error && (
         <div
           role="alert"
-          className="rounded-lg border border-red-500/30 bg-red-500/10 p-3.5 text-xs text-red-200"
+          className="rounded-lg border border-error/20 bg-error-soft p-3.5 text-xs text-error-text"
         >
           {error}
         </div>
@@ -1088,15 +1243,15 @@ export default function OrdenesAsignadas({ onOpenPreventive }) {
 
       {/* Lista de Órdenes */}
       {loading ? (
-        <div className="py-16 text-center text-xs text-slate-400">
+        <div className="py-16 text-center text-xs text-ink-600">
           <LoaderCircle
-            className="mx-auto mb-2 animate-spin text-cyan-400"
+            className="mx-auto mb-2 animate-spin text-ocean-700"
             size={24}
           />
           <span>Cargando órdenes asignadas...</span>
         </div>
       ) : orders.length === 0 ? (
-        <div className="rounded-xl border border-[#2d4055] bg-[#0d2030] p-8 text-center text-xs text-slate-400">
+        <div className="rounded-xl border border-sand-200 bg-sand-50 p-8 text-center text-xs text-ink-600">
           No tienes órdenes pendientes asignadas.
         </div>
       ) : (
@@ -1107,6 +1262,7 @@ export default function OrdenesAsignadas({ onOpenPreventive }) {
               item={item}
               onStart={openIntervention}
               busy={busyId === item.id}
+              offlineReady={offlineReadyKeys.has(`${item.kind}-${item.id}`)}
             />
           ))}
         </div>

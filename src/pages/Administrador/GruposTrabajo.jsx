@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Pencil, Plus, RefreshCw, Trash2, UsersRound, X } from 'lucide-react';
 import { apiClient } from '../../services/apiClient';
+import { Badge, Button, Card, EmptyState, PageHeader, Select, Skeleton, StatCard, Textarea } from '../../components/ui';
 
 const roles = [
     { value: 'TECNICO', label: 'Técnico' },
@@ -33,7 +34,7 @@ const emptyForm = {
 };
 
 const inputClass =
-    'w-full rounded-lg border border-[#36556f] bg-[#102a3d] px-3.5 py-2.5 text-xs sm:text-sm text-white outline-none transition placeholder:text-slate-400 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/50 min-h-[44px]';
+    'min-h-11 w-full rounded-xl border border-sand-200 bg-surface px-3.5 py-2.5 text-sm text-ink-900 outline-none transition-all duration-200 placeholder:text-ink-600 focus-visible:border-gold-600 focus-visible:ring-2 focus-visible:ring-gold-500/25';
 
 function getErrorMessage(error) {
     const response = error.response?.data;
@@ -180,47 +181,51 @@ export default function GruposTrabajo() {
 
     return (
         <section className="space-y-4 sm:space-y-6 min-w-0">
-            {/* Header Vista */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/10 pb-4">
-                <div className="min-w-0">
-                    <h2 className="text-base sm:text-lg font-semibold text-white">Grupos de Trabajo</h2>
-                    <p className="mt-0.5 text-xs text-slate-400">
-                        Organiza las cuadrillas, sus responsables y permisos por zona.
-                    </p>
-                </div>
-                <div className="flex items-center gap-2 self-start sm:self-auto w-full sm:w-auto">
-                    <button
+            <PageHeader
+                title="Grupos de Trabajo"
+                description="Organiza las cuadrillas, sus responsables y permisos por zona."
+                actions={
+                    <div className="flex w-full items-center gap-2 sm:w-auto">
+                    <Button
                         type="button"
+                        variant="outline"
+                        size="icon"
                         onClick={loadData}
                         disabled={isLoading}
                         aria-label="Actualizar grupos"
-                        className="flex h-11 w-11 items-center justify-center rounded-lg border border-[#36556f] bg-[#102536] text-slate-300 transition-colors hover:bg-[#1b3b52] disabled:opacity-50 shrink-0"
                     >
                         <RefreshCw size={18} className={isLoading ? 'animate-spin' : ''} />
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                         type="button"
+                        variant="primary"
                         onClick={openCreateForm}
-                        className="flex-1 sm:flex-initial flex min-h-[44px] items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-blue-500 active:bg-blue-700 shadow-lg shadow-blue-950/40"
+                        className="flex-1 sm:flex-initial"
                     >
-                        <Plus size={18} />
-                        <span>Crear grupo</span>
-                    </button>
-                </div>
+                        <Plus size={18} /> Crear grupo
+                    </Button>
+                    </div>
+                }
+            />
+
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                <StatCard label="Grupos registrados" value={groups.length} icon={<UsersRound size={20} />} accent="forest" />
+                <StatCard label="Usuarios disponibles" value={users.length} icon={<UsersRound size={20} />} accent="ocean" />
+                <StatCard label="Miembros asignados" value={groups.reduce((total, group) => total + (group.members?.length ?? 0), 0)} icon={<UsersRound size={20} />} accent="gold" />
             </div>
 
             {/* Aviso de Error */}
             {requestError && (
                 <div
                     role="alert"
-                    className="flex items-start justify-between gap-3 rounded-lg border border-red-500/30 bg-red-500/10 p-3.5 text-xs text-red-200"
+                    className="flex items-start justify-between gap-3 rounded-xl border border-error/20 bg-error-soft p-3.5 text-sm text-error-text"
                 >
                     <span className="min-w-0 flex-1">{requestError}</span>
                     <button
                         type="button"
                         onClick={() => setRequestError('')}
                         aria-label="Cerrar aviso"
-                        className="flex h-8 w-8 items-center justify-center rounded text-red-300 hover:bg-red-500/20 transition-colors shrink-0 -mr-1 -mt-1"
+                        className="flex size-9 shrink-0 -mr-1 -mt-1 items-center justify-center rounded-lg text-error-text transition-all duration-200 hover:bg-error/10 focus-visible:outline-2 focus-visible:outline-gold-600"
                     >
                         <X size={16} />
                     </button>
@@ -229,27 +234,28 @@ export default function GruposTrabajo() {
 
             {/* Formulario Crear / Editar Grupo */}
             {showForm && (
-                <form
+                <Card
+                    as="form"
                     onSubmit={handleSave}
-                    className="space-y-4 sm:space-y-5 rounded-xl border border-[#2d4055] bg-[#13293a] p-4 sm:p-6 shadow-xl min-w-0"
+                    className="min-w-0 space-y-4 p-4 sm:space-y-5 sm:p-6"
                 >
-                    <div className="flex items-center justify-between border-b border-white/10 pb-3">
-                        <h3 className="text-sm sm:text-base font-semibold text-white">
+                    <div className="flex items-center justify-between border-b border-sand-200 pb-3">
+                        <h3 className="text-sm font-semibold text-ink-900 sm:text-base">
                             {editingGroup ? 'Editar grupo' : 'Crear grupo'}
                         </h3>
                         <button
                             type="button"
                             onClick={closeForm}
                             aria-label="Cerrar formulario"
-                            className="flex h-11 w-11 items-center justify-center rounded-lg text-slate-400 hover:bg-white/10 hover:text-white transition-colors shrink-0"
+                            className="flex size-11 shrink-0 items-center justify-center rounded-xl text-ink-600 transition-all duration-200 hover:bg-sand-100 hover:text-ink-900 focus-visible:outline-2 focus-visible:outline-gold-600"
                         >
                             <X size={20} />
                         </button>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-2 sm:gap-3.5">
-                        <label className="block text-xs font-medium text-slate-300 space-y-1">
-                            <span>Nombre del grupo <span className="text-cyan-400">*</span></span>
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-3.5">
+                        <label className="block space-y-1 text-[13px] font-medium text-ink-600">
+                            <span>Nombre del grupo <span className="text-forest-700">*</span></span>
                             <input
                                 required
                                 maxLength={120}
@@ -259,13 +265,12 @@ export default function GruposTrabajo() {
                                 className={inputClass}
                             />
                         </label>
-                        <label className="block text-xs font-medium text-slate-300 space-y-1">
-                            <span>Líder <span className="text-cyan-400">*</span></span>
-                            <select
+                        <label className="block space-y-1 text-[13px] font-medium text-ink-600">
+                            <span>Líder <span className="text-forest-700">*</span></span>
+                            <Select
                                 required
                                 value={form.leaderId}
                                 onChange={(event) => setForm({ ...form, leaderId: event.target.value })}
-                                className={inputClass}
                             >
                                 <option value="">Selecciona un líder</option>
                                 {users.map((user) => (
@@ -273,46 +278,46 @@ export default function GruposTrabajo() {
                                         {user.nombre} · {user.rol}
                                     </option>
                                 ))}
-                            </select>
+                            </Select>
                         </label>
                     </div>
 
-                    <label className="block text-xs font-medium text-slate-300 space-y-1">
+                    <label className="block space-y-1 text-[13px] font-medium text-ink-600">
                         <span>Descripción / zona</span>
-                        <textarea
+                        <Textarea
                             maxLength={2000}
                             value={form.description}
                             onChange={(event) => setForm({ ...form, description: event.target.value })}
                             placeholder="Describe la zona o función del grupo"
                             rows={2}
-                            className={`${inputClass} min-h-[70px] resize-y`}
+                            className="min-h-[70px] resize-y"
                         />
                     </label>
 
                     {/* Checkbox Miembros */}
                     <fieldset className="space-y-2">
-                        <legend className="text-xs font-medium text-slate-300">
+                        <legend className="text-[13px] font-semibold text-ink-600">
                             Miembros (el líder también queda incluido)
                         </legend>
                         {users.length === 0 ? (
-                            <p className="text-xs text-amber-300 bg-amber-500/10 p-3 rounded-lg border border-amber-500/20">
+                            <p className="rounded-xl border border-gold-500/20 bg-gold-100 p-3 text-xs text-ink-900">
                                 No hay usuarios activos disponibles para asignar.
                             </p>
                         ) : (
-                            <div className="grid max-h-52 grid-cols-2 gap-2 overflow-y-auto rounded-lg border border-[#36556f] bg-[#0c1e2c] p-2 sm:p-3 scrollbar-none">
+                            <div className="grid max-h-52 grid-cols-1 gap-2 overflow-y-auto rounded-xl border border-sand-200 bg-sand-50 p-2 scrollbar-none sm:grid-cols-2 sm:p-3">
                                 {users.map((user) => (
                                     <label
                                         key={user.id}
-                                        className="flex min-h-[44px] items-center gap-3 rounded-lg px-2 py-1 hover:bg-white/5 transition-colors cursor-pointer select-none"
+                                        className="flex min-h-11 cursor-pointer select-none items-center gap-3 rounded-xl px-2 py-1 transition-all duration-200 hover:bg-sand-100"
                                     >
                                         <input
                                             type="checkbox"
                                             checked={form.memberIds.includes(String(user.id))}
                                             onChange={() => toggleMember(String(user.id))}
-                                            className="h-5 w-5 rounded border-white/20 bg-[#102a3d] text-cyan-500 focus:ring-cyan-400 focus:ring-offset-[#13293a] accent-cyan-500 cursor-pointer shrink-0"
+                                            className="size-5 shrink-0 cursor-pointer accent-forest-500 focus-visible:outline-2 focus-visible:outline-gold-600"
                                         />
-                                        <span className="text-xs text-slate-200 min-w-0 truncate">
-                                            {user.nombre} <span className="text-slate-400">· {user.rol}</span>
+                                        <span className="min-w-0 truncate text-sm text-ink-900">
+                                            {user.nombre} <span className="text-ink-600">· {user.rol}</span>
                                         </span>
                                     </label>
                                 ))}
@@ -322,133 +327,134 @@ export default function GruposTrabajo() {
 
                     {/* Checkbox Permisos Adicionales */}
                     <fieldset className="space-y-2">
-                        <legend className="text-xs font-medium text-slate-300">
+                        <legend className="text-[13px] font-semibold text-ink-600">
                             Permisos adicionales del grupo
                         </legend>
-                        <div className="grid grid-cols-2 gap-2 rounded-lg border border-[#36556f] bg-[#0c1e2c] p-2 sm:p-3 lg:grid-cols-3">
+                        <div className="grid grid-cols-1 gap-2 rounded-xl border border-sand-200 bg-sand-50 p-2 sm:grid-cols-2 sm:p-3 lg:grid-cols-3">
                             {roles.map((role) => (
                                 <label
                                     key={role.value}
-                                    className="flex min-h-[44px] items-center gap-3 rounded-lg px-2 py-1 hover:bg-white/5 transition-colors cursor-pointer select-none"
+                                    className="flex min-h-11 cursor-pointer select-none items-center gap-3 rounded-xl px-2 py-1 transition-all duration-200 hover:bg-sand-100"
                                 >
                                     <input
                                         type="checkbox"
                                         checked={form.grantedRoles.includes(role.value)}
                                         onChange={() => toggleRole(role.value)}
-                                        className="h-5 w-5 rounded border-white/20 bg-[#102a3d] text-cyan-500 focus:ring-cyan-400 focus:ring-offset-[#13293a] accent-cyan-500 cursor-pointer shrink-0"
+                                        className="size-5 shrink-0 cursor-pointer accent-forest-500 focus-visible:outline-2 focus-visible:outline-gold-600"
                                     />
-                                    <span className="text-xs text-slate-200">{role.label}</span>
+                                    <span className="text-sm text-ink-900">{role.label}</span>
                                 </label>
                             ))}
                         </div>
                     </fieldset>
 
                     {/* Acciones Formulario */}
-                    <div className="flex flex-col-reverse sm:flex-row justify-end gap-2.5 sm:gap-3 border-t border-white/10 pt-4">
-                        <button
+                    <div className="flex flex-col-reverse justify-end gap-2.5 border-t border-sand-200 pt-4 sm:flex-row sm:gap-3">
+                        <Button
                             type="button"
+                            variant="ghost"
                             onClick={closeForm}
-                            className="inline-flex h-11 w-full sm:w-auto items-center justify-center rounded-lg border border-[#36556f] px-4 text-xs font-medium text-slate-300 hover:bg-[#1b3b52] active:bg-[#204560] transition-colors"
+                            className="w-full sm:w-auto"
                         >
                             Cancelar
-                        </button>
-                        <button
+                        </Button>
+                        <Button
                             type="submit"
+                            variant="primary"
                             disabled={isSaving || !users.length}
-                            className="inline-flex h-11 w-full sm:w-auto items-center justify-center rounded-lg bg-blue-600 px-5 text-xs font-semibold text-white hover:bg-blue-500 active:bg-blue-700 disabled:opacity-50 transition-colors shadow-lg shadow-blue-950/40"
+                            className="w-full sm:w-auto"
                         >
                             {isSaving ? 'Guardando…' : 'Guardar grupo'}
-                        </button>
+                        </Button>
                     </div>
-                </form>
+                </Card>
             )}
 
             {/* Estado de Carga / Vacío / Lista de Grupos */}
             {isLoading ? (
-                <p className="rounded-xl border border-[#2d4055] bg-[#13293a] p-8 text-center text-xs text-slate-400">
-                    Cargando grupos guardados…
-                </p>
+                <Skeleton variant="rect" className="h-52 rounded-2xl" label="Cargando grupos guardados" />
             ) : groups.length === 0 ? (
-                <div className="rounded-xl border border-dashed border-[#36556f] bg-[#13293a] p-8 text-center">
-                    <UsersRound size={28} className="mx-auto text-slate-500" />
-                    <p className="mt-3 text-sm font-semibold text-white">Todavía no hay grupos de trabajo</p>
-                    <p className="mt-1 text-xs text-slate-400">
-                        Crea un grupo para asignar líderes, miembros y permisos por zona.
-                    </p>
-                </div>
+                <EmptyState
+                    icon={<UsersRound size={24} />}
+                    title="Todavía no hay grupos de trabajo"
+                    description="Crea un grupo para asignar líderes, miembros y permisos por zona."
+                />
             ) : (
-                <div className="grid grid-cols-2 gap-2 sm:gap-4 lg:grid-cols-3">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
                     {groups.map((group) => (
-                        <article
+                        <Card
+                            as="article"
                             key={group.id}
-                            className="flex flex-col justify-between rounded-xl border border-[#2d4055] bg-[#13293a] p-4 shadow-lg min-w-0"
+                            interactive
+                            className="flex min-w-0 flex-col justify-between p-4"
                         >
                             <div className="space-y-3">
-                                <div className="flex items-start justify-between gap-2 border-b border-white/5 pb-3">
+                                <div className="flex items-start justify-between gap-2 border-b border-sand-200 pb-3">
                                     <div className="flex items-center gap-2.5 min-w-0">
-                                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-500/15 text-blue-300 border border-blue-500/20">
+                                        <div className="flex size-10 shrink-0 items-center justify-center rounded-xl border border-ocean-300/40 bg-info-soft text-ocean-700">
                                             <UsersRound size={20} />
                                         </div>
                                         <div className="min-w-0">
-                                            <h3 className="text-sm font-semibold text-white truncate">
+                                            <h3 className="truncate text-sm font-semibold text-ink-900">
                                                 {group.name}
                                             </h3>
                                             {group.description && (
-                                                <p className="mt-0.5 text-xs text-slate-400 line-clamp-2">
+                                                <p className="mt-0.5 line-clamp-2 text-xs text-ink-600">
                                                     {group.description}
                                                 </p>
                                             )}
                                         </div>
                                     </div>
-                                    <span className="shrink-0 rounded-full bg-emerald-500/20 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-emerald-400 border border-emerald-500/30">
-                                        Activo
-                                    </span>
+                                    <Badge variant="success" size="sm" className="shrink-0 uppercase tracking-wider">Activo</Badge>
                                 </div>
 
-                                <div className="border-t border-[#2d4055] pt-3">
-                                    <p className="mb-2 text-[11px] font-medium uppercase tracking-wider text-slate-400">
+                                <div className="border-t border-sand-200 pt-3">
+                                    <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-ink-600">
                                         Roles asociados a la zona
                                     </p>
                                     <div className="flex flex-wrap gap-1.5">
                                         {getGroupRoles(group).length ? (
                                             getGroupRoles(group).map((role) => (
-                                                <span
+                                                <Badge
                                                     key={`${group.id}-${role}`}
-                                                    className="rounded-full border border-cyan-400/25 bg-cyan-500/10 px-2.5 py-1 text-[10px] font-medium text-cyan-200"
+                                                    variant="info"
+                                                    size="sm"
                                                 >
                                                     {roleLabel(role)}
-                                                </span>
+                                                </Badge>
                                             ))
                                         ) : (
-                                            <span className="text-xs text-slate-400">Sin roles asociados</span>
+                                            <span className="text-xs text-ink-600">Sin roles asociados</span>
                                         )}
                                     </div>
                                 </div>
                             </div>
 
                             {/* Acciones de la Tarjeta */}
-                            <div className="mt-4 flex items-center justify-end gap-1.5 border-t border-[#2d4055] pt-3">
-                                <button
+                            <div className="mt-4 flex items-center justify-end gap-1.5 border-t border-sand-200 pt-3">
+                                <Button
                                     type="button"
+                                    variant="ghost"
+                                    size="icon"
                                     onClick={() => openEditForm(group)}
                                     title="Editar grupo"
                                     aria-label={`Editar ${group.name}`}
-                                    className="flex h-11 w-11 items-center justify-center rounded-lg text-slate-400 hover:bg-white/10 hover:text-cyan-300 active:bg-white/15 transition-colors shrink-0"
                                 >
                                     <Pencil size={18} />
-                                </button>
-                                <button
+                                </Button>
+                                <Button
                                     type="button"
+                                    variant="ghost"
+                                    size="icon"
                                     onClick={() => handleDelete(group)}
                                     disabled={busyGroupId === group.id}
                                     title="Desactivar grupo"
                                     aria-label={`Desactivar ${group.name}`}
-                                    className="flex h-11 w-11 items-center justify-center rounded-lg text-slate-400 hover:bg-red-500/10 hover:text-red-400 active:bg-red-500/20 disabled:opacity-50 transition-colors shrink-0"
                                 >
                                     <Trash2 size={18} />
-                                </button>
+                                </Button>
                             </div>
-                        </article>
+                        </Card>
                     ))}
                 </div>
             )}

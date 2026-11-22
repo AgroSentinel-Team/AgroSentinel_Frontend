@@ -12,12 +12,9 @@ import {
   ClipboardList,
   Activity,
   MapPin,
-  ChevronDown,
   X,
 } from "lucide-react";
-import LogoutButton from "../../components/LogoutButton";
-import DashboardRoleSwitcher from "../../components/DashboardRoleSwitcher";
-import BrandLogo from "../../components/BrandLogo";
+import AppShell from "../../components/AppShell";
 import Inventario from "../Compartido/Inventario";
 import Reportes from "../Compartido/Reportes";
 import Entradas from "../Compartido/Entradas";
@@ -38,39 +35,6 @@ const navigationItems = [
   { id: "Actividad del turno", label: "Actividad del turno", icon: ClipboardList },
 ];
 
-function SidebarItem({ icon: Icon, children, active = false, onClick }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`
-        relative flex w-full items-center gap-3
-        rounded-lg px-3 py-2.5
-        text-left text-xs font-medium
-        transition-colors min-h-[44px]
-        ${
-          active
-            ? "bg-[#143c50] text-cyan-200 shadow-[inset_0_1px_0_rgba(125,211,252,0.1)] border border-cyan-500/20"
-            : "text-slate-300 hover:bg-[#143c50]/60 hover:text-white"
-        }
-      `}
-    >
-      <Icon size={18} strokeWidth={1.8} className="shrink-0" />
-      <span className="truncate">{children}</span>
-      {active && (
-        <span
-          className="
-            absolute right-3
-            h-3.5 w-[3px]
-            rounded-full
-            bg-cyan-400
-          "
-        />
-      )}
-    </button>
-  );
-}
-
 function ActivityPanel({
   movements,
   movementError,
@@ -84,21 +48,21 @@ function ActivityPanel({
   return (
     <div className="space-y-4 sm:space-y-6 min-w-0">
       <div>
-        <h1 className="text-lg sm:text-xl font-bold text-white tracking-tight">Actividad del turno</h1>
-        <p className="mt-0.5 text-xs text-slate-400">Consulta los movimientos y gestiona las tareas del almacén.</p>
+        <h1 className="text-lg sm:text-xl font-bold text-ink-900 tracking-tight">Actividad del turno</h1>
+        <p className="mt-0.5 text-xs text-ink-600">Consulta los movimientos y gestiona las tareas del almacén.</p>
       </div>
-      <div className="grid grid-cols-2 items-start gap-2 sm:gap-4">
-        <section className="min-w-0 overflow-hidden rounded-xl border border-[#2d4055] bg-[#13293a] shadow-lg">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#2d4055] p-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 items-start gap-2 sm:gap-4">
+        <section className="min-w-0 overflow-hidden rounded-xl border border-sand-200 bg-sand-50 shadow-lg">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-sand-200 p-4">
             <div>
-              <h2 className="text-sm sm:text-base font-semibold text-white">Historial de movimientos</h2>
-              <p className="mt-0.5 text-xs text-slate-400">{movements.length} movimientos en la bodega seleccionada</p>
+              <h2 className="text-sm sm:text-base font-semibold text-ink-900">Historial de movimientos</h2>
+              <p className="mt-0.5 text-xs text-ink-600">{movements.length} movimientos en la bodega seleccionada</p>
             </div>
             <button
               type="button"
               onClick={onToggleFilter}
               aria-label={`Filtro actual: ${movementFilter}. Cambiar filtro`}
-              className="flex shrink-0 items-center justify-center gap-2 rounded-lg border border-[#36556f] bg-[#102a3d] px-3.5 py-2 text-xs font-semibold text-slate-200 transition-colors hover:bg-[#1d3d52] hover:text-white min-h-[40px]"
+              className="flex shrink-0 items-center justify-center gap-2 rounded-lg border border-sand-200 bg-sand-50 px-3.5 py-2 text-xs font-semibold text-ink-900 transition-all duration-200 ease-out hover:bg-sand-50 hover:text-ink-900 min-h-[40px]"
             >
               <SlidersHorizontal size={14} />
               <span>{movementFilter === 'todos' ? 'Todos' : movementFilter === 'entrada' ? 'Entradas' : 'Salidas'}</span>
@@ -107,30 +71,30 @@ function ActivityPanel({
 
           <div className="overflow-x-auto">
             <div className="min-w-[620px]">
-              <div className="grid grid-cols-[1.6fr_.6fr_.6fr_.8fr_.6fr] border-b border-[#2d4055] bg-[#102a3d] px-4 py-3 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+              <div className="grid grid-cols-[1.6fr_.6fr_.6fr_.8fr_.6fr] border-b border-sand-200 bg-sand-50 px-4 py-3 text-[10px] font-semibold uppercase tracking-wider text-ink-600">
                 <span>Producto</span>
                 <span>Tipo</span>
                 <span>Cantidad</span>
                 <span>Fecha / hora</span>
                 <span>Estado</span>
               </div>
-              {movementError && <p role="alert" className="p-4 text-center text-xs text-red-300">{movementError}</p>}
+              {movementError && <p role="alert" className="p-4 text-center text-xs text-error-text">{movementError}</p>}
               {!movementError && visibleMovements.map((movement) => <MovementRow key={movement.id} movement={movement} />)}
               {!movementError && visibleMovements.length === 0 && (
-                <p className="p-8 text-center text-xs text-slate-400">No hay movimientos registrados para esta bodega.</p>
+                <p className="p-8 text-center text-xs text-ink-600">No hay movimientos registrados para esta bodega.</p>
               )}
             </div>
           </div>
 
           {!movementError && movements.length > 0 && (
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-[#2d4055] p-4">
-              <span className="text-xs text-slate-400">Página {currentPage} de {totalPages}</span>
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-sand-200 p-4">
+              <span className="text-xs text-ink-600">Página {currentPage} de {totalPages}</span>
               <div className="flex gap-2 w-full sm:w-auto">
                 <button
                   type="button"
                   onClick={() => onPageChange(currentPage - 1)}
                   disabled={currentPage <= 1}
-                  className="flex-1 sm:flex-none flex min-h-[40px] items-center justify-center rounded-lg border border-[#36556f] px-4 py-1.5 text-xs font-semibold text-slate-200 transition-colors hover:bg-[#1d3d52] disabled:cursor-not-allowed disabled:opacity-40"
+                  className="flex-1 sm:flex-none flex min-h-[40px] items-center justify-center rounded-lg border border-sand-200 px-4 py-1.5 text-xs font-semibold text-ink-900 transition-all duration-200 ease-out hover:bg-sand-50 disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   Anterior
                 </button>
@@ -138,7 +102,7 @@ function ActivityPanel({
                   type="button"
                   onClick={() => onPageChange(currentPage + 1)}
                   disabled={currentPage >= totalPages}
-                  className="flex-1 sm:flex-none flex min-h-[40px] items-center justify-center rounded-lg border border-[#36556f] px-4 py-1.5 text-xs font-semibold text-slate-200 transition-colors hover:bg-[#1d3d52] disabled:cursor-not-allowed disabled:opacity-40"
+                  className="flex-1 sm:flex-none flex min-h-[40px] items-center justify-center rounded-lg border border-sand-200 px-4 py-1.5 text-xs font-semibold text-ink-900 transition-all duration-200 ease-out hover:bg-sand-50 disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   Siguiente
                 </button>
@@ -170,11 +134,11 @@ function StatCard({
         w-full
         flex-col justify-between
         rounded-xl
-        border border-[#2d4055]
-        bg-[#13293a]
+        border border-sand-200
+        bg-sand-50
         p-4
         text-left shadow-md
-        ${onClick ? "cursor-pointer transition-colors hover:border-cyan-400/60 hover:bg-[#173247] active:bg-[#102434]" : "cursor-default"}
+        ${onClick ? "cursor-pointer transition-all duration-200 ease-out hover:border-ocean-300/60 hover:bg-sand-50 active:bg-sand-50" : "cursor-default"}
       `}
     >
       <div className="flex items-center justify-between gap-2">
@@ -184,7 +148,7 @@ function StatCard({
             font-semibold
             uppercase
             tracking-wider
-            text-slate-400 truncate
+            text-ink-600 truncate
           "
         >
           {title}
@@ -202,11 +166,11 @@ function StatCard({
       </div>
 
       <div className="flex items-baseline gap-1.5 mt-2">
-        <span className="text-2xl sm:text-3xl font-bold leading-none text-white tracking-tight">
+        <span className="text-2xl sm:text-3xl font-bold leading-none text-ink-900 tracking-tight">
           {value}
         </span>
 
-        <span className="text-xs text-slate-400">
+        <span className="text-xs text-ink-600">
           {suffix}
         </span>
       </div>
@@ -216,9 +180,9 @@ function StatCard({
 
 function StatusBadge({ status, type }) {
   const styles = {
-    success: "border border-emerald-400/30 bg-[#1a382d] text-emerald-300",
-    progress: "border border-cyan-400/30 bg-[#173d4f] text-cyan-300",
-    danger: "border border-red-400/30 bg-[#40272d] text-red-300",
+    success: "border border-forest-300/30 bg-sand-50 text-forest-700",
+    progress: "border border-ocean-300/30 bg-sand-50 text-ocean-700",
+    danger: "border border-error/30 bg-sand-50 text-error-text",
   };
 
   return (
@@ -244,17 +208,17 @@ function MovementType({ type }) {
         <ArrowDownLeft
           size={14}
           strokeWidth={2.5}
-          className="text-emerald-400 shrink-0"
+          className="text-forest-700 shrink-0"
         />
       ) : (
         <ArrowUpRight
           size={14}
           strokeWidth={2.5}
-          className="text-cyan-400 shrink-0"
+          className="text-ocean-700 shrink-0"
         />
       )}
 
-      <span className="text-xs font-medium capitalize text-slate-200">
+      <span className="text-xs font-medium capitalize text-ink-900">
         {type}
       </span>
     </div>
@@ -270,21 +234,21 @@ function MovementRow({ movement }) {
         grid
         grid-cols-[1.6fr_.6fr_.6fr_.8fr_.6fr]
         items-center
-        border-b border-[#2d4055]
+        border-b border-sand-200
         px-4
         py-3
         text-xs
         last:border-b-0
-        hover:bg-white/[0.02]
-        transition-colors
+        hover:bg-surface/[0.02]
+        transition-all duration-200 ease-out
       "
     >
       {/* Producto */}
       <div className="min-w-0 pr-2">
-        <p className="truncate font-semibold text-white">
+        <p className="truncate font-semibold text-ink-900">
           {movement.itemName}
         </p>
-        <p className="mt-0.5 text-[11px] text-slate-400">
+        <p className="mt-0.5 text-[11px] text-ink-600">
           ID: {movement.itemId}
         </p>
       </div>
@@ -293,15 +257,15 @@ function MovementRow({ movement }) {
       <MovementType type={movement.tipo} />
 
       {/* Cantidad */}
-      <div className="font-semibold text-slate-200">
+      <div className="font-semibold text-ink-900">
         {Number(movement.cantidad).toLocaleString()}{" "}
-        <span className="font-normal text-slate-400">
+        <span className="font-normal text-ink-600">
           {movement.itemUnit || ""}
         </span>
       </div>
 
       {/* Fecha */}
-      <div className="font-mono text-slate-400">
+      <div className="font-mono text-ink-600">
         {Number.isNaN(date.getTime()) ? "—" : date.toLocaleString('es-CO', { dateStyle: 'short', timeStyle: 'short' })}
       </div>
 
@@ -466,221 +430,112 @@ export default function SgaControlDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-[#020d16] font-sans text-white overflow-x-hidden">
-      <div className="flex min-h-screen w-full overflow-hidden bg-[#020d16]">
+    <AppShell
+      navigation={navigationItems}
+      activeTab={activeTab}
+      onNavigate={setActiveTab}
+      mobileOpen={mobileNavOpen}
+      onMobileOpenChange={setMobileNavOpen}
+      userName={currentUserName}
+      userRole="Almacenista"
+      userInitials={currentUserInitials || "A"}
+      brandTitle="SGA CONTROL"
+      brandSubtitle="Almacén central"
+      contentClassName="px-3 pt-3 sm:px-4 md:px-6"
+      headerActions={
+        <>
+          <label className="flex min-w-0 items-center gap-2">
+            <MapPin size={18} aria-hidden="true" className="hidden shrink-0 text-forest-700 sm:block" />
+            <span className="sr-only">Zona activa</span>
+            <select
+              value={selectedGroupId ?? "central"}
+              onChange={(event) => {
+                setActivityPage(1);
+                setMovementError("");
+                setSelectedGroupId(event.target.value === "central" ? null : Number(event.target.value));
+              }}
+              aria-label="Seleccionar bodega o grupo"
+              className="min-h-11 max-w-[120px] truncate rounded-xl border border-sand-200 bg-surface px-2.5 text-xs font-semibold text-ink-900 outline-none focus-visible:border-gold-600 focus-visible:ring-2 focus-visible:ring-gold-500/25 sm:max-w-[200px]"
+            >
+              <option value="central">Bodega central</option>
+              {groups.map((group) => <option key={group.id} value={group.id}>{group.name}</option>)}
+            </select>
+          </label>
 
-        {/* SIDEBAR ESCRITORIO */}
-        <aside className="hidden w-[220px] lg:w-[240px] shrink-0 border-r border-[#1b2f3f] bg-[#0d1f2d] md:block min-h-screen">
-          <div className="flex h-[60px] items-center gap-2.5 border-b border-[#1b2f3f] px-4">
-            <BrandLogo className="h-9 w-9" />
-            <div>
-              <p className="text-sm font-bold leading-none text-cyan-300 tracking-wide">
-                SGA CONTROL
-              </p>
-              <p className="mt-1 text-[9px] font-bold uppercase tracking-wider text-slate-400">
-                ALMACÉN CENTRAL
-              </p>
-            </div>
-          </div>
-
-          <nav className="space-y-1 p-3 overflow-y-auto max-h-[calc(100vh-60px)]">
-            {navigationItems.map(({ id, label, icon: Icon }) => (
-              <SidebarItem
-                key={id}
-                icon={Icon}
-                active={activeTab === id}
-                onClick={() => setActiveTab(id)}
-              >
-                {label}
-              </SidebarItem>
-            ))}
-          </nav>
-        </aside>
-
-        {/* CONTENIDO PRINCIPAL */}
-        <main className="flex min-w-0 flex-1 flex-col bg-[#020d16]">
-
-          {/* HEADER SUPERIOR */}
-          <header className="sticky top-0 z-40 flex min-h-[60px] flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-[#1f3446] bg-[#0d2437]/95 px-3 sm:px-5 py-2.5 backdrop-blur-md">
-            <div className="flex min-w-0 items-center gap-2.5 sm:gap-3">
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-cyan-300/30 bg-cyan-400/10 text-cyan-300">
-                <MapPin size={18} />
-              </span>
-              <label className="flex min-w-0 flex-col gap-0.5">
-                <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400">Zona activa</span>
-                <select
-                  value={selectedGroupId ?? "central"}
-                  onChange={(event) => {
-                    setActivityPage(1);
-                    setMovementError("");
-                    setSelectedGroupId(event.target.value === "central" ? null : Number(event.target.value));
-                  }}
-                  aria-label="Seleccionar bodega o grupo"
-                  className="max-w-[180px] sm:max-w-[260px] truncate rounded-lg border border-[#36556f] bg-[#102a3d] px-2.5 py-1.5 text-xs font-semibold text-white outline-none transition-colors hover:border-cyan-400 focus:border-cyan-400 min-h-[36px]"
-                >
-                  <option value="central">Bodega central</option>
-                  {groups.map((group) => <option key={group.id} value={group.id}>{group.name}</option>)}
-                </select>
-              </label>
-            </div>
-
-            <div className="flex flex-wrap items-center justify-end gap-2 sm:gap-3">
-              <DashboardRoleSwitcher />
-              <button
-                type="button"
-                onClick={() => setActiveTab("Entradas")}
-                className="inline-flex min-h-[40px] items-center gap-2 rounded-lg bg-cyan-600 px-3 sm:px-4 text-xs font-semibold text-white shadow-lg shadow-cyan-950/40 transition-colors hover:bg-cyan-500 active:bg-cyan-700"
-              >
-                <Plus size={16} strokeWidth={2.5} />
-                <span className="hidden sm:inline">Registrar entrada</span>
-                <span className="sm:hidden">Entrada</span>
-              </button>
-
-              {/* Alertas Notificaciones */}
-              <div className="relative">
-                <button
-                  type="button"
-                  onClick={() => setAlertsOpen((open) => !open)}
-                  aria-label={`Alertas de stock bajo: ${lowStockCount}`}
-                  aria-expanded={alertsOpen}
-                  className="relative flex h-10 w-10 items-center justify-center rounded-lg border border-[#36556f] bg-[#102a3d] text-slate-300 transition-colors hover:border-cyan-400/50 hover:bg-[#1d3d52] hover:text-white"
-                >
-                  <Bell size={18} />
-                  {lowStockCount > 0 && (
-                    <span className="absolute -right-1 -top-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white ring-2 ring-[#0d2437]">
-                      {lowStockCount}
-                    </span>
-                  )}
-                </button>
-
-                {alertsOpen && (
-                  <>
-                    <div
-                      className="fixed inset-0 z-40 sm:hidden"
-                      onClick={() => setAlertsOpen(false)}
-                    />
-                    <div className="absolute right-0 top-12 z-50 w-[calc(100vw-2rem)] max-w-xs rounded-xl border border-[#36556f] bg-[#13293a] p-4 shadow-2xl transition-all">
-                      <div className="mb-2.5 flex items-center justify-between border-b border-white/10 pb-2">
-                        <h3 className="text-xs font-bold uppercase tracking-wider text-amber-300">
-                          Alertas de inventario
-                        </h3>
-                        <button
-                          type="button"
-                          onClick={() => setAlertsOpen(false)}
-                          className="text-slate-400 hover:text-white p-1"
-                        >
-                          <X size={14} />
-                        </button>
-                      </div>
-
-                      {lowStockItems.length === 0 ? (
-                        <p className="rounded-lg border border-emerald-400/30 bg-[#1a382d] p-3 text-xs text-emerald-300">
-                          {isSelectedScopeLoaded ? "No hay productos bajo el mínimo configurado." : "Cargando inventario de la zona..."}
-                        </p>
-                      ) : (
-                        <ul className="max-h-56 space-y-1.5 overflow-y-auto scrollbar-none">
-                          {lowStockItems.map((item) => (
-                            <li key={item.id}>
-                              <button
-                                type="button"
-                                onClick={() => { setAlertsOpen(false); setActiveTab("Inventario"); }}
-                                className="w-full rounded-lg border border-red-400/30 bg-[#40272d] p-2.5 text-left transition-colors hover:bg-[#503039]"
-                              >
-                                <span className="block truncate text-xs font-semibold text-white">{item.item}</span>
-                                <span className="mt-0.5 block text-xs text-red-300">
-                                  Stock {item.stock} {item.unit} · Mínimo {item.minimum} {item.unit}
-                                </span>
-                              </button>
-                            </li>
-                          ))}
-                        </ul>
-                      )}
-                    </div>
-                  </>
-                )}
-              </div>
-
-              {/* Perfil */}
-              <div className="flex items-center gap-2 border-l border-[#36556f] pl-2.5">
-                <div
-                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-cyan-300/50 bg-gradient-to-br from-cyan-400 via-blue-500 to-indigo-700 text-xs font-bold text-white shadow-md"
-                >
-                  {currentUserInitials || "A"}
-                </div>
-
-                <div className="hidden max-w-[140px] leading-tight sm:block">
-                  <p className="truncate text-xs font-semibold text-white">{currentUserName}</p>
-                  <p className="mt-0.5 text-[10px] font-bold uppercase tracking-wider text-cyan-300">Almacenista</p>
-                </div>
-              </div>
-
-              <LogoutButton className="bg-[#102536] border border-[#294255] text-slate-200 hover:bg-[#1d3d52] hover:text-white" />
-            </div>
-          </header>
-
-          {/* NAVEGACIÓN MÓVIL SELECTOR */}
-          <nav
-            className="relative border-b border-[#1f3446] bg-[#0d1f2d] px-3 py-2.5 md:hidden z-30"
-            aria-label="Navegación de almacén móvil"
+          <button
+            type="button"
+            onClick={() => setActiveTab("Entradas")}
+            className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-gradient-to-r from-gold-500 to-gold-600 px-3 text-xs font-semibold text-pine-900 shadow-sm shadow-gold-600/20 transition-all duration-200 hover:brightness-105 sm:px-4"
           >
+            <Plus size={16} strokeWidth={2.5} />
+            <span className="hidden sm:inline">Registrar entrada</span>
+            <span className="sm:hidden">Entrada</span>
+          </button>
+
+          <div className="relative">
             <button
               type="button"
-              onClick={() => setMobileNavOpen((open) => !open)}
-              aria-expanded={mobileNavOpen}
-              className="flex min-h-[44px] w-full items-center justify-between rounded-lg border border-[#294255] bg-[#102536] px-3.5 text-left text-xs font-semibold text-cyan-100 active:bg-[#143c50] transition-colors"
+              onClick={() => setAlertsOpen((open) => !open)}
+              aria-label={`Alertas de stock bajo: ${lowStockCount}`}
+              aria-expanded={alertsOpen}
+              className="relative inline-flex size-11 items-center justify-center rounded-xl border border-sand-200 bg-surface text-forest-700 transition-all duration-200 hover:bg-sand-100"
             >
-              <span className="flex min-w-0 items-center gap-2.5">
-                {(() => {
-                  const ActiveIcon = navigationItems.find(({ id }) => id === activeTab)?.icon || LayoutGrid;
-                  return <ActiveIcon size={18} className="shrink-0 text-cyan-300" />;
-                })()}
-                <span className="truncate">{activeTab}</span>
-              </span>
-              <ChevronDown
-                size={18}
-                className={`shrink-0 text-cyan-300 transition-transform duration-200 ${
-                  mobileNavOpen ? 'rotate-180' : ''
-                }`}
-              />
+              <Bell size={18} />
+              {lowStockCount > 0 && (
+                <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-error px-1 text-[10px] font-bold text-ink-900 ring-2 ring-surface">
+                  {lowStockCount}
+                </span>
+              )}
             </button>
-
-            {/* Dropdown Navegación Móvil */}
-            {mobileNavOpen && (
+            {alertsOpen && (
               <>
-                <div
-                  className="fixed inset-0 z-40 bg-black/60 backdrop-blur-xs md:hidden"
-                  onClick={() => setMobileNavOpen(false)}
-                />
-                <div
-                  className="absolute inset-x-3 top-full z-50 mt-2 grid grid-cols-2 gap-1.5 overflow-y-auto rounded-xl border border-[#36556f] bg-[#102536] p-2.5 shadow-2xl max-h-[min(70vh,28rem)]"
-                >
-                  {navigationItems.map(({ id, label, icon: Icon }) => (
+                <div className="fixed inset-0 z-40 sm:hidden" onClick={() => setAlertsOpen(false)} />
+                <div className="absolute right-0 top-[calc(100%+0.75rem)] z-50 w-[min(22rem,calc(100vw-1.5rem))] rounded-2xl border border-sand-200 bg-sand-100 p-4 text-ink-900 shadow-[var(--agro-shadow-card)] backdrop-blur-xl max-sm:fixed max-sm:bottom-auto max-sm:right-[calc(0.75rem+var(--agro-safe-right))] max-sm:top-[calc(6rem+var(--agro-safe-top))]">
+                  <div className="mb-2.5 flex items-center justify-between border-b border-sand-200 pb-2">
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-forest-900">
+                      Alertas de inventario
+                    </h3>
                     <button
-                      key={id}
                       type="button"
-                      onClick={() => {
-                        setActiveTab(id);
-                        setMobileNavOpen(false);
-                      }}
-                      className={`flex min-h-[44px] min-w-0 items-center gap-3 rounded-lg px-3 text-left text-xs font-medium transition-colors ${
-                        activeTab === id
-                          ? 'bg-[#143c50] text-cyan-200 font-semibold border border-cyan-500/30'
-                          : 'text-slate-300 hover:bg-[#143c50]/60 hover:text-white active:bg-[#143c50]'
-                      }`}
+                      onClick={() => setAlertsOpen(false)}
+                      aria-label="Cerrar alertas de inventario"
+                      className="inline-flex size-10 items-center justify-center rounded-xl text-ink-600 hover:bg-sand-100 hover:text-ink-900"
                     >
-                      <Icon size={18} className="shrink-0 text-cyan-300" />
-                      <span className="min-w-0 truncate">{label}</span>
+                      <X size={14} />
                     </button>
-                  ))}
+                  </div>
+                  {lowStockItems.length === 0 ? (
+                    <p className="rounded-xl border border-success/20 bg-success-soft p-3 text-xs text-forest-700">
+                      {isSelectedScopeLoaded ? "No hay productos bajo el mínimo configurado." : "Cargando inventario de la zona..."}
+                    </p>
+                  ) : (
+                    <ul className="max-h-56 space-y-1.5 overflow-y-auto scrollbar-none">
+                      {lowStockItems.map((item) => (
+                        <li key={item.id}>
+                          <button
+                            type="button"
+                            onClick={() => { setAlertsOpen(false); setActiveTab("Inventario"); }}
+                            className="w-full rounded-xl border border-error/20 bg-error-soft p-2.5 text-left transition-all duration-200 hover:brightness-95"
+                          >
+                            <span className="block truncate text-xs font-semibold text-ink-900">{item.item}</span>
+                            <span className="mt-0.5 block text-xs text-error-text">
+                              Stock {item.stock} {item.unit} · Mínimo {item.minimum} {item.unit}
+                            </span>
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </div>
               </>
             )}
-          </nav>
-
-          {/* ÁREA DE CONTENIDO */}
-          <div className="flex-1 overflow-y-auto p-3 sm:p-4 md:p-6 min-w-0">
+          </div>
+        </>
+      }
+    >
+      <div className="min-w-0">
             {groupsError && (
-              <p role="alert" className="mb-3 rounded-lg border border-red-400/20 bg-red-400/10 p-3 text-xs text-red-200">
+              <p role="alert" className="mb-3 rounded-lg border border-error/20 bg-error-soft p-3 text-xs text-error-text">
                 {groupsError} Puedes seguir usando la bodega central.
               </p>
             )}
@@ -690,13 +545,13 @@ export default function SgaControlDashboard() {
             {activeTab === "Inicio" && (
               <div className="space-y-4 sm:space-y-6 min-w-0">
                 {/* TARJETAS DE MÉTRICAS */}
-                <section className="grid grid-cols-2 gap-2 sm:gap-3 xl:grid-cols-4">
+                <section className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 xl:grid-cols-4">
                   <StatCard
                     title="PRODUCTOS EN INVENTARIO"
                     value={isSelectedScopeLoaded ? scopedInventoryItems.length.toLocaleString() : "—"}
                     suffix="productos"
                     badge="Actual"
-                    badgeColor="border border-emerald-400/30 bg-[#1a382d] text-emerald-300"
+                    badgeColor="border border-forest-300/30 bg-sand-50 text-forest-700"
                   />
 
                   <StatCard
@@ -704,7 +559,7 @@ export default function SgaControlDashboard() {
                     value={isSelectedScopeLoaded ? todaysEntries.toLocaleString() : "—"}
                     suffix="movimientos"
                     badge="Hoy"
-                    badgeColor="border border-cyan-400/30 bg-[#173d4f] text-cyan-300"
+                    badgeColor="border border-ocean-300/30 bg-sand-50 text-ocean-700"
                   />
 
                   <StatCard
@@ -712,7 +567,7 @@ export default function SgaControlDashboard() {
                     value={isSelectedScopeLoaded ? todaysExits.toLocaleString() : "—"}
                     suffix="movimientos"
                     badge="Hoy"
-                    badgeColor="border border-cyan-400/30 bg-[#173d4f] text-cyan-300"
+                    badgeColor="border border-ocean-300/30 bg-sand-50 text-ocean-700"
                   />
 
                   <StatCard
@@ -720,24 +575,24 @@ export default function SgaControlDashboard() {
                     value={isSelectedScopeLoaded ? lowStockCount.toLocaleString() : "—"}
                     suffix="productos"
                     badge={isSelectedScopeLoaded ? (lowStockCount > 0 ? "Revisar" : "Normal") : "Cargando"}
-                    badgeColor={lowStockCount > 0 ? "border border-red-400/30 bg-[#40272d] text-red-300" : "border border-emerald-400/30 bg-[#1a382d] text-emerald-300"}
+                    badgeColor={lowStockCount > 0 ? "border border-error/30 bg-sand-50 text-error-text" : "border border-forest-300/30 bg-sand-50 text-forest-700"}
                     onClick={() => setAlertsOpen(true)}
                   />
                 </section>
 
                 {/* GRÁFICAS DE RESUMEN DE FLUJO Y CATEGORÍAS */}
-                <section className="grid grid-cols-2 gap-2 sm:gap-4">
-                  <div className="rounded-xl border border-[#2d4055] bg-[#13293a] p-4 sm:p-5 shadow-lg">
+                <section className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4">
+                  <div className="rounded-xl border border-sand-200 bg-sand-50 p-4 sm:p-5 shadow-lg">
                     <div className="mb-4 flex items-start justify-between gap-3">
                       <div>
-                        <h2 className="text-sm sm:text-base font-semibold text-white">Flujo de almacén</h2>
-                        <p className="mt-0.5 text-xs text-slate-400">Entradas y salidas · últimos 7 días</p>
+                        <h2 className="text-sm sm:text-base font-semibold text-ink-900">Flujo de almacén</h2>
+                        <p className="mt-0.5 text-xs text-ink-600">Entradas y salidas · últimos 7 días</p>
                       </div>
-                      <Activity size={18} className="text-cyan-300 shrink-0" />
+                      <Activity size={18} className="text-ocean-700 shrink-0" />
                     </div>
 
                     {weeklyActivity.every((day) => day.entries === 0 && day.exits === 0) ? (
-                      <p className="py-8 text-center text-xs text-slate-400">Aún no hay movimientos en este período.</p>
+                      <p className="py-8 text-center text-xs text-ink-600">Aún no hay movimientos en este período.</p>
                     ) : (
                       <div className="flex h-32 items-end gap-2 pt-2">
                         {weeklyActivity.map((day, index) => {
@@ -750,45 +605,45 @@ export default function SgaControlDashboard() {
                               <div className="flex h-[80%] w-full max-w-[32px] items-end gap-1">
                                 <div
                                   title={`${day.entries} entradas`}
-                                  className="w-1/2 rounded-t bg-emerald-400 transition-all duration-300"
+                                  className="w-1/2 rounded-t bg-forest-500 transition-all duration-300"
                                   style={{ height: `${Math.max(day.entries ? 10 : 3, entryHeight)}%` }}
                                 />
                                 <div
                                   title={`${day.exits} salidas`}
-                                  className="w-1/2 rounded-t bg-cyan-400 transition-all duration-300"
+                                  className="w-1/2 rounded-t bg-ocean-500 transition-all duration-300"
                                   style={{ height: `${Math.max(day.exits ? 10 : 3, exitHeight)}%` }}
                                 />
                               </div>
-                              <span className="text-[10px] font-medium text-slate-400 uppercase">{day.label}</span>
+                              <span className="text-[10px] font-medium text-ink-600 uppercase">{day.label}</span>
                             </div>
                           );
                         })}
                       </div>
                     )}
 
-                    <div className="mt-4 flex gap-4 border-t border-white/5 pt-3 text-xs text-slate-300">
+                    <div className="mt-4 flex gap-4 border-t border-sand-200 pt-3 text-xs text-ink-600">
                       <span className="flex items-center gap-1.5 font-medium">
-                        <span className="h-2.5 w-2.5 rounded-sm bg-emerald-400" />
+                        <span className="h-2.5 w-2.5 rounded-sm bg-forest-500" />
                         Entradas
                       </span>
                       <span className="flex items-center gap-1.5 font-medium">
-                        <span className="h-2.5 w-2.5 rounded-sm bg-cyan-400" />
+                        <span className="h-2.5 w-2.5 rounded-sm bg-ocean-500" />
                         Salidas
                       </span>
                     </div>
                   </div>
 
-                  <div className="rounded-xl border border-[#2d4055] bg-[#13293a] p-4 sm:p-5 shadow-lg">
+                  <div className="rounded-xl border border-sand-200 bg-sand-50 p-4 sm:p-5 shadow-lg">
                     <div className="mb-4 flex items-start justify-between gap-3">
                       <div>
-                        <h2 className="text-sm sm:text-base font-semibold text-white">Productos por categoría</h2>
-                        <p className="mt-0.5 text-xs text-slate-400">Distribución del inventario seleccionado</p>
+                        <h2 className="text-sm sm:text-base font-semibold text-ink-900">Productos por categoría</h2>
+                        <p className="mt-0.5 text-xs text-ink-600">Distribución del inventario seleccionado</p>
                       </div>
-                      <Package size={18} className="text-cyan-300 shrink-0" />
+                      <Package size={18} className="text-ocean-700 shrink-0" />
                     </div>
 
                     {Object.keys(categorySummary).length === 0 ? (
-                      <p className="py-8 text-center text-xs text-slate-400">No hay productos para mostrar.</p>
+                      <p className="py-8 text-center text-xs text-ink-600">No hay productos para mostrar.</p>
                     ) : (
                       <div className="space-y-3.5">
                         {Object.entries(categorySummary).slice(0, 5).map(([category, count]) => {
@@ -798,12 +653,12 @@ export default function SgaControlDashboard() {
                           return (
                             <div key={category} className="space-y-1.5">
                               <div className="flex justify-between text-xs font-medium">
-                                <span className="truncate text-slate-300 pr-2">{category}</span>
-                                <span className="text-white font-semibold shrink-0">{count} item(s)</span>
+                                <span className="truncate text-ink-600 pr-2">{category}</span>
+                                <span className="text-ink-900 font-semibold shrink-0">{count} item(s)</span>
                               </div>
-                              <div className="h-2 overflow-hidden rounded-full bg-[#102a3d]">
+                              <div className="h-2 overflow-hidden rounded-full bg-sand-50">
                                 <div
-                                  className="h-full rounded-full bg-cyan-400 transition-all duration-500"
+                                  className="h-full rounded-full bg-ocean-500 transition-all duration-500"
                                   style={{ width: `${percentage}%` }}
                                 />
                               </div>
@@ -816,27 +671,27 @@ export default function SgaControlDashboard() {
                 </section>
 
                 {/* ACCESO RÁPIDO A ACTIVIDAD */}
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 rounded-xl border border-[#2d4055] bg-[#13293a] p-4 sm:p-5 shadow-lg">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 rounded-xl border border-sand-200 bg-sand-50 p-4 sm:p-5 shadow-lg">
                   <div>
-                    <h2 className="text-sm sm:text-base font-semibold text-white">Actividad y tareas del turno</h2>
-                    <p className="mt-0.5 text-xs text-slate-400">Consulta todos los movimientos y administra las tareas asignadas.</p>
+                    <h2 className="text-sm sm:text-base font-semibold text-ink-900">Actividad y tareas del turno</h2>
+                    <p className="mt-0.5 text-xs text-ink-600">Consulta todos los movimientos y administra las tareas asignadas.</p>
                   </div>
                   <button
                     type="button"
                     onClick={() => setActiveTab("Actividad del turno")}
-                    className="inline-flex min-h-[40px] items-center justify-center rounded-lg border border-cyan-400/30 bg-cyan-400/10 px-4 py-2 text-xs font-semibold text-cyan-200 transition-colors hover:bg-cyan-400/20 active:bg-cyan-400/30 w-full sm:w-auto shrink-0"
+                    className="inline-flex min-h-[40px] items-center justify-center rounded-lg border border-ocean-300/30 bg-info-soft px-4 py-2 text-xs font-semibold text-ocean-700 transition-all duration-200 ease-out hover:bg-info-soft active:bg-info-soft w-full sm:w-auto shrink-0"
                   >
                     Abrir actividad
                   </button>
                 </div>
 
                 {/* TABLA DE ÚLTIMOS MOVIMIENTOS Y TAREAS */}
-                <section className="grid grid-cols-2 gap-2 sm:gap-4">
-                  <div className="overflow-hidden rounded-xl border border-[#2d4055] bg-[#13293a] shadow-lg">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#2d4055] p-4">
+                <section className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4">
+                  <div className="overflow-hidden rounded-xl border border-sand-200 bg-sand-50 shadow-lg">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-sand-200 p-4">
                       <div>
-                        <h2 className="text-sm sm:text-base font-semibold text-white">Últimos Movimientos</h2>
-                        <p className="mt-0.5 text-xs text-slate-400">Historial de recepciones y despachos recientes en planta</p>
+                        <h2 className="text-sm sm:text-base font-semibold text-ink-900">Últimos Movimientos</h2>
+                        <p className="mt-0.5 text-xs text-ink-600">Historial de recepciones y despachos recientes en planta</p>
                       </div>
 
                       <button
@@ -845,7 +700,7 @@ export default function SgaControlDashboard() {
                           filter === "todos" ? "entrada" : filter === "entrada" ? "salida" : "todos"
                         ))}
                         aria-label={`Filtro actual: ${movementFilter}. Cambiar filtro`}
-                        className="flex shrink-0 items-center justify-center gap-2 rounded-lg border border-[#36556f] bg-[#102a3d] px-3.5 py-2 text-xs font-semibold text-slate-200 transition-colors hover:bg-[#1d3d52] hover:text-white min-h-[40px]"
+                        className="flex shrink-0 items-center justify-center gap-2 rounded-lg border border-sand-200 bg-sand-50 px-3.5 py-2 text-xs font-semibold text-ink-900 transition-all duration-200 ease-out hover:bg-sand-50 hover:text-ink-900 min-h-[40px]"
                       >
                         <SlidersHorizontal size={14} />
                         <span>{movementFilter === "todos" ? "Todos" : movementFilter === "entrada" ? "Entradas" : "Salidas"}</span>
@@ -854,7 +709,7 @@ export default function SgaControlDashboard() {
 
                     <div className="overflow-x-auto">
                       <div className="min-w-[600px]">
-                        <div className="grid grid-cols-[1.6fr_.6fr_.6fr_.8fr_.6fr] border-b border-[#2d4055] bg-[#102a3d] px-4 py-3 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+                        <div className="grid grid-cols-[1.6fr_.6fr_.6fr_.8fr_.6fr] border-b border-sand-200 bg-sand-50 px-4 py-3 text-[10px] font-semibold uppercase tracking-wider text-ink-600">
                           <span>Producto</span>
                           <span>Tipo</span>
                           <span>Cantidad</span>
@@ -864,7 +719,7 @@ export default function SgaControlDashboard() {
 
                         <div>
                           {movementError && (
-                            <p role="alert" className="p-4 text-center text-xs text-red-300">
+                            <p role="alert" className="p-4 text-center text-xs text-error-text">
                               {movementError}
                             </p>
                           )}
@@ -872,7 +727,7 @@ export default function SgaControlDashboard() {
                             <MovementRow key={movement.id} movement={movement} />
                           ))}
                           {!movementError && visibleMovements.length === 0 && (
-                            <p className="p-8 text-center text-xs text-slate-400">
+                            <p className="p-8 text-center text-xs text-ink-600">
                               No hay movimientos registrados.
                             </p>
                           )}
@@ -887,8 +742,6 @@ export default function SgaControlDashboard() {
               </div>
             )}
           </div>
-        </main>
-      </div>
-    </div>
+    </AppShell>
   );
 }

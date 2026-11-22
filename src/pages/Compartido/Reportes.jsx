@@ -9,7 +9,6 @@ import {
   FileSpreadsheet,
   FileText,
   Package,
-  RefreshCw,
   ScrollText,
   ShieldCheck,
   Wrench,
@@ -22,6 +21,7 @@ import {
 } from '../../services/inventoryService';
 import { getAssets } from '../../services/assetService';
 import AssetReportModal from '../../components/AssetReportModal';
+import { Badge, Button, Card, Select } from '../../components/ui';
 
 const SECTIONS = [
   { id: 'inventory', label: 'Inventario actual', description: 'Existencias y alertas de stock.', icon: Package },
@@ -30,7 +30,7 @@ const SECTIONS = [
 ];
 
 const fieldClass =
-  'mt-1 w-full rounded-lg border border-[#36556f] bg-[#102a3d] px-3.5 py-2.5 text-xs sm:text-sm text-white outline-none transition placeholder:text-slate-400 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/50 min-h-[44px] disabled:opacity-60';
+  'mt-1 min-h-11 w-full rounded-xl border border-sand-200 bg-surface px-3.5 py-2.5 text-sm text-ink-900 outline-none transition-all duration-200 placeholder:text-ink-600 focus-visible:border-gold-600 focus-visible:ring-2 focus-visible:ring-gold-500/25 disabled:opacity-60';
 
 function getErrorMessage(error) {
   return (
@@ -142,7 +142,6 @@ function addPdfTable(pdf, state, title, headers, rows) {
 }
 
 export default function Reportes({ variant = 'dark', groupId, groupName, scoped = false }) {
-  const dark = variant === 'dark';
   const scopeKey = scoped ? `group:${groupId ?? 'central'}` : 'all';
 
   // Tabs: 'warehouse' (Reportes de Almacén) | 'assets' (Hoja de Vida por Activo)
@@ -170,7 +169,7 @@ export default function Reportes({ variant = 'dark', groupId, groupName, scoped 
   const [error, setError] = useState(currentReport?.error ?? '');
   const loading = currentReport === null;
   const invalidDateRange = Boolean(startDate && endDate && startDate > endDate);
-  const muted = dark ? 'text-slate-400' : 'text-slate-500';
+  const muted = 'text-ink-600';
 
   // Carga de datos de almacén
   useEffect(() => {
@@ -358,12 +357,15 @@ export default function Reportes({ variant = 'dark', groupId, groupName, scoped 
   };
 
   return (
-    <section className="mx-auto w-full max-w-6xl space-y-5 text-white min-w-0">
+    <section
+      data-variant={variant}
+      className="mx-auto w-full max-w-6xl min-w-0 space-y-5 text-ink-900"
+    >
       {/* Encabezado Principal */}
-      <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b border-white/10 pb-4">
+      <header className="flex flex-col gap-3 border-b border-sand-200 pb-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <div className="flex items-center gap-2 text-cyan-300">
-            <FileText size={18} />
+          <div className="flex items-center gap-2 text-ocean-700">
+            <FileText size={18} aria-hidden="true" />
             <span className="text-xs font-bold uppercase tracking-wider">
               Centro de Reportes y Auditoría
             </span>
@@ -371,24 +373,27 @@ export default function Reportes({ variant = 'dark', groupId, groupName, scoped 
           <h1 className="mt-1 text-xl sm:text-2xl font-bold tracking-tight">
             Informes Oficiales de Operación
           </h1>
-          <p className={`mt-0.5 text-xs ${muted}`}>
+          <p className={`mt-1.5 text-sm ${muted}`}>
             Exporta hojas de vida por activo con historial completo o informes consolidados de almacén e inventario.
           </p>
         </div>
-        <span className="shrink-0 self-start sm:self-center rounded-full border border-cyan-300/30 bg-cyan-400/10 px-3.5 py-1.5 text-xs font-semibold text-cyan-200">
+        <Badge
+          variant={loading ? 'neutral' : 'info'}
+          className="shrink-0 self-start sm:self-center"
+        >
           {loading ? 'Cargando datos...' : groupName || 'Bodega central'}
-        </span>
+        </Badge>
       </header>
 
       {/* Selector de Pestañas / Tipo de Reporte */}
-      <div className="flex flex-wrap gap-2 border-b border-white/10 pb-2">
+      <div className="flex flex-wrap gap-2 border-b border-sand-200 pb-2">
         <button
           type="button"
           onClick={() => setActiveTab('warehouse')}
-          className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-xs font-bold transition-all ${
+          className={`min-h-11 inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition-all duration-200 ease-out focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-600 ${
             activeTab === 'warehouse'
-              ? 'bg-cyan-500 text-slate-950 shadow-md'
-              : 'bg-[#102a3d] text-slate-300 hover:bg-[#14344d]'
+              ? 'bg-gold-500 text-pine-900 shadow-sm shadow-gold-600/20'
+              : 'border border-sand-200 bg-surface text-ink-600 hover:bg-sand-100'
           }`}
         >
           <Package size={16} />
@@ -398,10 +403,10 @@ export default function Reportes({ variant = 'dark', groupId, groupName, scoped 
         <button
           type="button"
           onClick={() => setActiveTab('assets')}
-          className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-xs font-bold transition-all ${
+          className={`min-h-11 inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition-all duration-200 ease-out focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-600 ${
             activeTab === 'assets'
-              ? 'bg-cyan-500 text-slate-950 shadow-md'
-              : 'bg-[#102a3d] text-slate-300 hover:bg-[#14344d]'
+              ? 'bg-gold-500 text-pine-900 shadow-sm shadow-gold-600/20'
+              : 'border border-sand-200 bg-surface text-ink-600 hover:bg-sand-100'
           }`}
         >
           <ClipboardList size={16} />
@@ -413,16 +418,19 @@ export default function Reportes({ variant = 'dark', groupId, groupName, scoped 
       {error && (
         <div
           role="alert"
-          className="flex items-start justify-between gap-3 rounded-lg border border-red-500/30 bg-red-500/10 p-3.5 text-xs text-red-200"
+          className="flex items-start justify-between gap-3 rounded-xl border border-error/20 bg-error-soft p-3.5 text-sm text-error-text"
         >
           <span className="min-w-0 flex-1">{error}</span>
-          <button
+          <Button
             type="button"
+            variant="ghost"
+            size="icon"
             onClick={() => setError('')}
-            className="text-red-300 hover:text-white p-1 shrink-0 -mr-1 -mt-1"
+            aria-label="Cerrar aviso"
+            className="shrink-0"
           >
             <X size={16} />
-          </button>
+          </Button>
         </div>
       )}
 
@@ -430,13 +438,13 @@ export default function Reportes({ variant = 'dark', groupId, groupName, scoped 
       {activeTab === 'warehouse' && (
         <div className="grid gap-4 xl:grid-cols-[minmax(0,1.6fr)_minmax(300px,0.9fr)]">
           {/* Selección de Secciones */}
-          <article className="rounded-xl border border-[#2d4055] bg-[#13293a] p-4 sm:p-5 shadow-xl min-w-0 space-y-4">
-            <div className="flex items-start gap-3 border-b border-white/10 pb-3">
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-cyan-400/15 text-cyan-300 border border-cyan-400/30">
+          <Card as="article" className="min-w-0 space-y-4 p-4 sm:p-5">
+            <div className="flex items-start gap-3 border-b border-sand-200 pb-3">
+              <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-info-soft text-ocean-700">
                 <FileText size={18} />
               </span>
               <div>
-                <h2 className="text-sm sm:text-base font-semibold text-white">Contenido del reporte de almacén</h2>
+                <h2 className="text-base font-semibold text-ink-900">Contenido del reporte de almacén</h2>
                 <p className={`mt-0.5 text-xs ${muted}`}>Selecciona una o varias secciones para incluir en el reporte.</p>
               </div>
             </div>
@@ -464,19 +472,19 @@ export default function Reportes({ variant = 'dark', groupId, groupName, scoped 
                     type="button"
                     onClick={() => toggleSection(section.id)}
                     aria-pressed={selected}
-                    className={`flex flex-col justify-between min-h-[140px] rounded-xl border p-4 text-left transition-all ${
+                    className={`flex min-h-[140px] flex-col justify-between rounded-2xl border p-4 text-left transition-all duration-200 ease-out focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-600 ${
                       selected
-                        ? 'border-cyan-400 bg-[#12394b] shadow-lg ring-1 ring-cyan-400/40'
-                        : 'border-[#2d4055] bg-[#102a3d] hover:border-[#45647a] hover:bg-[#143247]'
+                        ? 'border-gold-500 bg-gold-100 shadow-sm ring-1 ring-gold-500/30'
+                        : 'border-sand-200 bg-surface hover:bg-sand-50'
                     }`}
                   >
                     <div className="flex items-start justify-between gap-2">
-                      <Icon size={20} className={selected ? 'text-cyan-300' : 'text-slate-400'} />
+                      <Icon size={20} className={selected ? 'text-forest-700' : 'text-ink-600'} />
                       <span
                         className={`flex h-5 w-5 shrink-0 items-center justify-center rounded border transition-colors ${
                           selected
-                            ? 'border-cyan-400 bg-cyan-500 text-white'
-                            : 'border-[#557087] bg-transparent text-transparent'
+                            ? 'border-gold-600 bg-gold-500 text-pine-900'
+                            : 'border-sand-400 bg-transparent text-transparent'
                         }`}
                       >
                         {selected && <Check size={14} strokeWidth={3} />}
@@ -484,11 +492,11 @@ export default function Reportes({ variant = 'dark', groupId, groupName, scoped 
                     </div>
 
                     <div>
-                      <p className="text-xs sm:text-sm font-semibold text-white">{section.label}</p>
+                      <p className="text-sm font-semibold text-ink-900">{section.label}</p>
                       <p className={`mt-1 text-[11px] leading-tight ${muted}`}>{section.description}</p>
                     </div>
 
-                    <p className="mt-2 text-xs font-bold text-cyan-200">
+                    <p className="mt-2 text-xs font-bold text-forest-700">
                       {loading ? '—' : `${count} ${unit}`}
                     </p>
                   </button>
@@ -496,24 +504,24 @@ export default function Reportes({ variant = 'dark', groupId, groupName, scoped 
               })}
             </div>
 
-            <p className={`text-xs ${muted} pt-2 border-t border-white/5`}>
+            <p className={`border-t border-sand-200 pt-2 text-xs ${muted}`}>
               Las fechas seleccionadas filtrarán únicamente movimientos y tareas. Las existencias de inventario reflejan el estado actual.
             </p>
-          </article>
+          </Card>
 
           {/* Panel Configuración Descarga */}
           <aside className="space-y-4">
             {/* Período / Fechas */}
-            <article className="rounded-xl border border-[#2d4055] bg-[#13293a] p-4 sm:p-5 shadow-xl space-y-3">
-              <div className="flex items-center gap-2 border-b border-white/10 pb-2.5">
-                <CalendarDays size={18} className="text-cyan-300 shrink-0" />
-                <h2 className="text-xs sm:text-sm font-bold text-white uppercase tracking-wider">
+            <Card as="article" className="space-y-3 p-4 sm:p-5">
+              <div className="flex items-center gap-2 border-b border-sand-200 pb-2.5">
+                <CalendarDays size={18} className="shrink-0 text-ocean-700" />
+                <h2 className="text-sm font-bold uppercase tracking-wider text-ink-900">
                   Período de consulta
                 </h2>
               </div>
 
-              <div className="grid grid-cols-2 gap-2 xl:grid-cols-1">
-                <label className="block text-xs font-medium text-slate-300">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-1">
+                <label className="block text-[13px] font-semibold text-ink-600">
                   <span>Desde</span>
                   <input
                     type="date"
@@ -524,7 +532,7 @@ export default function Reportes({ variant = 'dark', groupId, groupName, scoped 
                   />
                 </label>
 
-                <label className="block text-xs font-medium text-slate-300">
+                <label className="block text-[13px] font-semibold text-ink-600">
                   <span>Hasta</span>
                   <input
                     type="date"
@@ -537,89 +545,84 @@ export default function Reportes({ variant = 'dark', groupId, groupName, scoped 
               </div>
 
               {invalidDateRange && (
-                <p role="alert" className="text-xs text-red-300 font-medium">
+                <p role="alert" className="text-xs font-medium text-error-text">
                   La fecha inicial debe ser anterior a la fecha final.
                 </p>
               )}
 
-              <button
+              <Button
                 type="button"
+                variant="ghost"
+                size="sm"
                 onClick={() => {
                   setStartDate('');
                   setEndDate('');
                 }}
-                className="inline-flex min-h-[36px] items-center text-xs font-semibold text-cyan-300 hover:text-cyan-200 transition-colors"
               >
                 Limpiar fechas
-              </button>
-            </article>
+              </Button>
+            </Card>
 
             {/* Formato y Botón Exportar */}
-            <article className="rounded-xl border border-[#2d4055] bg-[#13293a] p-4 sm:p-5 shadow-xl space-y-4">
-              <div className="flex items-center gap-2 border-b border-white/10 pb-2.5">
+            <Card as="article" className="space-y-4 p-4 sm:p-5">
+              <div className="flex items-center gap-2 border-b border-sand-200 pb-2.5">
                 {format === 'pdf' ? (
-                  <FileText size={18} className="text-cyan-300 shrink-0" />
+                  <FileText size={18} className="shrink-0 text-ocean-700" />
                 ) : (
-                  <FileSpreadsheet size={18} className="text-emerald-300 shrink-0" />
+                  <FileSpreadsheet size={18} className="shrink-0 text-forest-700" />
                 )}
-                <h2 className="text-xs sm:text-sm font-bold text-white uppercase tracking-wider">
+                <h2 className="text-sm font-bold uppercase tracking-wider text-ink-900">
                   Formato de descarga
                 </h2>
               </div>
 
-              <label className="block text-xs font-medium text-slate-300 space-y-1">
-                <span>Tipo de archivo</span>
-                <select
-                  value={format}
-                  onChange={(event) => setFormat(event.target.value)}
-                  className={fieldClass}
-                >
-                  <option value="pdf">PDF · Documento listo para imprimir</option>
-                  <option value="csv">CSV · Hoja de cálculo</option>
-                </select>
-              </label>
+              <Select
+                label="Tipo de archivo"
+                wrapperClassName="text-[13px] font-semibold text-ink-600"
+                className="mt-1"
+                value={format}
+                onChange={(event) => setFormat(event.target.value)}
+              >
+                <option value="pdf">PDF · Documento listo para imprimir</option>
+                <option value="csv">CSV · Hoja de cálculo</option>
+              </Select>
 
-              <button
-                type="button"
+              <Button
+                loading={loading}
                 disabled={
-                  loading ||
                   Boolean(error) ||
                   selectedSections.length === 0 ||
                   invalidDateRange
                 }
                 onClick={exportReport}
-                className="flex min-h-[44px] w-full items-center justify-center gap-2 rounded-lg bg-cyan-600 px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-white shadow-lg shadow-cyan-950/40 transition-colors hover:bg-cyan-500 active:bg-cyan-700 disabled:cursor-not-allowed disabled:opacity-40"
+                leftIcon={<Download size={18} />}
+                className="w-full uppercase tracking-wider"
               >
-                {loading ? (
-                  <RefreshCw size={18} className="animate-spin" />
-                ) : (
-                  <Download size={18} />
-                )}
                 <span>
                   {loading ? 'Cargando datos...' : `Descargar ${format.toUpperCase()}`}
                 </span>
-              </button>
+              </Button>
 
               {selectedSections.length === 0 && (
-                <p className="text-center text-xs text-amber-300 font-medium">
+                <p className="text-center text-xs font-medium text-ink-600">
                   Selecciona al menos una sección para descargar el reporte.
                 </p>
               )}
-            </article>
+            </Card>
           </aside>
         </div>
       )}
 
       {/* TAB 2: Hoja de Vida y Reporte por Activo (Tarea 1) */}
       {activeTab === 'assets' && (
-        <article className="rounded-xl border border-[#2d4055] bg-[#13293a] p-5 sm:p-6 shadow-xl space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/10 pb-4">
+        <Card as="article" className="space-y-6 p-5 sm:p-6">
+          <div className="flex flex-col gap-3 border-b border-sand-200 pb-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h2 className="text-base sm:text-lg font-bold text-white flex items-center gap-2">
-                <ClipboardList size={20} className="text-cyan-400" />
+              <h2 className="flex items-center gap-2 text-base font-bold text-ink-900 sm:text-lg">
+                <ClipboardList size={20} className="text-ocean-700" />
                 <span>Generador de Hoja de Vida y Reporte Integral por Activo</span>
               </h2>
-              <p className={`mt-0.5 text-xs ${muted}`}>
+              <p className={`mt-1.5 text-sm ${muted}`}>
                 Consulta la ficha técnica oficial y el historial cronológico completo de mantenimientos correctivos, preventivos y predictivos.
               </p>
             </div>
@@ -627,15 +630,12 @@ export default function Reportes({ variant = 'dark', groupId, groupName, scoped 
 
           <div className="grid gap-6 lg:grid-cols-3">
             {/* Selector de Activo */}
-            <div className="space-y-4 lg:col-span-1 rounded-xl bg-[#0d2030] p-4 border border-white/5">
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-300">
-                Selecciona un activo o maquinaria ({assetList.length}):
-              </label>
-              <select
+            <div className="space-y-4 rounded-2xl border border-sand-200 bg-sand-50 p-4 lg:col-span-1">
+              <Select
+                label={`Selecciona un activo o maquinaria (${assetList.length}):`}
                 value={selectedAssetId}
                 onChange={(e) => setSelectedAssetId(e.target.value)}
                 disabled={loadingAssets || assetList.length === 0}
-                className={fieldClass}
               >
                 {assetList.length === 0 ? (
                   <option value="">{loadingAssets ? 'Cargando activos...' : 'No hay activos registrados'}</option>
@@ -646,97 +646,97 @@ export default function Reportes({ variant = 'dark', groupId, groupName, scoped 
                     </option>
                   ))
                 )}
-              </select>
+              </Select>
 
-              <button
-                type="button"
+              <Button
                 onClick={() => setOpenAssetModal(true)}
                 disabled={!selectedAsset || loadingAssets || Boolean(assetError)}
-                className="flex min-h-[44px] w-full items-center justify-center gap-2 rounded-lg bg-cyan-600 px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-white shadow-lg shadow-cyan-950/40 transition-colors hover:bg-cyan-500 active:bg-cyan-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                leftIcon={<Eye size={18} />}
+                className="w-full uppercase tracking-wider"
               >
-                <Eye size={18} />
-                <span>Ver Hoja de Vida y Reporte</span>
-              </button>
+                Ver Hoja de Vida y Reporte
+              </Button>
               {assetError && (
-                <div role="alert" className="space-y-2 rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-xs text-red-200">
+                <div role="alert" className="space-y-2 rounded-xl border border-error/20 bg-error-soft p-3 text-sm text-error-text">
                   <p>No se pudo cargar el catálogo de activos: {assetError}</p>
-                  <button
-                    type="button"
+                  <Button
+                    variant="ghost"
+                    size="sm"
                     onClick={() => setAssetRefreshKey((key) => key + 1)}
-                    className="font-semibold text-red-100 underline hover:text-white"
+                    className="text-error-text underline"
                   >
                     Reintentar
-                  </button>
+                  </Button>
                 </div>
               )}
             </div>
 
             {/* Ficha Resumen del Activo Seleccionado */}
-            <div className="lg:col-span-2 rounded-xl bg-[#0d2030] p-5 border border-white/5 space-y-4">
-              <div className="flex items-center justify-between border-b border-white/10 pb-3">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-cyan-300">
+            <div className="space-y-4 rounded-2xl border border-sand-200 bg-sand-50 p-5 lg:col-span-2">
+              <div className="flex items-center justify-between border-b border-sand-200 pb-3">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-ocean-700">
                   Ficha Técnica Resumida
                 </h3>
                 {selectedAsset && (
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-cyan-500/15 border border-cyan-400/30 px-3 py-1 text-xs font-semibold text-cyan-200">
+                  <Badge variant="info">
                     <ShieldCheck size={14} />
                     <span>{selectedAsset.operationalStatus || 'Sin estado'}</span>
-                  </span>
+                  </Badge>
                 )}
               </div>
 
               {selectedAsset ? (
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs">
-                  <div className="rounded-lg bg-[#102a3d] p-3 border border-white/5">
-                    <p className="text-[11px] text-slate-400 uppercase font-semibold">Nombre del Activo</p>
-                    <p className="text-sm font-bold text-white mt-0.5">{selectedAsset.name}</p>
+                  <div className="rounded-xl border border-sand-200 bg-surface p-3">
+                    <p className="text-[11px] font-semibold uppercase text-ink-600">Nombre del Activo</p>
+                    <p className="mt-0.5 text-sm font-bold text-ink-900">{selectedAsset.name}</p>
                   </div>
-                  <div className="rounded-lg bg-[#102a3d] p-3 border border-white/5">
-                    <p className="text-[11px] text-slate-400 uppercase font-semibold">Código / Placa</p>
-                    <p className="text-sm font-mono font-bold text-cyan-300 mt-0.5">
+                  <div className="rounded-xl border border-sand-200 bg-surface p-3">
+                    <p className="text-[11px] font-semibold uppercase text-ink-600">Código / Placa</p>
+                    <p className="mt-0.5 text-sm font-mono font-bold text-ocean-700">
                       {selectedAsset.inventoryCode || 'Sin código'}
                     </p>
                   </div>
-                  <div className="rounded-lg bg-[#102a3d] p-3 border border-white/5">
-                    <p className="text-[11px] text-slate-400 uppercase font-semibold">Marca y Modelo</p>
-                    <p className="text-sm font-bold text-white mt-0.5">
+                  <div className="rounded-xl border border-sand-200 bg-surface p-3">
+                    <p className="text-[11px] font-semibold uppercase text-ink-600">Marca y Modelo</p>
+                    <p className="mt-0.5 text-sm font-bold text-ink-900">
                       {selectedAsset.brand || 'Genérica'} {selectedAsset.model || ''}
                     </p>
                   </div>
-                  <div className="rounded-lg bg-[#102a3d] p-3 border border-white/5">
-                    <p className="text-[11px] text-slate-400 uppercase font-semibold">Número de Serie</p>
-                    <p className="text-sm font-mono text-slate-200 mt-0.5">
+                  <div className="rounded-xl border border-sand-200 bg-surface p-3">
+                    <p className="text-[11px] font-semibold uppercase text-ink-600">Número de Serie</p>
+                    <p className="mt-0.5 text-sm font-mono text-ink-900">
                       {selectedAsset.serialNumber || 'Sin número'}
                     </p>
                   </div>
-                  <div className="rounded-lg bg-[#102a3d] p-3 border border-white/5">
-                    <p className="text-[11px] text-slate-400 uppercase font-semibold">Ubicación / Finca</p>
-                    <p className="text-sm font-bold text-slate-200 mt-0.5">
+                  <div className="rounded-xl border border-sand-200 bg-surface p-3">
+                    <p className="text-[11px] font-semibold uppercase text-ink-600">Ubicación / Finca</p>
+                    <p className="mt-0.5 text-sm font-bold text-ink-900">
                       {selectedAsset.location || 'No asignada'}
                     </p>
                   </div>
-                  <div className="rounded-lg bg-[#102a3d] p-3 border border-white/5">
-                    <p className="text-[11px] text-slate-400 uppercase font-semibold">Monitoreo Predictivo</p>
-                    <p className="text-sm font-bold text-emerald-300 mt-0.5">
+                  <div className="rounded-xl border border-sand-200 bg-surface p-3">
+                    <p className="text-[11px] font-semibold uppercase text-ink-600">Monitoreo Predictivo</p>
+                    <p className="mt-0.5 text-sm font-bold text-forest-700">
                       {selectedAsset.hasMotor ? 'Telemetría IoT Activa' : 'No configurado'}
                     </p>
                   </div>
                 </div>
               ) : (
-                <p className="text-xs text-slate-400 italic text-center py-6">
+                <p className="py-6 text-center text-sm italic text-ink-600">
                   {loadingAssets ? 'Cargando información del activo...' : 'Selecciona un activo para visualizar su ficha.'}
                 </p>
               )}
 
               {selectedAsset?.extraSpecifications && (
-                <div className="rounded-lg bg-[#102a3d] p-3 border border-white/5">
-                  <p className="text-[11px] text-slate-400 uppercase font-semibold mb-1">Especificaciones Técnicas</p>
-                  <p className="text-xs text-slate-200 whitespace-pre-wrap">{selectedAsset.extraSpecifications}</p>
+                <div className="rounded-xl border border-sand-200 bg-surface p-3">
+                  <p className="mb-1 text-[11px] font-semibold uppercase text-ink-600">Especificaciones Técnicas</p>
+                  <p className="whitespace-pre-wrap text-sm text-ink-900">{selectedAsset.extraSpecifications}</p>
                 </div>
               )}
             </div>
           </div>
-        </article>
+        </Card>
       )}
 
       {/* Modal Integral de Reporte por Activo */}

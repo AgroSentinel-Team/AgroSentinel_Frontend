@@ -26,6 +26,7 @@ import CreateAssetForm from '../../components/CreateAssetForm';
 import AssetReportModal from '../../components/AssetReportModal';
 import PaginationControls from '../../components/PaginationControls';
 import usePagination from '../../hooks/usePagination';
+import { Badge, Button, EmptyState, Input, PageHeader, Select, Skeleton, StatCard } from '../../components/ui';
 
 const STATUS_LABELS = {
     OPERATIONAL: 'Operativo',
@@ -188,38 +189,44 @@ export default function Activos() {
     };
 
     return (
-        <section className="rounded-xl border border-white/10 bg-[#13293a] p-4 sm:p-6 shadow-xl min-w-0">
-            {/* Header de la vista */}
-            <div className="mb-4 sm:mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 border-b border-white/10 pb-4">
-                <div className="min-w-0">
-                    <h2 className="text-base sm:text-lg font-semibold text-white">Gestión de Activos</h2>
-                    <p className="mt-0.5 text-xs text-slate-400">Ficha técnica, asignación y estado operativo.</p>
-                </div>
-                <div className="flex items-center gap-2 self-start sm:self-auto w-full sm:w-auto">
-                    <button
+        <section className="min-w-0 space-y-5">
+            <PageHeader
+                title="Gestión de Activos"
+                description="Ficha técnica, asignación y estado operativo."
+                actions={
+                    <div className="flex w-full items-center gap-2 sm:w-auto">
+                    <Button
                         type="button"
+                        variant="outline"
+                        size="icon"
                         title="Recargar activos"
                         aria-label="Recargar activos"
                         onClick={reloadAssets}
-                        className="flex h-11 w-11 items-center justify-center rounded-lg border border-white/10 text-slate-300 hover:border-cyan-400 hover:text-cyan-300 active:bg-white/5 transition-colors shrink-0"
                     >
                         <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                         type="button"
+                        variant="primary"
                         onClick={openCreateForm}
-                        className="flex-1 sm:flex-initial flex min-h-[44px] items-center justify-center gap-2 rounded-lg bg-cyan-600 px-4 py-2 text-xs font-semibold text-white hover:bg-cyan-500 active:bg-cyan-700 transition-colors shadow-lg shadow-cyan-950/40"
+                        className="flex-1 sm:flex-initial"
                     >
-                        <Plus size={18} />
-                        <span>Registrar activo</span>
-                    </button>
-                </div>
+                        <Plus size={18} /> Registrar activo
+                    </Button>
+                    </div>
+                }
+            />
+
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                <StatCard label="Activos registrados" value={assets.length} icon={<Wrench size={20} />} accent="forest" />
+                <StatCard label="En operación" value={assets.filter((asset) => asset.isActive).length} icon={<CheckCircle2 size={20} />} accent="ocean" />
+                <StatCard label="En reparación" value={assets.filter((asset) => asset.isActive && asset.operationalStatus === 'IN_REPAIR').length} icon={<Power size={20} />} accent="gold" />
             </div>
 
             {/* Mensajes de Feedback */}
             {feedback && (
                 <div
-                    className="mb-4 flex items-start justify-between gap-3 rounded-lg border border-cyan-400/20 bg-cyan-400/10 p-3.5 text-xs text-cyan-100"
+                    className="flex items-start justify-between gap-3 rounded-xl border border-info/20 bg-info-soft p-3.5 text-sm text-ocean-700"
                     role="status"
                 >
                     <span className="min-w-0 flex-1">{feedback}</span>
@@ -228,7 +235,7 @@ export default function Activos() {
                         onClick={() => setFeedback('')}
                         title="Cerrar aviso"
                         aria-label="Cerrar aviso"
-                        className="flex h-8 w-8 items-center justify-center rounded text-cyan-300 hover:bg-cyan-400/20 transition-colors shrink-0 -mr-1 -mt-1"
+                        className="flex size-9 shrink-0 -mr-1 -mt-1 items-center justify-center rounded-lg text-ocean-700 transition-all duration-200 hover:bg-info/10 focus-visible:outline-2 focus-visible:outline-gold-600"
                     >
                         <X size={16} />
                     </button>
@@ -236,31 +243,33 @@ export default function Activos() {
             )}
 
             {/* Búsqueda y Filtros */}
-            <div className="mb-4 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+            <div className="flex flex-col items-stretch justify-between gap-3 sm:flex-row sm:items-center">
                 <div className="relative min-w-0 flex-1">
                     <Search
                         size={16}
-                        className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
+                        className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-600"
                     />
-                    <input
+                    <Input
                         value={query}
                         onChange={(event) => {
                             setQuery(event.target.value);
                             pagination.setPage(1);
                         }}
                         placeholder="Buscar por nombre, serial o categoría..."
-                        className="w-full rounded-lg border border-white/10 bg-[#081723] py-2.5 pl-10 pr-3.5 text-xs sm:text-sm text-white outline-none placeholder:text-slate-500 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/50 min-h-[44px] transition-colors"
+                        aria-label="Buscar activos"
+                        wrapperClassName="relative"
+                        className="pl-10"
                     />
                 </div>
-                <label className="flex items-center justify-between sm:justify-start gap-2.5 text-xs font-medium text-slate-300 shrink-0">
+                <label className="flex shrink-0 items-center justify-between gap-2.5 text-[13px] font-medium text-ink-600 sm:justify-start">
                     <span>Estado:</span>
-                    <select
+                    <Select
                         value={statusFilter}
                         onChange={(event) => {
                             setStatusFilter(event.target.value);
                             pagination.setPage(1);
                         }}
-                        className="rounded-lg border border-white/10 bg-[#081723] px-3 py-2.5 text-xs sm:text-sm text-white outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/50 min-h-[44px] transition-colors"
+                        className="w-auto"
                     >
                         <option value="ALL">Todos los estados</option>
                         {Object.entries(STATUS_LABELS).map(([value, label]) => (
@@ -268,14 +277,14 @@ export default function Activos() {
                                 {label}
                             </option>
                         ))}
-                    </select>
+                    </Select>
                 </label>
             </div>
 
             {/* Error de Carga */}
             {loadError && (
                 <div
-                    className="flex items-center gap-2.5 rounded-lg border border-red-400/20 bg-red-400/10 p-4 text-xs text-red-200"
+                    className="flex items-center gap-2.5 rounded-xl border border-error/20 bg-error-soft p-4 text-sm text-error-text"
                     role="alert"
                 >
                     <AlertCircle size={18} className="shrink-0" />
@@ -285,19 +294,19 @@ export default function Activos() {
 
             {/* Contenido Principal: Tarjetas en móvil/tablet, Tabla en escritorio */}
             {loading ? (
-                <p className="py-12 text-center text-xs text-slate-400">Cargando activos...</p>
+                <Skeleton variant="rect" className="h-52 rounded-2xl" label="Cargando activos" />
             ) : (
                 !loadError && (
                     <>
                         {/* Vista Móvil / Tablet (Tarjetas) */}
-                        <div className="grid min-w-0 grid-cols-2 gap-2 md:gap-3.5 lg:hidden">
+                        <div className="grid min-w-0 grid-cols-1 gap-2 sm:grid-cols-2 md:gap-3.5 lg:hidden">
                             {pagination.pageItems.map((asset) => (
                                 <div
                                     key={asset.id}
-                                    className="rounded-xl border border-white/10 bg-[#0b1d2a] p-3 sm:p-4 space-y-3 shadow-md min-w-0"
+                                    className="min-w-0 space-y-3 rounded-2xl border border-sand-200 bg-surface p-3 shadow-sm sm:p-4"
                                 >
                                     <div className="flex items-start gap-2">
-                                        <div className="flex h-14 w-16 shrink-0 items-center justify-center overflow-hidden rounded-md border border-white/10 bg-white/5">
+                                        <div className="flex h-14 w-16 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-sand-200 bg-sand-50">
                                             {asset.imageUrl ? (
                                                 <img
                                                     src={`${API_ORIGIN}${asset.imageUrl}`}
@@ -305,56 +314,50 @@ export default function Activos() {
                                                     className="h-full w-full object-cover"
                                                 />
                                             ) : (
-                                                <Wrench size={18} className="text-slate-500" />
+                                                <Wrench size={18} className="text-ink-600" />
                                             )}
                                         </div>
                                         <div className="min-w-0">
-                                            <h3 className="break-words font-semibold text-white text-xs sm:text-base">
+                                            <h3 className="break-words text-xs font-semibold text-ink-900 sm:text-base">
                                                 {asset.name}
                                             </h3>
-                                            <p className="break-words text-[11px] sm:text-xs text-slate-400 mt-0.5 leading-relaxed">
+                                            <p className="mt-0.5 break-words text-[11px] leading-relaxed text-ink-600 sm:text-xs">
                                                 {[asset.brand, asset.model, asset.serialNumber]
                                                     .filter(Boolean)
                                                     .join(' · ') || 'Sin ficha técnica'}
                                             </p>
-                                            <p className="mt-1 text-[10px] text-cyan-200">
+                                            <p className="mt-1 text-[10px] tabular-nums text-forest-700">
                                                 Horómetro: {asset.currentHorometer ?? 0} h
                                             </p>
                                             {asset.hasMotor && (
-                                                <span className="inline-block mt-1.5 max-w-full break-words text-[10px] sm:text-xs text-cyan-300 font-medium bg-cyan-950/50 px-2 py-1 rounded border border-cyan-800/40">
+                                                <span className="mt-1.5 inline-block max-w-full break-words rounded-lg border border-ocean-300/40 bg-info-soft px-2 py-1 text-[10px] font-medium text-ocean-700 sm:text-xs">
                                                     ID predictivo: {asset.predictiveId}
                                                 </span>
                                             )}
                                         </div>
-                                        <span
-                                            className={`inline-flex max-w-full items-center gap-1 rounded-full px-2 py-1 text-[10px] sm:text-xs font-medium ${
-                                                asset.isActive
-                                                    ? 'bg-emerald-400/10 text-emerald-300 border border-emerald-400/20'
-                                                    : 'bg-slate-400/10 text-slate-400 border border-slate-400/20'
-                                            }`}
-                                        >
+                                        <Badge variant={asset.isActive ? 'success' : 'neutral'} size="sm" className="max-w-full">
                                             {asset.isActive ? <CheckCircle2 size={12} /> : <Power size={12} />}
                                             {asset.isActive
                                                 ? STATUS_LABELS[asset.operationalStatus] || asset.operationalStatus
                                                 : 'Desactivado'}
-                                        </span>
+                                        </Badge>
                                     </div>
 
-                                    <div className="grid grid-cols-1 min-[400px]:grid-cols-2 gap-2 text-xs border-t border-b border-white/5 py-2.5 text-slate-300">
+                                    <div className="grid grid-cols-1 gap-2 border-y border-sand-200 py-2.5 text-xs text-ink-900 min-[400px]:grid-cols-2">
                                         <div>
-                                            <span className="text-slate-500 block text-[11px]">Categoría</span>
+                                            <span className="mb-1 block text-[11px] text-ink-600">Categoría</span>
                                             <span className="font-medium break-words block">
                                                 {asset.categoryName || `ID ${asset.categoryId}`}
                                             </span>
                                         </div>
                                         <div>
-                                            <span className="text-slate-500 block text-[11px]">Responsable</span>
+                                            <span className="mb-1 block text-[11px] text-ink-600">Responsable</span>
                                             <span className="font-medium break-words block">
                                                 {asset.responsibleName || `ID ${asset.responsibleId}`}
                                             </span>
                                         </div>
                                         <div className="min-[400px]:col-span-2 pt-1">
-                                            <span className="text-slate-500 block text-[11px]">Ubicación</span>
+                                            <span className="mb-1 block text-[11px] text-ink-600">Ubicación</span>
                                             <span className="font-medium break-words block">
                                                 {asset.location || 'Sin ubicación'}
                                             </span>
@@ -368,7 +371,7 @@ export default function Activos() {
                                             title="Hoja de vida"
                                             aria-label={`Hoja de vida de ${asset.name}`}
                                             onClick={() => openResume(asset)}
-                                            className="flex h-11 w-11 items-center justify-center rounded-lg bg-white/5 text-slate-300 hover:bg-cyan-500/10 hover:text-cyan-300 active:bg-cyan-500/20 transition-colors"
+                                            className="flex size-11 items-center justify-center rounded-xl text-ink-600 transition-all duration-200 hover:bg-info-soft hover:text-ocean-700 focus-visible:outline-2 focus-visible:outline-gold-600"
                                         >
                                             <FileText size={18} />
                                         </button>
@@ -378,7 +381,7 @@ export default function Activos() {
                                                 title="Hoja de vida predictivo"
                                                 aria-label={`Hoja de vida predictivo de ${asset.name}`}
                                                 onClick={() => openPredictiveHistory(asset)}
-                                                className="flex h-11 w-11 items-center justify-center rounded-lg bg-white/5 text-slate-300 hover:bg-emerald-500/10 hover:text-emerald-300 active:bg-emerald-500/20 transition-colors"
+                                                className="flex size-11 items-center justify-center rounded-xl text-ink-600 transition-all duration-200 hover:bg-success-soft hover:text-forest-700 focus-visible:outline-2 focus-visible:outline-gold-600"
                                             >
                                                 <Activity size={18} />
                                             </button>
@@ -388,7 +391,7 @@ export default function Activos() {
                                             title="Tendencia de fallas"
                                             aria-label={`Análisis de tendencia de fallas de ${asset.name}`}
                                             onClick={() => openFailureTrends(asset)}
-                                            className="flex h-11 w-11 items-center justify-center rounded-lg bg-white/5 text-slate-300 hover:bg-amber-500/10 hover:text-amber-300 active:bg-amber-500/20 transition-colors"
+                                            className="flex size-11 items-center justify-center rounded-xl text-ink-600 transition-all duration-200 hover:bg-gold-100 hover:text-forest-900 focus-visible:outline-2 focus-visible:outline-gold-600"
                                         >
                                             <TrendingUp size={18} />
                                         </button>
@@ -397,7 +400,7 @@ export default function Activos() {
                                             title="Editar"
                                             aria-label={`Editar ${asset.name}`}
                                             onClick={() => openEditForm(asset)}
-                                            className="flex h-11 w-11 items-center justify-center rounded-lg bg-white/5 text-slate-300 hover:bg-cyan-500/10 hover:text-cyan-300 active:bg-cyan-500/20 transition-colors"
+                                            className="flex size-11 items-center justify-center rounded-xl text-ink-600 transition-all duration-200 hover:bg-info-soft hover:text-ocean-700 focus-visible:outline-2 focus-visible:outline-gold-600"
                                         >
                                             <ClipboardList size={18} />
                                         </button>
@@ -407,7 +410,7 @@ export default function Activos() {
                                                 title="Desactivar"
                                                 aria-label={`Desactivar ${asset.name}`}
                                                 onClick={() => handleDeactivate(asset)}
-                                                className="flex h-11 w-11 items-center justify-center rounded-lg bg-white/5 text-slate-300 hover:bg-amber-500/10 hover:text-amber-300 active:bg-amber-500/20 transition-colors"
+                                                className="flex size-11 items-center justify-center rounded-xl text-ink-600 transition-all duration-200 hover:bg-gold-100 hover:text-forest-900 focus-visible:outline-2 focus-visible:outline-gold-600"
                                             >
                                                 <Power size={18} />
                                             </button>
@@ -417,7 +420,7 @@ export default function Activos() {
                                             title="Eliminar lógicamente"
                                             aria-label={`Eliminar ${asset.name}`}
                                             onClick={() => handleDelete(asset)}
-                                            className="flex h-11 w-11 items-center justify-center rounded-lg bg-white/5 text-slate-300 hover:bg-red-500/10 hover:text-red-300 active:bg-red-500/20 transition-colors"
+                                            className="flex size-11 items-center justify-center rounded-xl text-ink-600 transition-all duration-200 hover:bg-error-soft hover:text-error-text focus-visible:outline-2 focus-visible:outline-gold-600"
                                         >
                                             <Trash2 size={18} />
                                         </button>
@@ -427,9 +430,9 @@ export default function Activos() {
                         </div>
 
                         {/* Vista Escritorio (Tabla) */}
-                        <div className="hidden lg:block overflow-x-auto rounded-lg border border-white/10">
+                        <div className="hidden overflow-x-auto rounded-2xl border border-sand-200 bg-surface lg:block">
                             <table className="w-full text-left text-xs sm:text-sm">
-                                <thead className="border-b border-white/10 bg-[#0b1d2a] text-slate-400">
+                                <thead className="sticky top-0 border-b border-sand-200 bg-sand-100 text-ink-600">
                                     <tr>
                                         <th className="px-4 py-3.5 font-medium">Activo</th>
                                         <th className="px-4 py-3.5 font-medium">Categoría</th>
@@ -441,10 +444,10 @@ export default function Activos() {
                                 </thead>
                                 <tbody className="divide-y divide-white/5">
                                     {pagination.pageItems.map((asset) => (
-                                        <tr key={asset.id} className="hover:bg-white/[0.03] transition-colors">
+                                        <tr key={asset.id} className="transition-colors hover:bg-sand-100/70">
                                             <td className="px-4 py-3.5">
                                                 <div className="flex items-center gap-3">
-                                                    <div className="flex h-12 w-14 shrink-0 items-center justify-center overflow-hidden rounded-md border border-white/10 bg-white/5">
+                                                    <div className="flex h-12 w-14 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-sand-200 bg-sand-50">
                                                         {asset.imageUrl ? (
                                                             <img
                                                                 src={`${API_ORIGIN}${asset.imageUrl}`}
@@ -452,21 +455,21 @@ export default function Activos() {
                                                                 className="h-full w-full object-cover"
                                                             />
                                                         ) : (
-                                                            <Wrench size={16} className="text-slate-500" />
+                                                            <Wrench size={16} className="text-ink-600" />
                                                         )}
                                                     </div>
                                                     <div>
-                                                        <p className="font-semibold text-white">{asset.name}</p>
-                                                        <p className="mt-0.5 text-xs text-slate-400">
+                                                        <p className="font-semibold text-ink-900">{asset.name}</p>
+                                                        <p className="mt-0.5 text-xs text-ink-600">
                                                             {[asset.brand, asset.model, asset.serialNumber]
                                                                 .filter(Boolean)
                                                                 .join(' · ') || 'Sin ficha técnica'}
                                                         </p>
-                                                        <p className="mt-1 text-[11px] text-cyan-200">
+                                                        <p className="mt-1 text-[11px] tabular-nums text-forest-700">
                                                             Horómetro: {asset.currentHorometer ?? 0} h
                                                         </p>
                                                         {asset.hasMotor && (
-                                                            <p className="mt-0.5 text-xs text-cyan-300 font-medium">
+                                                            <p className="mt-0.5 text-xs font-medium text-ocean-700">
                                                                 ID predictivo: {asset.predictiveId}
                                                             </p>
                                                         )}
@@ -475,45 +478,39 @@ export default function Activos() {
                                                             title="Tendencia de fallas"
                                                             aria-label={`Análisis de tendencia de fallas de ${asset.name}`}
                                                             onClick={() => openFailureTrends(asset)}
-                                                            className="flex h-9 w-9 items-center justify-center rounded-lg hover:bg-amber-500/10 hover:text-amber-300 transition-colors"
+                                                            className="flex size-9 items-center justify-center rounded-lg transition-all duration-200 hover:bg-gold-100 hover:text-forest-900 focus-visible:outline-2 focus-visible:outline-gold-600"
                                                         >
                                                             <TrendingUp size={16} />
                                                         </button>
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td className="px-4 py-3.5 text-slate-300">
+                                            <td className="px-4 py-3.5 text-ink-600">
                                                 {asset.categoryName || `ID ${asset.categoryId}`}
                                             </td>
-                                            <td className="px-4 py-3.5 text-slate-300">
+                                            <td className="px-4 py-3.5 text-ink-600">
                                                 {asset.responsibleName || `ID ${asset.responsibleId}`}
                                             </td>
-                                            <td className="px-4 py-3.5 text-slate-300">
+                                            <td className="px-4 py-3.5 text-ink-600">
                                                 {asset.location || 'Sin ubicación'}
                                             </td>
                                             <td className="px-4 py-3.5">
-                                                <span
-                                                    className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ${
-                                                        asset.isActive
-                                                            ? 'bg-emerald-400/10 text-emerald-300 border border-emerald-400/20'
-                                                            : 'bg-slate-400/10 text-slate-400 border border-slate-400/20'
-                                                    }`}
-                                                >
+                                                <Badge variant={asset.isActive ? 'success' : 'neutral'}>
                                                     {asset.isActive ? <CheckCircle2 size={12} /> : <Power size={12} />}
                                                     {asset.isActive
                                                         ? STATUS_LABELS[asset.operationalStatus] ||
                                                           asset.operationalStatus
                                                         : 'Desactivado'}
-                                                </span>
+                                                </Badge>
                                             </td>
                                             <td className="px-4 py-3.5 text-right">
-                                                <div className="inline-flex items-center gap-1 text-slate-400">
+                                                <div className="inline-flex items-center gap-1 text-ink-600">
                                                     <button
                                                         type="button"
                                                         title="Hoja de vida"
                                                         aria-label={`Hoja de vida de ${asset.name}`}
                                                         onClick={() => openResume(asset)}
-                                                        className="flex h-9 w-9 items-center justify-center rounded-lg hover:bg-white/10 hover:text-cyan-300 transition-colors"
+                                                        className="flex size-9 items-center justify-center rounded-lg transition-all duration-200 hover:bg-info-soft hover:text-ocean-700 focus-visible:outline-2 focus-visible:outline-gold-600"
                                                     >
                                                         <FileText size={16} />
                                                     </button>
@@ -523,7 +520,7 @@ export default function Activos() {
                                                             title="Hoja de vida predictivo"
                                                             aria-label={`Hoja de vida predictivo de ${asset.name}`}
                                                             onClick={() => openPredictiveHistory(asset)}
-                                                            className="flex h-9 w-9 items-center justify-center rounded-lg hover:bg-white/10 hover:text-emerald-300 transition-colors"
+                                                            className="flex size-9 items-center justify-center rounded-lg transition-all duration-200 hover:bg-success-soft hover:text-forest-700 focus-visible:outline-2 focus-visible:outline-gold-600"
                                                         >
                                                             <Activity size={16} />
                                                         </button>
@@ -533,7 +530,7 @@ export default function Activos() {
                                                         title="Editar"
                                                         aria-label={`Editar ${asset.name}`}
                                                         onClick={() => openEditForm(asset)}
-                                                        className="flex h-9 w-9 items-center justify-center rounded-lg hover:bg-white/10 hover:text-cyan-300 transition-colors"
+                                                        className="flex size-9 items-center justify-center rounded-lg transition-all duration-200 hover:bg-info-soft hover:text-ocean-700 focus-visible:outline-2 focus-visible:outline-gold-600"
                                                     >
                                                         <ClipboardList size={16} />
                                                     </button>
@@ -543,7 +540,7 @@ export default function Activos() {
                                                             title="Desactivar"
                                                             aria-label={`Desactivar ${asset.name}`}
                                                             onClick={() => handleDeactivate(asset)}
-                                                            className="flex h-9 w-9 items-center justify-center rounded-lg hover:bg-white/10 hover:text-amber-300 transition-colors"
+                                                            className="flex size-9 items-center justify-center rounded-lg transition-all duration-200 hover:bg-gold-100 hover:text-forest-900 focus-visible:outline-2 focus-visible:outline-gold-600"
                                                         >
                                                             <Power size={16} />
                                                         </button>
@@ -553,7 +550,7 @@ export default function Activos() {
                                                         title="Eliminar lógicamente"
                                                         aria-label={`Eliminar ${asset.name}`}
                                                         onClick={() => handleDelete(asset)}
-                                                        className="flex h-9 w-9 items-center justify-center rounded-lg hover:bg-white/10 hover:text-red-300 transition-colors"
+                                                        className="flex size-9 items-center justify-center rounded-lg transition-all duration-200 hover:bg-error-soft hover:text-error-text focus-visible:outline-2 focus-visible:outline-gold-600"
                                                     >
                                                         <Trash2 size={16} />
                                                     </button>
@@ -566,9 +563,7 @@ export default function Activos() {
                         </div>
 
                         {!visibleAssets.length && (
-                            <p className="py-12 text-center text-xs text-slate-400">
-                                No hay activos que coincidan con los filtros.
-                            </p>
+                            <EmptyState title="No hay activos que coincidan con los filtros." className="py-2" />
                         )}
                         <PaginationControls
                             {...pagination}
@@ -598,21 +593,21 @@ export default function Activos() {
             {/* Modal Hoja de Vida Predictivo */}
             {modal === 'predictiveResume' && (
                 <div
-                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-3 sm:p-4 md:p-6 overflow-y-auto"
+                    className="fixed inset-0 z-50 flex items-end justify-center overflow-y-auto bg-pine-900/40 p-0 backdrop-blur-sm sm:items-center sm:p-4 md:p-6"
                     role="presentation"
                 >
                     <div
                         role="dialog"
                         aria-modal="true"
                         aria-labelledby="predictive-resume-title"
-                        className="relative my-auto max-h-[92vh] w-full max-w-4xl overflow-y-auto rounded-xl border border-white/10 bg-[#102637] p-4 sm:p-6 shadow-2xl transition-all min-w-0"
+                        className="relative my-auto max-h-[92dvh] w-full min-w-0 max-w-4xl overflow-y-auto rounded-t-3xl border border-surface/40 bg-surface/90 p-4 shadow-2xl backdrop-blur-xl sm:rounded-3xl sm:p-6"
                     >
-                        <div className="mb-4 sm:mb-5 flex items-start justify-between gap-3 border-b border-white/10 pb-3.5">
+                        <div className="mb-4 flex items-start justify-between gap-3 border-b border-sand-200 pb-3.5 sm:mb-5">
                             <div className="min-w-0">
-                                <h3 id="predictive-resume-title" className="text-base sm:text-lg font-semibold text-white truncate">
+                                <h3 id="predictive-resume-title" className="truncate text-base font-semibold text-ink-900 sm:text-lg">
                                     Hoja de vida predictivo
                                 </h3>
-                                <p className="mt-0.5 text-xs text-slate-400">
+                                <p className="mt-0.5 text-xs text-ink-600">
                                     {predictiveAsset?.name} · {predictiveAsset?.predictiveId} · lecturas y resultados históricos.
                                 </p>
                             </div>
@@ -621,19 +616,19 @@ export default function Activos() {
                                 onClick={() => setModal('')}
                                 title="Cerrar"
                                 aria-label="Cerrar hoja de vida predictiva"
-                                className="flex h-11 w-11 items-center justify-center rounded-lg text-slate-400 hover:bg-white/10 hover:text-white transition-colors shrink-0"
+                                className="flex size-11 shrink-0 items-center justify-center rounded-xl text-ink-600 transition-all duration-200 hover:bg-sand-100 hover:text-ink-900 focus-visible:outline-2 focus-visible:outline-gold-600"
                             >
                                 <X size={20} />
                             </button>
                         </div>
 
                         {predictiveLoading ? (
-                            <p className="py-12 text-center text-xs text-slate-400">Cargando historial predictivo...</p>
+                            <Skeleton variant="rect" className="h-52" label="Cargando historial predictivo" />
                         ) : predictiveHistory.length ? (
                             <div className="space-y-4">
-                                <div className="overflow-x-auto rounded-lg border border-white/10">
+                                <div className="overflow-x-auto rounded-2xl border border-sand-200">
                                     <table className="w-full text-left text-xs min-w-[750px]">
-                                        <thead className="border-b border-white/10 bg-[#0b1d2a] text-slate-400">
+                                        <thead className="border-b border-sand-200 bg-sand-100 text-ink-600">
                                             <tr>
                                                 <th className="px-3.5 py-3 font-medium">Fecha</th>
                                                 <th className="px-3.5 py-3 font-medium">Estado</th>
@@ -647,35 +642,35 @@ export default function Activos() {
                                         </thead>
                                         <tbody className="divide-y divide-white/5">
                                             {predictiveHistory.map((record) => (
-                                                <tr key={record.id} className="hover:bg-white/[0.02]">
-                                                    <td className="whitespace-nowrap px-3.5 py-3 text-slate-300">
+                                                <tr key={record.id} className="odd:bg-sand-50/70 hover:bg-sand-100/70">
+                                                    <td className="whitespace-nowrap px-3.5 py-3 text-ink-600">
                                                         {formatDateTime(record.timestamp)}
                                                     </td>
                                                     <td
                                                         className={`px-3.5 py-3 font-semibold ${
                                                             record.predictionClass === 1
-                                                                ? 'text-red-300'
-                                                                : 'text-emerald-300'
+                                                                ? 'text-error-text'
+                                                                : 'text-forest-700'
                                                         }`}
                                                     >
                                                         {record.motorState}
                                                     </td>
-                                                    <td className="px-3.5 py-3 text-slate-300">
+                                                    <td className="px-3.5 py-3 text-ink-600">
                                                         {Math.round(record.confidence * 100)}%
                                                     </td>
-                                                    <td className="px-3.5 py-3 text-slate-300">
+                                                    <td className="px-3.5 py-3 text-ink-600">
                                                         {record.temperature} °C
                                                     </td>
-                                                    <td className="px-3.5 py-3 text-slate-300">
+                                                    <td className="px-3.5 py-3 text-ink-600">
                                                         {record.vibration} Hz
                                                     </td>
-                                                    <td className="px-3.5 py-3 text-slate-300">
+                                                    <td className="px-3.5 py-3 text-ink-600">
                                                         {record.humidity} %
                                                     </td>
-                                                    <td className="px-3.5 py-3 text-slate-300">
+                                                    <td className="px-3.5 py-3 text-ink-600">
                                                         {record.pressure} bar
                                                     </td>
-                                                    <td className="px-3.5 py-3 text-slate-300">
+                                                    <td className="px-3.5 py-3 text-ink-600">
                                                         {record.energyConsumption} kW
                                                     </td>
                                                 </tr>
@@ -685,8 +680,8 @@ export default function Activos() {
                                 </div>
 
                                 {predictiveHistory.some((record) => record.affectedComponents) && (
-                                    <div className="rounded-lg border border-white/10 bg-[#081723] p-3.5 text-xs text-slate-300 space-y-2">
-                                        <p className="font-semibold text-white uppercase tracking-wider text-[11px]">
+                                    <div className="space-y-2 rounded-xl border border-sand-200 bg-sand-50 p-3.5 text-xs text-ink-600">
+                                        <p className="text-[11px] font-semibold uppercase tracking-wider text-ink-900">
                                             Diagnósticos
                                         </p>
                                         <div className="space-y-1.5 divide-y divide-white/5">
@@ -694,7 +689,7 @@ export default function Activos() {
                                                 (record) =>
                                                     record.affectedComponents && (
                                                         <p key={record.id} className="pt-1.5 first:pt-0">
-                                                            <span className="text-slate-400">
+                                                            <span className="text-ink-600">
                                                                 {formatDateTime(record.timestamp)}:
                                                             </span>{' '}
                                                             {record.affectedComponents}
@@ -706,7 +701,7 @@ export default function Activos() {
                                 )}
                             </div>
                         ) : (
-                            <p className="rounded-lg border border-white/10 p-4 text-xs text-slate-400">
+                            <p className="rounded-xl border border-sand-200 bg-sand-50 p-4 text-sm text-ink-600">
                                 Este activo aún no tiene lecturas predictivas registradas.
                             </p>
                         )}
@@ -715,56 +710,56 @@ export default function Activos() {
             )}
 
             {modal === 'failureTrends' && (
-                <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/80 p-4">
+                <div className="fixed inset-0 z-[80] flex items-end justify-center bg-pine-900/40 p-0 backdrop-blur-sm sm:items-center sm:p-4">
                     <section
                         role="dialog"
                         aria-modal="true"
                         aria-labelledby="failure-trends-title"
-                        className="w-full max-w-xl rounded-xl border border-white/10 bg-[#102637] p-5 text-white shadow-2xl"
+                        className="w-full max-w-xl rounded-t-3xl border border-surface/40 bg-surface/90 p-5 text-ink-900 shadow-2xl backdrop-blur-xl sm:rounded-3xl"
                     >
                         <div className="flex items-start justify-between gap-3">
                             <div>
                                 <h2 id="failure-trends-title" className="text-lg font-bold">Tendencia histórica de fallas</h2>
-                                <p className="mt-1 text-xs text-slate-400">{failureTrendAsset?.name}</p>
+                                <p className="mt-1 text-xs text-ink-600">{failureTrendAsset?.name}</p>
                             </div>
-                            <button type="button" onClick={() => setModal('')} aria-label="Cerrar análisis" className="rounded-lg p-2 text-slate-400 hover:bg-white/10 hover:text-white">
+                            <button type="button" onClick={() => setModal('')} aria-label="Cerrar análisis" className="flex size-11 items-center justify-center rounded-xl text-ink-600 transition-all duration-200 hover:bg-sand-100 hover:text-ink-900 focus-visible:outline-2 focus-visible:outline-gold-600">
                                 <X size={18} />
                             </button>
                         </div>
                         {failureTrendsLoading ? (
-                            <p className="py-10 text-center text-sm text-slate-300">Analizando historial…</p>
+                            <Skeleton variant="rect" className="mt-5 h-40" label="Analizando historial" />
                         ) : failureTrends && (
                             <div className="mt-5 space-y-4">
                                 <dl className="grid grid-cols-2 gap-3 text-xs">
-                                    <div className="rounded-lg border border-white/10 bg-[#0b1d2a] p-3">
-                                        <dt className="text-slate-400">Fallas registradas</dt>
-                                        <dd className="mt-1 text-xl font-bold">{failureTrends.failureCount}</dd>
+                                    <div className="rounded-xl border border-sand-200 bg-sand-50 p-3">
+                                        <dt className="text-ink-600">Fallas registradas</dt>
+                                        <dd className="mt-1 text-xl font-bold tabular-nums">{failureTrends.failureCount}</dd>
                                     </div>
-                                    <div className="rounded-lg border border-white/10 bg-[#0b1d2a] p-3">
-                                        <dt className="text-slate-400">Horómetro acumulado</dt>
-                                        <dd className="mt-1 text-xl font-bold">{failureTrends.currentHorometer ?? 0} h</dd>
+                                    <div className="rounded-xl border border-sand-200 bg-sand-50 p-3">
+                                        <dt className="text-ink-600">Horómetro acumulado</dt>
+                                        <dd className="mt-1 text-xl font-bold tabular-nums">{failureTrends.currentHorometer ?? 0} h</dd>
                                     </div>
-                                    <div className="rounded-lg border border-white/10 bg-[#0b1d2a] p-3">
-                                        <dt className="text-slate-400">Frecuencia base</dt>
+                                    <div className="rounded-xl border border-sand-200 bg-sand-50 p-3">
+                                        <dt className="text-ink-600">Frecuencia base</dt>
                                         <dd className="mt-1 font-semibold">{failureTrends.baseIntervalDays} días</dd>
                                     </div>
-                                    <div className="rounded-lg border border-cyan-400/20 bg-cyan-500/10 p-3">
-                                        <dt className="text-cyan-200">Intervalo sugerido</dt>
-                                        <dd className="mt-1 text-xl font-bold text-cyan-100">{failureTrends.suggestedIntervalDays} días</dd>
+                                    <div className="rounded-xl border border-info/20 bg-info-soft p-3">
+                                        <dt className="text-ocean-700">Intervalo sugerido</dt>
+                                        <dd className="mt-1 text-xl font-bold tabular-nums text-ocean-900">{failureTrends.suggestedIntervalDays} días</dd>
                                     </div>
                                 </dl>
-                                <p className="rounded-lg border border-white/10 bg-[#0b1d2a] p-3 text-xs leading-relaxed text-slate-200">
+                                <p className="rounded-xl border border-sand-200 bg-sand-50 p-3 text-xs leading-relaxed text-ink-600">
                                     {failureTrends.summary}
                                 </p>
                                 {failureTrends.averageDaysBetweenFailures != null && (
-                                    <p className="text-xs text-slate-400">
+                                    <p className="text-xs text-ink-600">
                                         Promedio entre fallas: {failureTrends.averageDaysBetweenFailures.toFixed(1)} días.
                                     </p>
                                 )}
                                 {failureTrends.recurringFailures?.length > 0 && (
                                     <div>
-                                        <h3 className="text-xs font-bold uppercase text-amber-200">Fallas recurrentes</h3>
-                                        <ul className="mt-2 list-inside list-disc space-y-1 text-xs text-slate-300">
+                                        <h3 className="text-xs font-bold uppercase text-forest-900">Fallas recurrentes</h3>
+                                        <ul className="mt-2 list-inside list-disc space-y-1 text-xs text-ink-600">
                                             {failureTrends.recurringFailures.map((failure) => <li key={failure}>{failure}</li>)}
                                         </ul>
                                     </div>
@@ -778,7 +773,7 @@ export default function Activos() {
             {/* Modal Previsualización de Evidencia */}
             {maintenanceEvidencePreview && (
                 <div
-                    className="fixed inset-0 z-[80] flex items-center justify-center bg-black/90 backdrop-blur-md p-4"
+                    className="fixed inset-0 z-[80] flex items-center justify-center bg-pine-900/70 p-4 backdrop-blur-md"
                     role="dialog"
                     aria-modal="true"
                     aria-label="Evidencia del mantenimiento"
@@ -788,7 +783,7 @@ export default function Activos() {
                         type="button"
                         onClick={() => setMaintenanceEvidencePreview('')}
                         aria-label="Cerrar evidencia"
-                        className="absolute right-4 top-4 flex h-11 w-11 items-center justify-center rounded-lg bg-white/10 text-white hover:bg-white/20 transition-colors"
+                        className="absolute right-4 top-4 flex size-11 items-center justify-center rounded-xl bg-white/20 text-white transition-all duration-200 hover:bg-white/30 focus-visible:outline-2 focus-visible:outline-gold-300"
                     >
                         <X size={24} />
                     </button>

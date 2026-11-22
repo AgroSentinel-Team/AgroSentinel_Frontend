@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getCurrentUser } from '../services/technicianService';
+import { isOfflineError } from '../services/offlineApi';
 
 const DASHBOARDS = [
   { roles: ['ADMIN', 'ADMINISTRADOR'], label: 'Administrador', path: '/admin/dashboard' },
@@ -57,7 +58,8 @@ export default function DashboardRoleSwitcher() {
         setProfileError('');
       })
       .catch((error) => {
-        if (active) setProfileError(getErrorMessage(error));
+        // Sin conexión se siguen usando los roles guardados en el dispositivo: no es un error.
+        if (active && !isOfflineError(error)) setProfileError(getErrorMessage(error));
       });
 
     return () => {
@@ -75,15 +77,15 @@ export default function DashboardRoleSwitcher() {
       <span
         role="status"
         title={profileError}
-        className="max-w-40 text-right text-[10px] leading-tight text-amber-300"
+        className="max-w-40 text-right text-[10px] leading-tight text-white/65"
       >
-        No se actualizaron los permisos
+        Permisos sin verificar
       </span>
     ) : null;
   }
 
   return (
-    <label className="flex min-w-0 items-center gap-1.5">
+    <label     className="flex min-w-0 items-center gap-1.5">
       <span className="sr-only">Cambiar dashboard según tus roles</span>
       <select
         value=""
@@ -92,7 +94,7 @@ export default function DashboardRoleSwitcher() {
         }}
         aria-label="Cambiar dashboard según tus roles"
         title={profileError || 'Cambiar dashboard'}
-        className="min-h-10 max-w-36 rounded-lg border border-cyan-400/25 bg-[#102a3d] px-2 text-[11px] font-semibold text-cyan-100 outline-none focus:border-cyan-300 sm:max-w-48 sm:px-3 sm:text-xs"
+        className="min-h-11 max-w-36 rounded-xl border border-sand-200 bg-surface px-2 text-[11px] font-semibold text-forest-700 outline-none transition-all duration-200 ease-out focus-visible:border-gold-600 focus-visible:ring-2 focus-visible:ring-gold-500/25 sm:max-w-48 sm:px-3 sm:text-xs"
       >
         <option value="" disabled>
           Cambiar módulo
@@ -105,7 +107,7 @@ export default function DashboardRoleSwitcher() {
       </select>
       {profileError && (
         <span role="status" className="sr-only">
-          No se actualizaron los permisos: {profileError}
+          Permisos sin verificar: {profileError}
         </span>
       )}
     </label>

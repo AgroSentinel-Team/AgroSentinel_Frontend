@@ -6,35 +6,35 @@ const teamActivity = [
     role: 'Almacenista Turno A',
     action: 'Registró entrada de 50 unidades de Pintura Acrílica',
     time: '09:30',
-    color: 'from-blue-600 to-indigo-800',
+    color: 'from-navy-700 to-navy-900',
   },
   {
     name: 'María L.',
     role: 'Preparador de Despacho',
     action: 'Completó el inventario general de la Zona B',
     time: '08:45',
-    color: 'from-emerald-500 to-teal-800',
+    color: 'from-forest-500 to-pine-900',
   },
   {
     name: 'Martín G.',
     role: 'Almacenista Turno B',
     action: 'Reportó daño de 5 disolventes en traslado',
     time: 'Ayer',
-    color: 'from-amber-500 to-orange-800',
+    color: 'from-gold-500 to-gold-600',
   },
   {
     name: 'Laura G.',
     role: 'Despachador',
     action: 'Solicitó autorización para ajuste de stock',
     time: 'Ayer',
-    color: 'from-cyan-500 to-blue-800',
+    color: 'from-ocean-500 to-navy-900',
   },
 ];
 
 function Avatar({ color, initials }) {
   return (
     <div
-      className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br ${color} text-xs font-bold text-white shadow-sm border border-white/10`}
+      className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br ${color} text-xs font-bold text-white shadow-sm border border-sand-200`}
     >
       {initials}
     </div>
@@ -43,22 +43,22 @@ function Avatar({ color, initials }) {
 
 export default function Equipo() {
   return (
-    <section className="rounded-xl border border-[#2d4055] bg-[#13293a] p-4 sm:p-5 shadow-xl space-y-4 min-w-0 text-white">
-      <div className="flex items-center gap-3 border-b border-white/10 pb-3">
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-cyan-400/30 bg-cyan-400/10 text-cyan-300">
+    <section className="rounded-xl border border-sand-200 bg-sand-50 p-4 sm:p-5 shadow-xl space-y-4 min-w-0 text-ink-900">
+      <div className="flex items-center gap-3 border-b border-sand-200 pb-3">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-ocean-300/60 bg-info-soft text-ocean-700">
           <UserRound size={20} />
         </div>
         <div className="min-w-0">
-          <h2 className="text-sm sm:text-base font-bold text-white truncate">
+          <h2 className="text-sm sm:text-base font-bold text-ink-900 truncate">
             Actividad del Equipo
           </h2>
-          <p className="mt-0.5 text-xs text-slate-400 truncate">
+          <p className="mt-0.5 text-xs text-ink-600 truncate">
             Últimas acciones del personal operativo
           </p>
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-2 sm:gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
         {teamActivity.map((person, index) => {
           const initials = person.name
             .split(' ')
@@ -69,7 +69,7 @@ export default function Equipo() {
             <div
               key={person.name}
               className={`flex items-start gap-3 py-2.5 ${
-                index !== teamActivity.length - 1 ? 'border-b border-white/5' : ''
+                index !== teamActivity.length - 1 ? 'border-b border-sand-200/70' : ''
               }`}
             >
               <Avatar color={person.color} initials={initials} />
@@ -77,21 +77,21 @@ export default function Equipo() {
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-start justify-between gap-2">
                   <div>
-                    <p className="text-xs sm:text-sm font-bold text-white leading-tight">
+                    <p className="text-xs sm:text-sm font-bold text-ink-900 leading-tight">
                       {person.name}
                     </p>
-                    <p className="text-[11px] font-medium text-cyan-300/80">
+                    <p className="text-[11px] font-medium text-ocean-700/80">
                       {person.role}
                     </p>
                   </div>
 
-                  <span className="inline-flex items-center gap-1 font-mono text-[11px] text-slate-400">
-                    <Clock3 size={13} className="text-slate-500 shrink-0" />
+                  <span className="inline-flex items-center gap-1 font-mono text-[11px] text-ink-600">
+                    <Clock3 size={13} className="text-ink-600 shrink-0" />
                     {person.time}
                   </span>
                 </div>
 
-                <p className="mt-1 text-xs text-slate-300 leading-relaxed">
+                <p className="mt-1 text-xs text-ink-600 leading-relaxed">
                   {person.action}
                 </p>
               </div>

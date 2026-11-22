@@ -25,19 +25,19 @@ const TELEMETRY_POLL_INTERVAL = 30_000;
 const OPERATIONAL_STATUS = {
   OPERATIONAL: {
     label: 'Operativa',
-    tone: 'border-emerald-400/30 bg-emerald-500/15 text-emerald-300',
+    tone: 'border-forest-300/50 bg-success-soft text-forest-700',
   },
   OPERATIONAL_WITH_RESTRICTIONS: {
     label: 'Con restricciones',
-    tone: 'border-amber-400/30 bg-amber-500/15 text-amber-300',
+    tone: 'border-warning/30 bg-warning-soft text-forest-900',
   },
   IN_REPAIR: {
     label: 'En reparación',
-    tone: 'border-orange-400/30 bg-orange-500/15 text-orange-300',
+    tone: 'border-warning/30 bg-warning-soft text-forest-900',
   },
   OBSOLETE: {
     label: 'Fuera de servicio',
-    tone: 'border-slate-400/30 bg-slate-500/15 text-slate-300',
+    tone: 'border-sand-200/30 bg-sand-100 text-ink-600',
   },
 };
 
@@ -285,11 +285,11 @@ export default function Maquinaria() {
   };
 
   return (
-    <section className="space-y-5 text-white min-w-0">
+    <section className="space-y-5 text-ink-900 min-w-0">
       {/* Encabezado Principal */}
-      <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b border-white/10 pb-4">
+      <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b border-sand-200 pb-4">
         <div>
-          <div className="flex items-center gap-2 text-cyan-300">
+          <div className="flex items-center gap-2 text-ocean-700">
             <Gauge size={18} />
             <span className="text-xs font-bold uppercase tracking-wider">
               Flota de equipos
@@ -298,7 +298,7 @@ export default function Maquinaria() {
           <h1 className="mt-1 text-xl sm:text-2xl font-bold tracking-tight">
             Maquinaria asignada
           </h1>
-          <p className="mt-0.5 text-xs text-slate-400">
+          <p className="mt-0.5 text-xs text-ink-600">
             Estado operativo, telemetría de motor, ficha técnica y hoja de vida.
           </p>
         </div>
@@ -307,9 +307,9 @@ export default function Maquinaria() {
           type="button"
           onClick={handleRefresh}
           disabled={loading}
-          className="flex min-h-[44px] items-center justify-center gap-2 rounded-lg border border-white/10 bg-[#102a3d] px-4 py-2 text-xs font-semibold text-slate-200 hover:bg-white/10 transition-colors shrink-0"
+          className="flex min-h-[44px] items-center justify-center gap-2 rounded-lg border border-sand-200 bg-sand-50 px-4 py-2 text-xs font-semibold text-ink-900 hover:bg-sand-100 transition-all duration-200 ease-out shrink-0"
         >
-          <RefreshCw size={16} className={loading ? 'animate-spin text-cyan-400' : ''} />
+          <RefreshCw size={16} className={loading ? 'animate-spin text-ocean-700' : ''} />
           <span>Actualizar</span>
         </button>
       </header>
@@ -318,13 +318,13 @@ export default function Maquinaria() {
       {error && (
         <div
           role="alert"
-          className="flex items-start justify-between gap-3 rounded-lg border border-red-500/30 bg-red-500/10 p-3.5 text-xs text-red-200"
+          className="flex items-start justify-between gap-3 rounded-lg border border-error/20 bg-error-soft p-3.5 text-xs text-error-text"
         >
           <span className="min-w-0 flex-1">{error}</span>
           <button
             type="button"
             onClick={() => setError('')}
-            className="text-red-300 hover:text-white p-1"
+            className="text-error-text hover:text-ink-900 p-1"
           >
             <X size={16} />
           </button>
@@ -334,7 +334,7 @@ export default function Maquinaria() {
       {predictiveError && (
         <div
           role="status"
-          className="flex items-start justify-between gap-3 rounded-lg border border-amber-500/30 bg-amber-500/10 p-3.5 text-xs text-amber-200"
+          className="flex items-start justify-between gap-3 rounded-lg border border-warning/30 bg-warning-soft p-3.5 text-xs text-forest-900"
         >
           <span className="min-w-0 flex-1">
             No se pudo consultar la telemetría del motor: {predictiveError}. El resto de la ficha sigue disponible.
@@ -342,7 +342,7 @@ export default function Maquinaria() {
           <button
             type="button"
             onClick={() => setPredictiveError('')}
-            className="text-amber-300 hover:text-white p-1"
+            className="text-forest-900 hover:text-ink-900 p-1"
           >
             <X size={16} />
           </button>
@@ -351,28 +351,28 @@ export default function Maquinaria() {
 
       {/* Contenido Principal */}
       {loading ? (
-        <div className="py-16 text-center text-xs text-slate-400">
-          <RefreshCw className="mx-auto mb-2 animate-spin text-cyan-400" size={24} />
+        <div className="py-16 text-center text-xs text-ink-600">
+          <RefreshCw className="mx-auto mb-2 animate-spin text-ocean-700" size={24} />
           <span>Cargando maquinaria asignada...</span>
         </div>
       ) : !error && assets.length === 0 ? (
-        <div className="rounded-xl border border-[#2d4055] bg-[#13293a] p-8 text-center text-xs text-slate-400 shadow-xl">
+        <div className="rounded-xl border border-sand-200 bg-sand-50 p-8 text-center text-xs text-ink-600 shadow-xl">
           No tienes maquinaria activa asignada a tu usuario.
         </div>
       ) : (
         !error && (
-          <div className="grid grid-cols-2 gap-2 sm:gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-5">
             {/* Lista Selección Maquinaria */}
             <div className="space-y-3">
-              <h2 className="text-xs font-bold uppercase tracking-wider text-slate-400 px-1">
+              <h2 className="text-xs font-bold uppercase tracking-wider text-ink-600 px-1">
                 Equipos disponibles ({assets.length})
               </h2>
 
-              <div className="grid grid-cols-2 gap-2.5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                 {assets.map((asset) => {
                   const status = OPERATIONAL_STATUS[asset.operationalStatus] || {
                     label: asset.operationalStatus || 'Sin estado',
-                    tone: 'border-slate-500/30 bg-slate-500/15 text-slate-300',
+                    tone: 'border-sand-200/30 bg-sand-100 text-ink-600',
                   };
                   const isSelected = selectedId === asset.id;
 
@@ -389,26 +389,26 @@ export default function Maquinaria() {
                       }}
                       className={`w-full rounded-xl border p-4 text-left transition-all ${
                         isSelected
-                          ? 'border-cyan-400 bg-[#153449] shadow-lg ring-1 ring-cyan-400/40'
-                          : 'border-[#2d4055] bg-[#13293a] hover:border-[#45647a] hover:bg-[#163044]'
+                          ? 'border-ocean-300/60 bg-info-soft shadow-lg ring-1 ring-ocean-500/30'
+                          : 'border-sand-200 bg-sand-50 hover:border-sand-200 hover:bg-sand-50'
                       }`}
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex min-w-0 items-start gap-3">
                           <span
-                            className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border transition-colors ${
+                            className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border transition-all duration-200 ease-out ${
                               isSelected
-                                ? 'bg-cyan-400/20 border-cyan-400/40 text-cyan-200'
-                                : 'bg-[#0d2030] border-white/10 text-cyan-400'
+                                ? 'bg-info-soft border-ocean-300/60 text-ocean-700'
+                                : 'bg-sand-50 border-sand-200 text-ocean-700'
                             }`}
                           >
                             <Gauge size={18} />
                           </span>
                           <div className="min-w-0">
-                            <p className="truncate text-xs sm:text-sm font-bold text-white">
+                            <p className="truncate text-xs sm:text-sm font-bold text-ink-900">
                               {asset.name}
                             </p>
-                            <p className="mt-0.5 truncate text-[11px] text-slate-400">
+                            <p className="mt-0.5 truncate text-[11px] text-ink-600">
                               {[asset.brand, asset.model].filter(Boolean).join(' ') ||
                                 'Sin marca/modelo'}
                             </p>
@@ -422,8 +422,8 @@ export default function Maquinaria() {
                         </span>
                       </div>
 
-                      <div className="mt-3 flex items-center gap-1.5 text-xs text-slate-400 border-t border-white/5 pt-2.5">
-                        <MapPin size={13} className="text-cyan-400 shrink-0" />
+                      <div className="mt-3 flex items-center gap-1.5 text-xs text-ink-600 border-t border-sand-200/70 pt-2.5">
+                        <MapPin size={13} className="text-ocean-700 shrink-0" />
                         <span className="truncate">{asset.location || 'Ubicación no registrada'}</span>
                       </div>
                     </button>
@@ -436,16 +436,16 @@ export default function Maquinaria() {
             {selectedAsset && (
               <div className="space-y-4 min-w-0">
                 {/* Estado del Equipo & Telemetría */}
-                <section className="rounded-xl border border-[#2d4055] bg-[#13293a] p-4 sm:p-5 shadow-xl space-y-4">
-                  <div className="flex flex-wrap items-start justify-between gap-3 border-b border-white/10 pb-3">
+                <section className="rounded-xl border border-sand-200 bg-sand-50 p-4 sm:p-5 shadow-xl space-y-4">
+                  <div className="flex flex-wrap items-start justify-between gap-3 border-b border-sand-200 pb-3">
                     <div>
-                      <p className="text-xs font-bold uppercase tracking-wider text-cyan-300">
+                      <p className="text-xs font-bold uppercase tracking-wider text-ocean-700">
                         Estado operativo & Telemetría
                       </p>
-                      <h2 className="mt-1 text-base sm:text-xl font-extrabold text-white">
+                      <h2 className="mt-1 text-base sm:text-xl font-extrabold text-ink-900">
                         {selectedAsset.name}
                       </h2>
-                      <p className="mt-0.5 text-xs text-slate-400">
+                      <p className="mt-0.5 text-xs text-ink-600">
                         {selectedAsset.categoryName || 'Categoría sin registrar'}
                       </p>
                     </div>
@@ -453,7 +453,7 @@ export default function Maquinaria() {
                     <span
                       className={`rounded-full border px-3 py-1 text-xs font-semibold ${
                         (OPERATIONAL_STATUS[selectedAsset.operationalStatus] || {}).tone ||
-                        'border-slate-500/30 bg-slate-500/15 text-slate-300'
+                        'border-sand-200/30 bg-sand-100 text-ink-600'
                       }`}
                     >
                       {(OPERATIONAL_STATUS[selectedAsset.operationalStatus] || {}).label ||
@@ -462,7 +462,7 @@ export default function Maquinaria() {
                     </span>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-2 sm:gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
                     <Info
                       label="Estado del Motor"
                       value={
@@ -504,10 +504,10 @@ export default function Maquinaria() {
                   </div>
 
                   {selectedAsset.hasMotor && selectedPredictive?.affectedComponents && (
-                    <div className="flex items-start gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-200">
-                      <AlertTriangle size={16} className="text-amber-400 shrink-0 mt-0.5" />
+                    <div className="flex items-start gap-2 rounded-lg border border-warning/30 bg-warning-soft p-3 text-xs text-forest-900">
+                      <AlertTriangle size={16} className="text-forest-900 shrink-0 mt-0.5" />
                       <span>
-                        <strong className="text-amber-100 font-semibold">Componentes señalados:</strong>{' '}
+                        <strong className="text-forest-900 font-semibold">Componentes señalados:</strong>{' '}
                         {selectedPredictive.affectedComponents}
                       </span>
                     </div>
@@ -515,13 +515,13 @@ export default function Maquinaria() {
                 </section>
 
                 {/* Ficha Técnica */}
-                <section className="rounded-xl border border-[#2d4055] bg-[#13293a] p-4 sm:p-5 shadow-xl space-y-4">
-                  <div className="flex items-center gap-2 border-b border-white/10 pb-3">
-                    <ClipboardList size={18} className="text-cyan-300 shrink-0" />
-                    <h3 className="text-sm sm:text-base font-bold text-white">Ficha técnica</h3>
+                <section className="rounded-xl border border-sand-200 bg-sand-50 p-4 sm:p-5 shadow-xl space-y-4">
+                  <div className="flex items-center gap-2 border-b border-sand-200 pb-3">
+                    <ClipboardList size={18} className="text-ocean-700 shrink-0" />
+                    <h3 className="text-sm sm:text-base font-bold text-ink-900">Ficha técnica</h3>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-3">
                     <Info label="Marca" value={selectedAsset.brand} />
                     <Info label="Modelo" value={selectedAsset.model} />
                     <Info label="Serial" value={selectedAsset.serialNumber} />
@@ -536,10 +536,10 @@ export default function Maquinaria() {
                 </section>
 
                 {/* Hoja de Vida y Mantenimiento */}
-                <section className="rounded-xl border border-[#2d4055] bg-[#13293a] p-4 sm:p-5 shadow-xl space-y-4">
-                  <div className="flex items-center gap-2 border-b border-white/10 pb-3">
-                    <Wrench size={18} className="text-cyan-300 shrink-0" />
-                    <h3 className="text-sm sm:text-base font-bold text-white">
+                <section className="rounded-xl border border-sand-200 bg-sand-50 p-4 sm:p-5 shadow-xl space-y-4">
+                  <div className="flex items-center gap-2 border-b border-sand-200 pb-3">
+                    <Wrench size={18} className="text-ocean-700 shrink-0" />
+                    <h3 className="text-sm sm:text-base font-bold text-ink-900">
                       Hoja de vida y mantenimiento
                     </h3>
                   </div>
@@ -547,19 +547,19 @@ export default function Maquinaria() {
                   {resumeError && (
                     <div
                       role="alert"
-                      className="rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-xs text-red-200"
+                      className="rounded-lg border border-error/20 bg-error-soft p-3 text-xs text-error-text"
                     >
                       {resumeError}
                     </div>
                   )}
 
                   {resumeLoading ? (
-                    <div className="py-6 text-center text-xs text-slate-400">
-                      <RefreshCw className="mx-auto mb-2 animate-spin text-cyan-400" size={18} />
+                    <div className="py-6 text-center text-xs text-ink-600">
+                      <RefreshCw className="mx-auto mb-2 animate-spin text-ocean-700" size={18} />
                       <span>Cargando hoja de vida...</span>
                     </div>
                   ) : resume && resume.maintenanceHistory.length === 0 ? (
-                    <p className="py-4 text-center text-xs text-slate-400">
+                    <p className="py-4 text-center text-xs text-ink-600">
                       No hay mantenimientos registrados para este equipo.
                     </p>
                   ) : (
@@ -568,35 +568,35 @@ export default function Maquinaria() {
                         {resume.maintenanceHistory.map((entry) => (
                           <article
                             key={entry.id}
-                            className="rounded-lg border border-white/5 bg-[#0d2030] p-3.5 space-y-2 shadow-md"
+                            className="rounded-lg border border-sand-200/70 bg-sand-50 p-3.5 space-y-2 shadow-md"
                           >
-                            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-white/5 pb-2">
-                              <span className="text-xs font-bold text-cyan-200">
+                            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-sand-200/70 pb-2">
+                              <span className="text-xs font-bold text-ocean-700">
                                 {entry.type === 'PREVENTIVE'
                                   ? 'Mantenimiento preventivo'
                                   : 'Mantenimiento correctivo'}{' '}
-                                · <span className="text-white">{entry.status || 'Sin estado'}</span>
+                                · <span className="text-ink-900">{entry.status || 'Sin estado'}</span>
                               </span>
-                              <span className="text-xs font-mono text-slate-400">
+                              <span className="text-xs font-mono text-ink-600">
                                 {formatDate(
                                   entry.executedAt || entry.scheduledAt || entry.maintenanceDate,
                                 )}
                               </span>
                             </div>
 
-                            <p className="whitespace-pre-wrap text-xs text-slate-300 leading-relaxed">
+                            <p className="whitespace-pre-wrap text-xs text-ink-600 leading-relaxed">
                               {entry.tasksDescription || 'Sin descripción'}
                             </p>
 
-                            <div className="flex flex-wrap items-center gap-4 text-xs text-slate-400 pt-1 border-t border-white/5">
+                            <div className="flex flex-wrap items-center gap-4 text-xs text-ink-600 pt-1 border-t border-sand-200/70">
                               {entry.technicianName && (
                                 <span>
-                                  Técnico: <strong className="text-slate-200">{entry.technicianName}</strong>
+                                  Técnico: <strong className="text-ink-900">{entry.technicianName}</strong>
                                 </span>
                               )}
                               {entry.finalEquipmentState && (
                                 <span>
-                                  Estado final: <strong className="text-slate-200">{entry.finalEquipmentState}</strong>
+                                  Estado final: <strong className="text-ink-900">{entry.finalEquipmentState}</strong>
                                 </span>
                               )}
                             </div>
@@ -617,12 +617,12 @@ export default function Maquinaria() {
 
 function Info({ label, value, icon: Icon }) {
   return (
-    <div className="rounded-lg border border-[#30485a] bg-[#102a3d] p-3 min-w-0">
-      <p className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-        {Icon && <Icon size={13} className="text-cyan-400 shrink-0" />}
+    <div className="rounded-lg border border-sand-200 bg-sand-50 p-3 min-w-0">
+      <p className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-ink-600">
+        {Icon && <Icon size={13} className="text-ocean-700 shrink-0" />}
         <span>{label}</span>
       </p>
-      <p className="mt-1 text-xs sm:text-sm font-medium text-slate-200 break-words whitespace-pre-wrap">
+      <p className="mt-1 text-xs sm:text-sm font-medium text-ink-900 break-words whitespace-pre-wrap">
         {value || 'No registrado'}
       </p>
     </div>

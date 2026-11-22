@@ -6,16 +6,12 @@ import {
   FileText,
   FileWarning,
   LayoutDashboard,
-  Menu,
   RefreshCw,
   Tractor,
-  User,
   Wrench,
   X,
 } from "lucide-react";
-import LogoutButton from "../../components/LogoutButton";
-import DashboardRoleSwitcher from "../../components/DashboardRoleSwitcher";
-import BrandLogo from "../../components/BrandLogo";
+import AppShell from "../../components/AppShell";
 import Maquinaria from "./Maquinaria";
 import MisReportes from "./MisReportes";
 import MantenimientoPredictivo from "../Compartido/MantenimientoPredictivo";
@@ -60,117 +56,24 @@ export default function OperDashboard() {
   };
 
   return (
-    <div className="flex min-h-screen bg-[#020d16] font-sans text-white min-w-0">
-      {/* Overlay Móvil */}
-      {mobileMenuOpen && (
-        <div
-          className="fixed inset-0 z-40 bg-black/75 backdrop-blur-xs lg:hidden"
-          onClick={() => setMobileMenuOpen(false)}
-        />
+    <AppShell
+      navigation={navigation.filter(
+        ({ label }) => label !== "Reportar Falla" || allowedToReport,
       )}
-
-      {/* Sidebar Navegación */}
-      <aside
-        className={`fixed inset-y-0 left-0 z-50 flex w-60 flex-col border-r border-[#1f3446] bg-[#0d1f2d] transition-transform duration-200 lg:static lg:translate-x-0 ${
-          mobileMenuOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
-      >
-        <div className="flex h-[70px] items-center justify-between border-b border-[#1f3446] px-5">
-          <div className="flex items-center gap-2.5">
-            <BrandLogo className="h-10 w-10" />
-            <span className="text-base font-bold text-cyan-400 tracking-wide">
-              AgroSentinel
-            </span>
-          </div>
-          <button
-            type="button"
-            onClick={() => setMobileMenuOpen(false)}
-            aria-label="Cerrar menú"
-            className="text-slate-400 hover:text-white lg:hidden p-1"
-          >
-            <X size={20} />
-          </button>
-        </div>
-
-        <nav className="flex-1 space-y-1.5 p-3 overflow-y-auto">
-          {navigation
-            .filter(({ label }) => label !== "Reportar Falla" || allowedToReport)
-            .map(({ label, icon: Icon }) => {
-              const isActive = activeTab === label;
-              return (
-                <button
-                  key={label}
-                  type="button"
-                  onClick={() => handleNavClick(label)}
-                  className={`flex min-h-[44px] w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-left text-xs font-semibold transition-all ${
-                    isActive
-                      ? "bg-cyan-500/20 text-cyan-200 border border-cyan-400/40 shadow-sm"
-                      : "text-slate-300 hover:bg-white/5 hover:text-white"
-                  }`}
-                >
-                  <Icon size={18} className={isActive ? "text-cyan-300" : "text-slate-400"} />
-                  <span>{label}</span>
-                </button>
-              );
-            })}
-        </nav>
-
-        <div className="border-t border-[#1f3446] p-4 text-[11px] text-slate-400 text-center">
-          AgroSentinel Operativo &copy; 2026
-        </div>
-      </aside>
-
-      {/* Ámbito Principal */}
-      <div className="flex flex-1 flex-col min-w-0">
-        {/* Encabezado Superior */}
-        <header className="sticky top-0 z-30 flex h-[70px] items-center justify-between border-b border-[#1f3446] bg-[#0d2437]/90 px-4 sm:px-7 backdrop-blur-md">
-          <div className="flex items-center gap-3">
-            <button
-              type="button"
-              onClick={() => setMobileMenuOpen(true)}
-              aria-label="Abrir menú de navegación"
-              className="flex h-10 w-10 items-center justify-center rounded-lg border border-white/10 bg-[#102a3d] text-slate-200 hover:bg-white/10 lg:hidden"
-            >
-              <Menu size={20} />
-            </button>
-
-            <div className="flex items-center gap-2 text-xs sm:text-sm font-medium min-w-0">
-              <span className="hidden sm:inline font-bold text-cyan-300 truncate">
-                AgroSentinel
-              </span>
-              <span className="hidden sm:inline text-slate-500">|</span>
-              <span className="text-slate-200 truncate">{activeTab}</span>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <DashboardRoleSwitcher />
-            <div className="text-right hidden sm:block">
-              <p className="text-xs font-bold text-white truncate max-w-[150px]">
-                {userName || "Operario"}
-              </p>
-              <p className="text-[10px] font-semibold text-cyan-300 tracking-wider">
-                OPERARIO DE MAQUINARIA
-              </p>
-            </div>
-
-            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-cyan-500/20 border border-cyan-400/40 text-cyan-300">
-              <User size={18} />
-            </div>
-
-            <LogoutButton className="text-slate-300 hover:bg-white/10 hover:text-white" />
-          </div>
-        </header>
-
-        {/* Contenido Dinámico */}
-        <main className="flex-1 p-4 sm:p-7 min-w-0">
-          {contentMap[activeTab] || contentMap["Mi Panel"]}
-          {activeTab === "Reportar Falla" && allowedToReport && (
-            <FailureReportModal onClose={() => setActiveTab("Mi Panel")} />
-          )}
-        </main>
-      </div>
-    </div>
+      activeTab={activeTab}
+      onNavigate={handleNavClick}
+      mobileOpen={mobileMenuOpen}
+      onMobileOpenChange={setMobileMenuOpen}
+      userName={userName || "Operario"}
+      userRole="Operario de maquinaria"
+      sidebarFooter={<>AgroSentinel Operativo &copy; 2026</>}
+      contentClassName="px-4 pt-4 sm:px-7 sm:pt-7"
+    >
+      {contentMap[activeTab] || contentMap["Mi Panel"]}
+      {activeTab === "Reportar Falla" && allowedToReport && (
+        <FailureReportModal onClose={() => setActiveTab("Mi Panel")} />
+      )}
+    </AppShell>
   );
 }
 
@@ -225,11 +128,11 @@ function DashboardHome({ onReportFailure, onOpenReports, onOpenMachinery }) {
   };
 
   return (
-    <div className="space-y-6 text-white min-w-0">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b border-white/10 pb-4">
+    <div className="space-y-6 text-ink-900 min-w-0">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b border-sand-200 pb-4">
         <div>
           <h1 className="text-xl sm:text-2xl font-bold tracking-tight">Mi Panel</h1>
-          <p className="mt-0.5 text-xs text-slate-400">
+          <p className="mt-0.5 text-xs text-ink-600">
             Resumen de tu maquinaria asignada y estado de tus reportes de falla.
           </p>
         </div>
@@ -237,9 +140,9 @@ function DashboardHome({ onReportFailure, onOpenReports, onOpenMachinery }) {
           type="button"
           onClick={handleRefresh}
           disabled={loading}
-          className="flex min-h-[44px] items-center justify-center gap-2 rounded-lg border border-white/10 bg-[#102a3d] px-4 py-2 text-xs font-semibold text-slate-200 hover:bg-white/10 transition-colors self-start sm:self-center"
+          className="flex min-h-[44px] items-center justify-center gap-2 rounded-lg border border-sand-200 bg-sand-50 px-4 py-2 text-xs font-semibold text-ink-900 hover:bg-sand-100 transition-all duration-200 ease-out self-start sm:self-center"
         >
-          <RefreshCw size={16} className={loading ? "animate-spin text-cyan-400" : ""} />
+          <RefreshCw size={16} className={loading ? "animate-spin text-ocean-700" : ""} />
           <span>Actualizar</span>
         </button>
       </div>
@@ -247,13 +150,13 @@ function DashboardHome({ onReportFailure, onOpenReports, onOpenMachinery }) {
       {error && (
         <div
           role="alert"
-          className="flex items-start justify-between gap-3 rounded-lg border border-red-500/30 bg-red-500/10 p-3.5 text-xs text-red-200"
+          className="flex items-start justify-between gap-3 rounded-lg border border-error/30 bg-error-soft p-3.5 text-xs text-error-text"
         >
           <span className="min-w-0 flex-1">{error}</span>
           <button
             type="button"
             onClick={() => setError("")}
-            className="text-red-300 hover:text-white p-1"
+            className="text-error-text hover:text-ink-900 p-1"
           >
             <X size={16} />
           </button>
@@ -261,54 +164,54 @@ function DashboardHome({ onReportFailure, onOpenReports, onOpenMachinery }) {
       )}
 
       {loading ? (
-        <div className="py-16 text-center text-xs text-slate-400">
-          <RefreshCw className="mx-auto mb-2 animate-spin text-cyan-400" size={24} />
+        <div className="py-16 text-center text-xs text-ink-600">
+          <RefreshCw className="mx-auto mb-2 animate-spin text-ocean-700" size={24} />
           <span>Cargando datos del operario...</span>
         </div>
       ) : (
         <>
           {/* Tarjetas de Métricas */}
-          <div className="grid grid-cols-2 gap-2 sm:gap-3.5 xl:grid-cols-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3.5 xl:grid-cols-4">
             <MetricCard
               icon={Tractor}
               label="Maquinaria asignada"
               value={assets.length}
-              tone="text-cyan-300"
+              tone="text-ocean-700"
             />
             <MetricCard
               icon={CheckCircle2}
               label="Operativa"
               value={operationalMachines}
-              tone="text-emerald-300"
+              tone="text-forest-700"
             />
             <MetricCard
               icon={Wrench}
               label="En reparación"
               value={machinesInRepair}
-              tone="text-amber-300"
+              tone="text-forest-900"
             />
             <MetricCard
               icon={AlertTriangle}
               label="Reportes pendientes"
               value={openReports}
-              tone="text-orange-300"
+              tone="text-forest-900"
             />
           </div>
 
-          <div className="grid grid-cols-1 min-[360px]:grid-cols-2 gap-2 sm:gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-5">
             {/* Columna Izquierda */}
             <div className="space-y-5">
               {/* Callout Reportar Falla */}
-              <div className="rounded-xl border border-cyan-400/30 bg-[#102637] p-5 shadow-xl space-y-4">
+              <div className="rounded-xl border border-ocean-300/30 bg-sand-50 p-5 shadow-xl space-y-4">
                 <div className="flex items-start gap-3.5">
-                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-cyan-400/20 text-cyan-300 border border-cyan-400/30">
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-info-soft text-ocean-700 border border-ocean-300/30">
                     <AlertTriangle size={20} />
                   </span>
                   <div>
-                    <h2 className="text-sm sm:text-base font-bold text-white">
+                    <h2 className="text-sm sm:text-base font-bold text-ink-900">
                       ¿Detectaste una falla en tu equipo?
                     </h2>
-                    <p className="mt-1 text-xs text-slate-300 leading-relaxed">
+                    <p className="mt-1 text-xs text-ink-600 leading-relaxed">
                       Regístrala de inmediato para que el equipo de mantenimiento y supervisión pueda gestionarla.
                     </p>
                   </div>
@@ -317,34 +220,34 @@ function DashboardHome({ onReportFailure, onOpenReports, onOpenMachinery }) {
                 <button
                   type="button"
                   onClick={onReportFailure}
-                  className="inline-flex min-h-[44px] items-center justify-center rounded-lg bg-cyan-600 px-5 text-xs font-bold uppercase tracking-wider text-white hover:bg-cyan-500 transition-colors shadow-lg shadow-cyan-950/40"
+                  className="inline-flex min-h-[44px] items-center justify-center rounded-xl bg-gradient-to-r from-gold-500 to-gold-600 px-5 text-xs font-bold uppercase tracking-wider text-pine-900 shadow-lg shadow-gold-600/20 transition-all duration-200 ease-out hover:brightness-105"
                 >
                   Reportar falla ahora
                 </button>
               </div>
 
               {/* Historial Reciente de Reportes */}
-              <section className="rounded-xl border border-[#2d4055] bg-[#13293a] p-4 sm:p-5 shadow-xl space-y-4">
-                <div className="flex items-center justify-between gap-3 border-b border-white/10 pb-3">
+              <section className="rounded-xl border border-sand-200 bg-sand-50 p-4 sm:p-5 shadow-xl space-y-4">
+                <div className="flex items-center justify-between gap-3 border-b border-sand-200 pb-3">
                   <div>
-                    <h2 className="text-sm sm:text-base font-bold text-white">
+                    <h2 className="text-sm sm:text-base font-bold text-ink-900">
                       Historial reciente de reportes
                     </h2>
-                    <p className="mt-0.5 text-xs text-slate-400">
+                    <p className="mt-0.5 text-xs text-ink-600">
                       Tus reportes registrados y su estado actual.
                     </p>
                   </div>
                   <button
                     type="button"
                     onClick={onOpenReports}
-                    className="inline-flex min-h-[36px] items-center text-xs font-semibold text-cyan-300 hover:text-cyan-200 transition-colors"
+                    className="inline-flex min-h-[36px] items-center text-xs font-semibold text-ocean-700 hover:text-ocean-700 transition-all duration-200 ease-out"
                   >
                     Ver todos
                   </button>
                 </div>
 
                 {reports.length === 0 ? (
-                  <p className="py-8 text-center text-xs text-slate-400 border border-white/5 rounded-lg">
+                  <p className="py-8 text-center text-xs text-ink-600 border border-sand-200 rounded-lg">
                     Aún no tienes reportes registrados.
                   </p>
                 ) : (
@@ -360,27 +263,27 @@ function DashboardHome({ onReportFailure, onOpenReports, onOpenMachinery }) {
             {/* Columna Derecha */}
             <div className="space-y-5">
               {/* Estado de Maquinaria */}
-              <section className="rounded-xl border border-[#2d4055] bg-[#13293a] p-4 sm:p-5 shadow-xl space-y-4">
-                <div className="flex items-center justify-between gap-3 border-b border-white/10 pb-3">
+              <section className="rounded-xl border border-sand-200 bg-sand-50 p-4 sm:p-5 shadow-xl space-y-4">
+                <div className="flex items-center justify-between gap-3 border-b border-sand-200 pb-3">
                   <div>
-                    <h2 className="text-sm sm:text-base font-bold text-white">
+                    <h2 className="text-sm sm:text-base font-bold text-ink-900">
                       Estado de mi maquinaria
                     </h2>
-                    <p className="mt-0.5 text-xs text-slate-400">
+                    <p className="mt-0.5 text-xs text-ink-600">
                       Condición operativa de tus equipos asignados.
                     </p>
                   </div>
                   <button
                     type="button"
                     onClick={onOpenMachinery}
-                    className="inline-flex min-h-[36px] items-center text-xs font-semibold text-cyan-300 hover:text-cyan-200 transition-colors"
+                    className="inline-flex min-h-[36px] items-center text-xs font-semibold text-ocean-700 hover:text-ocean-700 transition-all duration-200 ease-out"
                   >
                     Ver detalle
                   </button>
                 </div>
 
                 {assets.length === 0 ? (
-                  <p className="py-8 text-center text-xs text-slate-400 border border-white/5 rounded-lg">
+                  <p className="py-8 text-center text-xs text-ink-600 border border-sand-200 rounded-lg">
                     No hay maquinaria activa asignada a tu usuario.
                   </p>
                 ) : (
@@ -388,13 +291,13 @@ function DashboardHome({ onReportFailure, onOpenReports, onOpenMachinery }) {
                     {assets.slice(0, 5).map((asset) => (
                       <div
                         key={asset.id}
-                        className="flex items-center justify-between gap-3 border-b border-white/5 pb-3 last:border-0 last:pb-0"
+                        className="flex items-center justify-between gap-3 border-b border-sand-200 pb-3 last:border-0 last:pb-0"
                       >
                         <div className="min-w-0">
-                          <p className="truncate text-xs font-semibold text-white">
+                          <p className="truncate text-xs font-semibold text-ink-900">
                             {asset.name}
                           </p>
-                          <p className="mt-0.5 truncate text-[11px] text-slate-400">
+                          <p className="mt-0.5 truncate text-[11px] text-ink-600">
                             {[asset.brand, asset.model].filter(Boolean).join(" ") ||
                               "Sin marca/modelo"}
                           </p>
@@ -407,10 +310,10 @@ function DashboardHome({ onReportFailure, onOpenReports, onOpenMachinery }) {
               </section>
 
               {/* Gráfico de Actividad Mensual */}
-              <section className="rounded-xl border border-[#2d4055] bg-[#13293a] p-4 sm:p-5 shadow-xl space-y-4">
-                <div className="flex items-center gap-2 border-b border-white/10 pb-3">
-                  <Activity size={18} className="text-cyan-300 shrink-0" />
-                  <h2 className="text-sm sm:text-base font-bold text-white">
+              <section className="rounded-xl border border-sand-200 bg-sand-50 p-4 sm:p-5 shadow-xl space-y-4">
+                <div className="flex items-center gap-2 border-b border-sand-200 pb-3">
+                  <Activity size={18} className="text-ocean-700 shrink-0" />
+                  <h2 className="text-sm sm:text-base font-bold text-ink-900">
                     Actividad de reportes (Últimos 6 meses)
                   </h2>
                 </div>
@@ -429,15 +332,15 @@ function DashboardHome({ onReportFailure, onOpenReports, onOpenMachinery }) {
                         key={label}
                         className="flex h-full flex-1 flex-col items-center justify-end gap-1.5"
                       >
-                        <span className="text-[10px] font-bold text-slate-300">
+                        <span className="text-[10px] font-bold text-ink-600">
                           {count}
                         </span>
                         <div
                           title={`${count} reportes en ${label}`}
-                          className="w-full max-w-[32px] rounded-t-md bg-cyan-500/80 hover:bg-cyan-400 transition-colors"
+                          className="w-full max-w-[32px] rounded-t-md bg-ocean-500/80 hover:bg-ocean-500 transition-all duration-200 ease-out"
                           style={{ height: `${heightPercent}%` }}
                         />
-                        <span className="text-[10px] font-semibold text-slate-400 capitalize">
+                        <span className="text-[10px] font-semibold text-ink-600 capitalize">
                           {label}
                         </span>
                       </div>
@@ -471,24 +374,24 @@ function buildMonthlyReportCounts(reports) {
 
 function MetricCard({ icon: Icon, label, value, tone }) {
   return (
-    <div className="rounded-xl border border-[#2d4055] bg-[#13293a] p-4 shadow-lg min-w-0">
-      <div className="flex items-center justify-between text-slate-400">
+    <div className="rounded-xl border border-sand-200 bg-sand-50 p-4 shadow-lg min-w-0">
+      <div className="flex items-center justify-between text-ink-600">
         <span className="text-xs font-semibold uppercase tracking-wider truncate">{label}</span>
         <Icon size={18} className={`${tone} shrink-0 ml-1`} />
       </div>
-      <p className="mt-2 text-2xl sm:text-3xl font-bold text-white tracking-tight">{value}</p>
+      <p className="mt-2 text-2xl sm:text-3xl font-bold text-ink-900 tracking-tight">{value}</p>
     </div>
   );
 }
 
 function ReportItem({ report }) {
   return (
-    <div className="flex items-center justify-between gap-3 rounded-lg border border-white/5 bg-[#0d2030] p-3 shadow-md">
+    <div className="flex items-center justify-between gap-3 rounded-lg border border-sand-200 bg-sand-50 p-3 shadow-md">
       <div className="min-w-0">
-        <p className="truncate text-xs font-semibold text-white">
+        <p className="truncate text-xs font-semibold text-ink-900">
           {report.assetName || "Activo"}
         </p>
-        <p className="mt-0.5 truncate text-[11px] text-slate-400">
+        <p className="mt-0.5 truncate text-[11px] text-ink-600">
           {report.tipoFalla} · {formatDate(report.fechaReporte)}
         </p>
       </div>
@@ -509,21 +412,21 @@ function StatusBadge({ status, report = false }) {
 
   const tones = report
     ? {
-        PENDIENTE: "border-amber-400/30 bg-amber-500/15 text-amber-300",
-        EN_REVISION: "border-cyan-400/30 bg-cyan-500/15 text-cyan-300",
-        RESUELTO: "border-emerald-400/30 bg-emerald-500/15 text-emerald-300",
+        PENDIENTE: "border-gold-600/30 bg-warning-soft text-forest-900",
+        EN_REVISION: "border-ocean-300/30 bg-info-soft text-ocean-700",
+        RESUELTO: "border-forest-300/30 bg-success-soft text-forest-700",
       }
     : {
-        OPERATIONAL: "border-emerald-400/30 bg-emerald-500/15 text-emerald-300",
-        OPERATIONAL_WITH_RESTRICTIONS: "border-amber-400/30 bg-amber-500/15 text-amber-300",
-        IN_REPAIR: "border-orange-400/30 bg-orange-500/15 text-orange-300",
-        OBSOLETE: "border-slate-400/30 bg-slate-500/15 text-slate-300",
+        OPERATIONAL: "border-forest-300/30 bg-success-soft text-forest-700",
+        OPERATIONAL_WITH_RESTRICTIONS: "border-gold-600/30 bg-warning-soft text-forest-900",
+        IN_REPAIR: "border-gold-600/30 bg-warning-soft text-forest-900",
+        OBSOLETE: "border-sand-200/30 bg-sand-50/15 text-ink-600",
       };
 
   return (
     <span
       className={`inline-flex shrink-0 rounded-full border px-2.5 py-0.5 text-[10px] font-semibold ${
-        tones[status] || "border-slate-500/30 bg-slate-500/15 text-slate-300"
+        tones[status] || "border-sand-200/30 bg-sand-50/15 text-ink-600"
       }`}
     >
       {labels[status] || status || "Sin estado"}

@@ -34,9 +34,9 @@ export default function PaginationControls({
     return (
         <nav
             aria-label="Paginación"
-            className="flex flex-col gap-3 border-t border-white/10 pt-4 sm:flex-row sm:items-center sm:justify-between"
+            className="flex min-w-0 flex-col gap-3 border-t border-sand-200 pt-4 sm:flex-row sm:items-center sm:justify-between"
         >
-            <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-slate-300">
+            <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-ink-600">
                 <span aria-live="polite">
                     Mostrando {start}–{end} de {totalItems}
                 </span>
@@ -46,7 +46,7 @@ export default function PaginationControls({
                         value={pageSize}
                         onChange={(event) => onPageSizeChange(event.target.value)}
                         aria-label="Registros por página"
-                        className="min-h-9 rounded-lg border border-[#1e3256] bg-surface-hover px-2.5 text-xs text-white outline-none focus:border-blue-400"
+                        className="min-h-11 rounded-xl border border-sand-200 bg-sand-50 px-3 text-xs text-ink-900 outline-none focus-visible:border-gold-600 focus-visible:ring-2 focus-visible:ring-gold-600/30"
                     >
                         {[10, 20, 50].map((size) => (
                             <option key={size} value={size}>{size}</option>
@@ -55,18 +55,18 @@ export default function PaginationControls({
                 </label>
             </div>
 
-            <div className="flex items-center justify-center gap-1">
+            <div className="flex min-w-0 flex-wrap items-center justify-center gap-1">
                 <button
                     type="button"
                     onClick={() => onPageChange(page - 1)}
                     disabled={page <= 1}
-                    className="min-h-9 rounded-lg border border-[#1e3256] bg-[#0d172a] px-3 text-xs font-semibold text-slate-200 transition hover:bg-[#13223d] disabled:cursor-not-allowed disabled:opacity-40"
+                    className="min-h-11 rounded-xl border border-sand-200 bg-sand-50 px-3 text-xs font-semibold text-ink-900 hover:bg-sand-100 focus-visible:outline-gold-600 disabled:cursor-not-allowed disabled:opacity-40"
                 >
                     Anterior
                 </button>
                 {pageNumbers.map((value) => (
                     typeof value === 'string' ? (
-                        <span key={value} className="px-1 text-xs text-slate-400" aria-hidden="true">…</span>
+                        <span key={value} className="px-1 text-xs text-ink-600" aria-hidden="true">…</span>
                     ) : (
                         <button
                             key={value}
@@ -74,10 +74,10 @@ export default function PaginationControls({
                             onClick={() => onPageChange(value)}
                             aria-label={`Página ${value}`}
                             aria-current={page === value ? 'page' : undefined}
-                            className={`min-h-9 min-w-9 rounded-lg border px-2 text-xs font-semibold transition ${
+                            className={`min-h-11 min-w-11 rounded-xl border px-2 text-xs font-semibold ${
                                 page === value
-                                    ? 'border-blue-400/40 bg-blue-600 text-white'
-                                    : 'border-[#1e3256] bg-[#0d172a] text-slate-200 hover:bg-[#13223d]'
+                                    ? 'border-gold-600 bg-gold-500 text-pine-900 shadow-sm'
+                                    : 'border-sand-200 bg-sand-50 text-ink-900 hover:bg-sand-100'
                             }`}
                         >
                             {value}
@@ -88,7 +88,7 @@ export default function PaginationControls({
                     type="button"
                     onClick={() => onPageChange(page + 1)}
                     disabled={page >= totalPages}
-                    className="min-h-9 rounded-lg border border-[#1e3256] bg-[#0d172a] px-3 text-xs font-semibold text-slate-200 transition hover:bg-[#13223d] disabled:cursor-not-allowed disabled:opacity-40"
+                    className="min-h-11 rounded-xl border border-sand-200 bg-sand-50 px-3 text-xs font-semibold text-ink-900 hover:bg-sand-100 focus-visible:outline-gold-600 disabled:cursor-not-allowed disabled:opacity-40"
                 >
                     Siguiente
                 </button>

@@ -29,9 +29,9 @@ function formatDate(value) {
 
 function Detail({ label, value }) {
     return (
-        <div className="min-w-0 rounded-lg border border-white/10 bg-white/[0.03] p-3">
-            <dt className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">{label}</dt>
-            <dd className="mt-1 break-words whitespace-pre-wrap text-xs text-slate-100">{value || 'Sin registro'}</dd>
+        <div className="min-w-0 rounded-lg border border-sand-200 bg-sand-100 p-3">
+            <dt className="text-[10px] font-semibold uppercase tracking-wider text-ink-600">{label}</dt>
+            <dd className="mt-1 break-words whitespace-pre-wrap text-xs text-ink-900">{value || 'Sin registro'}</dd>
         </div>
     );
 }
@@ -39,7 +39,7 @@ function Detail({ label, value }) {
 function Section({ title, icon: Icon, children }) {
     return (
         <section className="space-y-3">
-            <h3 className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-emerald-300">
+            <h3 className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-forest-700">
                 <Icon size={15} />
                 {title}
             </h3>
@@ -128,7 +128,7 @@ export default function FailureReportDetailsModal({ report, onClose }) {
 
     return (
         <div
-            className="fixed inset-0 z-[90] flex items-center justify-center bg-black/75 p-3 backdrop-blur-sm sm:p-6"
+            className="fixed inset-0 z-[90] flex items-end justify-center bg-pine-900/35 px-0 pt-[env(safe-area-inset-top)] backdrop-blur-xl sm:items-center sm:p-6"
             role="presentation"
             onMouseDown={(event) => {
                 if (event.target === event.currentTarget) onClose();
@@ -138,21 +138,21 @@ export default function FailureReportDetailsModal({ report, onClose }) {
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby="failure-life-title"
-                className="max-h-[92vh] w-full max-w-5xl overflow-y-auto rounded-2xl border border-[#1e3256] bg-[#0d172a] p-4 text-white shadow-2xl shadow-black/30 sm:p-6"
+                className="max-h-[92dvh] w-full max-w-5xl overflow-y-auto rounded-t-3xl border border-surface/40 bg-surface/70 px-4 pt-4 pb-[calc(1.5rem+env(safe-area-inset-bottom))] text-ink-900 shadow-2xl shadow-pine-900/10 backdrop-blur-xl sm:rounded-2xl sm:p-6"
             >
-                <header className="mb-5 flex items-start justify-between gap-3 border-b border-white/15 pb-4">
+                <header className="mb-5 flex items-start justify-between gap-3 border-b border-sand-200 pb-4">
                     <div className="flex min-w-0 items-start gap-3">
-                        <span className="rounded-xl bg-emerald-500/15 p-2.5 text-emerald-300">
+                        <span className="rounded-xl bg-success-soft p-2.5 text-forest-700">
                             <Wrench size={20} />
                         </span>
                         <div className="min-w-0">
-                            <p className="text-[10px] font-bold uppercase tracking-widest text-emerald-200">
+                            <p className="text-[10px] font-bold uppercase tracking-widest text-forest-700">
                                 Hoja de vida · Reporte #{report.id}
                             </p>
                             <h2 id="failure-life-title" className="mt-1 truncate text-lg font-bold sm:text-xl">
                                 {report.assetName || 'Activo sin nombre'}
                             </h2>
-                            <p className="mt-1 text-xs text-white/75">
+                            <p className="mt-1 text-xs text-ink-900/75">
                                 {report.tipoFalla || 'Falla no especificada'}
                             </p>
                         </div>
@@ -161,17 +161,17 @@ export default function FailureReportDetailsModal({ report, onClose }) {
                         type="button"
                         onClick={onClose}
                         aria-label="Cerrar hoja de vida"
-                        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-white/20 text-white/80 transition hover:bg-white/10 hover:text-white"
+                        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-sand-200 text-ink-600 transition-all duration-200 ease-out hover:bg-sand-100 hover:text-ink-900"
                     >
                         <X size={19} />
                     </button>
                 </header>
 
                 <div className="mb-5 flex flex-wrap gap-2">
-                    <span className="rounded-full border border-emerald-300/40 bg-emerald-300/15 px-3 py-1 text-xs font-semibold text-emerald-100">
+                    <span className="rounded-full border border-forest-300/50 bg-success-soft px-3 py-1 text-xs font-semibold text-forest-700">
                         {STATUS_LABELS[report.estado] || report.estado || 'Sin estado'}
                     </span>
-                    <span className="rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-semibold text-white">
+                    <span className="rounded-full border border-sand-200 bg-sand-100 px-3 py-1 text-xs font-semibold text-ink-900">
                         Prioridad {PRIORITY_LABELS[report.prioridad] || report.prioridad || 'Sin prioridad'}
                     </span>
                 </div>
@@ -179,7 +179,7 @@ export default function FailureReportDetailsModal({ report, onClose }) {
                 <div className="grid gap-5 lg:grid-cols-2">
                     <div className="space-y-5">
                         <Section title="Activo / maquinaria" icon={MapPin}>
-                            <dl className="grid grid-cols-2 gap-2">
+                            <dl className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                                 <Detail label="Nombre" value={report.assetName} />
                                 <Detail label="Código" value={report.assetInventoryCode} />
                                 <Detail label="Marca y modelo" value={[report.assetBrand, report.assetModel].filter(Boolean).join(' ')} />
@@ -191,7 +191,7 @@ export default function FailureReportDetailsModal({ report, onClose }) {
                         </Section>
 
                         <Section title="Datos del reporte" icon={CalendarClock}>
-                            <dl className="grid grid-cols-2 gap-2">
+                            <dl className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                                 <Detail label="ID" value={`#${report.id}`} />
                                 <Detail label="Tipo de falla" value={report.tipoFalla} />
                                 <Detail label="Creado" value={formatDate(report.fechaReporte)} />
@@ -203,7 +203,7 @@ export default function FailureReportDetailsModal({ report, onClose }) {
                         </Section>
 
                         <Section title="Personas involucradas" icon={UserRound}>
-                            <dl className="grid grid-cols-2 gap-2">
+                            <dl className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                                 <Detail label="Reportado por" value={report.userName || (report.userId ? `ID ${report.userId}` : '')} />
                                 <Detail label="Técnico asignado" value={report.assignedTechnicianName || 'Pendiente de asignación'} />
                                 <Detail label="Técnico que intervino" value={intervention?.technicianName} />
@@ -216,30 +216,30 @@ export default function FailureReportDetailsModal({ report, onClose }) {
                     <div className="space-y-5">
                         <Section title="Tiempos e hitos" icon={CalendarClock}>
                             {timeline.length ? (
-                                <ol className="space-y-2 border-l border-emerald-300/40 pl-4">
+                                <ol className="space-y-2 border-l border-forest-300/50 pl-4">
                                     {timeline.map(([label, date]) => (
                                         <li key={label} className="relative text-xs">
-                                            <span className="absolute -left-[21px] top-1 h-2.5 w-2.5 rounded-full bg-emerald-300" />
-                                            <span className="font-semibold text-white">{label}</span>
-                                            <span className="mt-0.5 block text-white/70">{formatDate(date)}</span>
+                                            <span className="absolute -left-[21px] top-1 h-2.5 w-2.5 rounded-full bg-success-soft" />
+                                            <span className="font-semibold text-ink-900">{label}</span>
+                                            <span className="mt-0.5 block text-ink-600">{formatDate(date)}</span>
                                         </li>
                                     ))}
                                     {report.repairDurationMinutes != null && (
-                                        <li className="text-xs text-white/80">
+                                        <li className="text-xs text-ink-600">
                                             Duración de reparación: {report.repairDurationMinutes} minutos
                                         </li>
                                     )}
                                 </ol>
                             ) : (
-                                <p className="text-xs text-white/70">Aún no hay hitos de tiempo registrados.</p>
+                                <p className="text-xs text-ink-600">Aún no hay hitos de tiempo registrados.</p>
                             )}
                         </Section>
 
                         <Section title="Diagnóstico y cierre técnico" icon={Wrench}>
                             {loadingIntervention ? (
-                                <p className="text-xs text-white/70">Cargando intervención...</p>
+                                <p className="text-xs text-ink-600">Cargando intervención...</p>
                             ) : interventionError ? (
-                                <p role="alert" className="rounded-lg border border-emerald-200/30 bg-emerald-200/10 p-3 text-xs text-white">
+                                <p role="alert" className="rounded-lg border border-error/20 bg-error-soft p-3 text-xs text-error-text">
                                     {interventionError}
                                 </p>
                             ) : intervention ? (
@@ -256,7 +256,7 @@ export default function FailureReportDetailsModal({ report, onClose }) {
                                     <Detail label="Notas de revisión / cierre" value={intervention.reviewObservations} />
                                 </dl>
                             ) : (
-                                <p className="text-xs text-white/70">No hay una intervención técnica registrada todavía.</p>
+                                <p className="text-xs text-ink-600">No hay una intervención técnica registrada todavía.</p>
                             )}
                         </Section>
 
@@ -264,10 +264,10 @@ export default function FailureReportDetailsModal({ report, onClose }) {
                             <Section title="Repuestos asociados" icon={Wrench}>
                                 <ul className="space-y-2">
                                     {intervention.parts.map((part, index) => (
-                                        <li key={`${part.partNumber}-${index}`} className="rounded-lg border border-white/10 bg-white/[0.03] p-3 text-xs">
-                                            <span className="font-semibold text-white">{part.name || 'Repuesto'}</span>
-                                            <span className="ml-2 text-white/70">{part.partNumber}</span>
-                                            <span className="mt-1 block text-white/70">
+                                        <li key={`${part.partNumber}-${index}`} className="rounded-lg border border-sand-200 bg-sand-100 p-3 text-xs">
+                                            <span className="font-semibold text-ink-900">{part.name || 'Repuesto'}</span>
+                                            <span className="ml-2 text-ink-600">{part.partNumber}</span>
+                                            <span className="mt-1 block text-ink-600">
                                                 Cantidad: {part.quantity ?? 1}{part.brand ? ` · ${part.brand}` : ''}
                                             </span>
                                         </li>
@@ -278,15 +278,15 @@ export default function FailureReportDetailsModal({ report, onClose }) {
 
                         {(evidencePaths.length > 0) && (
                             <Section title="Evidencias fotográficas" icon={Image}>
-                                <div className="grid grid-cols-2 gap-2">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                                     {evidencePaths.map((path) => {
                                         const image = evidenceImages.find((item) => item.path === path);
                                         return image ? (
-                                            <a key={path} href={image.url} target="_blank" rel="noreferrer" className="overflow-hidden rounded-lg border border-white/20">
+                                            <a key={path} href={image.url} target="_blank" rel="noreferrer" className="overflow-hidden rounded-lg border border-sand-200">
                                                 <img src={image.url} alt="Evidencia del reporte" className="h-36 w-full object-cover" />
                                             </a>
                                         ) : (
-                                            <p key={path} className="break-all rounded-lg border border-white/10 bg-white/[0.03] p-3 text-[10px] text-white/70">
+                                            <p key={path} className="break-all rounded-lg border border-sand-200 bg-sand-100 p-3 text-[10px] text-ink-600">
                                                 Evidencia adjunta disponible al conectar: {path}
                                             </p>
                                         );
@@ -297,11 +297,11 @@ export default function FailureReportDetailsModal({ report, onClose }) {
                     </div>
                 </div>
 
-                <footer className="mt-6 flex justify-end border-t border-white/15 pt-4">
+                <footer className="mt-6 flex justify-end border-t border-sand-200 pt-4">
                     <button
                         type="button"
                         onClick={onClose}
-                        className="min-h-11 rounded-lg bg-blue-600 px-5 text-xs font-bold text-white transition hover:bg-blue-500"
+                        className="min-h-11 rounded-xl bg-info-soft px-5 text-xs font-bold text-ink-900 transition-all duration-200 ease-out hover:bg-ocean-300/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-500"
                     >
                         Cerrar hoja de vida
                     </button>

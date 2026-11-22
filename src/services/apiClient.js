@@ -1,12 +1,11 @@
 import axios, { AxiosHeaders } from 'axios';
-import { Capacitor } from '@capacitor/core';
 import {
+  canRefreshSession,
+  ensureFreshToken,
   expireSession,
-  expireSessionIfTokenExpired,
-  getAuthToken,
   getSessionOwnerKey,
-  hasUnexpiredToken,
   isOfflineAuthenticated,
+  refreshSession,
 } from './sessionService';
 import {
   cacheCollection,
@@ -14,14 +13,26 @@ import {
 } from './offlineDatabase';
 import { isNetworkAvailable } from './offlineNetwork';
 
-const DEFAULT_API_ORIGIN = Capacitor.isNativePlatform()
-  ? 'https://agrosentinel-backend-4f8q.onrender.com'
-  : 'http://localhost:8080';
+import { API_ORIGIN, API_ROOT } from './apiConfig';
 
-export const API_ORIGIN = (import.meta.env.VITE_API_BASE_URL || DEFAULT_API_ORIGIN).replace(/\/+$/, '');
-export const API_ROOT = `${API_ORIGIN}/api`;
+export { API_ORIGIN, API_ROOT };
 export const OFFLINE_CACHE_STATUS_EVENT = 'agrosentinel:offline-cache-status';
 export const ACCESS_DENIED_EVENT = 'agrosentinel:access-denied';
+
+let accessDeniedRedirectSuppressed = 0;
+
+/**
+ * Ejecuta tareas en segundo plano (como la descarga offline) sin que un 403
+ * en una consulta opcional saque al usuario a la pantalla de acceso denegado.
+ */
+export async function withoutAccessDeniedRedirect(task) {
+  accessDeniedRedirectSuppressed++;
+  try {
+    return await task();
+  } finally {
+    accessDeniedRedirectSuppressed--;
+  }
+}
 
 function notifyCacheStatus(usingCache) {
   if (typeof globalThis.dispatchEvent !== 'function' || typeof CustomEvent === 'undefined') {
@@ -115,15 +126,14 @@ export function createApi(baseURL = API_ROOT, json = true) {
     },
   });
 
-  api.interceptors.request.use((config) => {
-    const token = getAuthToken();
-    if (token && !hasUnexpiredToken(token)) {
-      expireSession();
-      return Promise.reject(new Error('La sesión finalizó. Inicia sesión de nuevo.'));
-    }
+  api.interceptors.request.use(async (config) => {
+    // Renueva el token si está por vencer y hay red; sin red sigue en modo local.
+    const token = await ensureFreshToken();
     if (!token && isOfflineAuthenticated() && config.method?.toLowerCase() !== 'get') {
       return Promise.reject(new Error(
-        'La sesión local permite consultar datos guardados, pero esta operación requiere conexión e inicio de sesión.',
+        canRefreshSession()
+          ? 'Sin conexión con el servidor. Esta operación se enviará cuando vuelva la conexión.'
+          : 'La sesión local permite consultar datos guardados, pero esta operación requiere conexión e inicio de sesión.',
       ));
     }
     if (token) {
@@ -135,16 +145,28 @@ export function createApi(baseURL = API_ROOT, json = true) {
 
   api.interceptors.response.use(
     (response) => response,
-    (error) => {
-      if (error.response?.status === 403 && typeof globalThis.dispatchEvent === 'function') {
+    async (error) => {
+      if (
+        error.response?.status === 403 &&
+        accessDeniedRedirectSuppressed === 0 &&
+        typeof globalThis.dispatchEvent === 'function'
+      ) {
         globalThis.dispatchEvent(new Event(ACCESS_DENIED_EVENT));
       }
       if (error.response?.status === 401) {
+        const config = error.config;
+        // Un 401 suele ser un token vencido: se renueva una vez y se repite la petición.
+        if (config && !config.agroSessionRetried && canRefreshSession()) {
+          config.agroSessionRetried = true;
+          if (await refreshSession()) {
+            return api.request(config);
+          }
+        }
         const serverMessage = error.response.data?.message || '';
         const serverRejectedToken = /token (es )?(inválido|vencido|venció)|cuenta asociada al token/i.test(serverMessage);
-        if (serverRejectedToken) {
+        if (serverRejectedToken && !canRefreshSession()) {
           expireSession();
-        } else if (!expireSessionIfTokenExpired()) {
+        } else {
           error.message = serverMessage
             ? `El servidor rechazó la solicitud (401): ${serverMessage}`
             : 'El servidor rechazó la solicitud (401). Tu sesión vigente se conservó; verifica la autorización del endpoint.';

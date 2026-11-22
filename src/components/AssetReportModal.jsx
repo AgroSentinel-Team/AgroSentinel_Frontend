@@ -83,7 +83,7 @@ function EvidenceLink({ url, index }) {
       type="button"
       onClick={download}
       disabled={downloading}
-      className="inline-flex items-center gap-1.5 rounded-lg border border-cyan-400/30 bg-cyan-500/10 px-2.5 py-1 text-[11px] font-semibold text-cyan-200 hover:bg-cyan-500/20 transition-colors print:hidden"
+      className="inline-flex items-center gap-1.5 rounded-lg border border-ocean-300/60 bg-info-soft px-2.5 py-1 text-[11px] font-semibold text-ocean-700 hover:bg-ocean-300/30 transition-all duration-200 ease-out print:hidden"
     >
       {downloading ? <LoaderCircle size={12} className="animate-spin" /> : <ExternalLink size={12} />}
       <span>Evidencia {index + 1}</span>
@@ -350,32 +350,32 @@ export default function AssetReportModal({ asset, isOpen, onClose }) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-xs p-2 sm:p-4 md:p-6 overflow-y-auto print:p-0 print:bg-white print:static print:z-auto"
+      className="fixed inset-0 z-50 flex items-end justify-center bg-pine-900/35 backdrop-blur-xl px-0 pt-[env(safe-area-inset-top)] sm:items-center sm:p-4 md:p-6 overflow-y-auto print:p-0 print:bg-white print:static print:z-auto"
       role="dialog"
       aria-modal="true"
     >
-      <div className="relative my-auto max-h-[94vh] w-full max-w-5xl overflow-y-auto rounded-2xl border border-[#30485a] bg-[#0c1f2e] text-white shadow-2xl space-y-6 p-4 sm:p-6 md:p-8 print:border-none print:bg-white print:text-black print:p-4 print:max-h-none print:shadow-none print:w-full">
+      <div className="relative my-auto max-h-[94dvh] w-full max-w-5xl overflow-y-auto rounded-t-3xl border border-sand-200 bg-sand-50 pb-[calc(1.5rem+env(safe-area-inset-bottom))] text-ink-900 shadow-2xl space-y-6 px-4 pt-4 sm:rounded-2xl sm:p-6 md:p-8 print:border-none print:bg-white print:text-black print:p-4 print:max-h-none print:shadow-none print:w-full">
         
         {/* ENCABEZADO REPORTE */}
-        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 border-b border-white/10 pb-5 print:border-b-2 print:border-slate-800">
+        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 border-b border-sand-200 pb-5 print:border-b-2 print:border-ink-600">
           <div className="flex items-start gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-cyan-600 text-white shadow-lg shadow-cyan-950/40 shrink-0 print:border print:border-slate-800 print:bg-white print:text-slate-900">
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gold-500 text-pine-900 shadow-lg shadow-gold-600/20 shrink-0 print:border print:border-ink-600 print:bg-white print:text-pine-900">
               <ShieldCheck size={24} />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-[10px] font-extrabold uppercase tracking-widest text-cyan-400 print:text-slate-700">
+                <span className="text-[10px] font-extrabold uppercase tracking-widest text-forest-900 print:text-ink-600">
                   AgroSentinel · Gestión de Mantenimiento
                 </span>
-                <span className="rounded-full bg-cyan-500/20 px-2 py-0.5 text-[10px] font-semibold text-cyan-300 print:border print:border-slate-400 print:text-slate-800">
+                <span className="rounded-full bg-info-soft px-2 py-0.5 text-[10px] font-semibold text-ocean-700 print:border print:border-sand-400 print:text-ink-900">
                   Hoja de Vida Completa
                 </span>
               </div>
-              <h1 className="mt-1 text-lg sm:text-2xl font-bold tracking-tight text-white print:text-slate-900">
+              <h1 className="mt-1 text-lg sm:text-2xl font-bold tracking-tight text-ink-900 print:text-ink-900">
                 {activeAsset?.name || 'Cargando activo…'}
               </h1>
-              <p className="text-xs text-slate-400 print:text-slate-600">
-                Código de inventario: <strong className="text-slate-200 font-mono print:text-slate-800">{activeAsset?.inventoryCode || 'S/N'}</strong> · N° de serie: <strong className="text-slate-200 font-mono print:text-slate-800">{activeAsset?.serialNumber || 'S/N'}</strong>
+              <p className="text-xs text-ink-600 print:text-ink-600">
+                Código de inventario: <strong className="text-ink-900 font-mono print:text-ink-900">{activeAsset?.inventoryCode || 'S/N'}</strong> · N° de serie: <strong className="text-ink-900 font-mono print:text-ink-900">{activeAsset?.serialNumber || 'S/N'}</strong>
               </p>
             </div>
           </div>
@@ -386,7 +386,7 @@ export default function AssetReportModal({ asset, isOpen, onClose }) {
               onClick={handlePrint}
               disabled={loading || Boolean(error)}
               title="Imprimir o guardar como PDF en navegador"
-              className="inline-flex min-h-[40px] items-center gap-2 rounded-lg border border-cyan-400/30 bg-cyan-500/15 px-3.5 py-2 text-xs font-bold text-cyan-200 hover:bg-cyan-500/25 transition-all shadow-sm"
+              className="inline-flex min-h-[44px] items-center gap-2 rounded-xl border border-ocean-300/60 bg-info-soft px-3.5 py-2 text-xs font-bold text-ocean-700 hover:bg-ocean-300/30 transition-all duration-200 ease-out shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-500"
             >
               <Printer size={16} />
               <span>Imprimir / PDF</span>
@@ -396,7 +396,7 @@ export default function AssetReportModal({ asset, isOpen, onClose }) {
               onClick={handleExportPdf}
               disabled={loading || Boolean(error)}
               title="Descargar PDF generado"
-              className="inline-flex min-h-[40px] items-center gap-2 rounded-lg bg-cyan-600 px-3.5 py-2 text-xs font-bold text-white hover:bg-cyan-500 transition-all shadow-md shadow-cyan-950/40"
+              className="inline-flex min-h-[44px] items-center gap-2 rounded-xl bg-gold-500 px-3.5 py-2 text-xs font-bold text-pine-900 hover:bg-gold-600 transition-all duration-200 ease-out shadow-md shadow-gold-600/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-500"
             >
               <Download size={16} />
               <span>Descargar PDF</span>
@@ -405,7 +405,7 @@ export default function AssetReportModal({ asset, isOpen, onClose }) {
               type="button"
               onClick={onClose}
               aria-label="Cerrar reporte"
-              className="flex h-10 w-10 items-center justify-center rounded-lg text-slate-400 hover:bg-white/10 hover:text-white transition-colors"
+              className="flex h-11 w-11 items-center justify-center rounded-xl text-ink-600 hover:bg-sand-100 hover:text-ink-900 transition-all duration-200 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-500"
             >
               <X size={22} />
             </button>
@@ -414,28 +414,28 @@ export default function AssetReportModal({ asset, isOpen, onClose }) {
 
         {loading ? (
           <div className="py-20 text-center space-y-3">
-            <LoaderCircle size={32} className="mx-auto animate-spin text-cyan-400" />
-            <p className="text-xs text-slate-400">Cargando hoja de vida e historial completo del activo…</p>
+            <LoaderCircle size={32} className="mx-auto animate-spin text-forest-900" />
+            <p className="text-xs text-ink-600">Cargando hoja de vida e historial completo del activo…</p>
           </div>
         ) : error ? (
-          <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-xs text-red-200">
+          <div className="rounded-xl border border-error/20 bg-error-soft p-4 text-xs text-error-text">
             {error}
           </div>
         ) : (
           <div className="space-y-8">
             
             {/* SECCIÓN 1: FICHA TÉCNICA COMPLETA */}
-            <section className="rounded-xl border border-[#2a3e52] bg-[#102738] p-4 sm:p-6 print:border print:border-slate-300 print:bg-white print:p-3">
-              <div className="mb-4 flex items-center justify-between border-b border-white/10 pb-3 print:border-slate-300">
-                <div className="flex items-center gap-2 text-cyan-300 print:text-slate-800 font-bold text-xs sm:text-sm uppercase tracking-wider">
+            <section className="rounded-xl border border-sand-200 bg-surface p-4 sm:p-6 print:border print:border-sand-200 print:bg-white print:p-3">
+              <div className="mb-4 flex items-center justify-between border-b border-sand-200 pb-3 print:border-sand-200">
+                <div className="flex items-center gap-2 text-ocean-700 print:text-ink-900 font-bold text-xs sm:text-sm uppercase tracking-wider">
                   <FileText size={18} />
                   <span>1. Ficha Técnica y Especificaciones del Activo</span>
                 </div>
                 <span
                   className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ${
                     activeAsset?.isActive
-                      ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 print:text-emerald-800'
-                      : 'bg-slate-500/20 text-slate-400 border border-slate-500/30 print:text-slate-700'
+                      ? 'bg-success-soft text-forest-700 border border-forest-300/50 print:text-forest-700'
+                      : 'bg-sand-100 text-ink-600 border border-sand-300 print:text-ink-600'
                   }`}
                 >
                   <CheckCircle2 size={13} />
@@ -446,59 +446,59 @@ export default function AssetReportModal({ asset, isOpen, onClose }) {
               </div>
 
               <dl className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 text-xs print:grid-cols-3 print:gap-2">
-                <div className="rounded-lg bg-[#0c1f2e] p-3 border border-white/5 print:bg-slate-50 print:border-slate-200">
-                  <dt className="text-[10px] font-bold uppercase tracking-wider text-slate-400 print:text-slate-600">Nombre del Activo</dt>
-                  <dd className="mt-1 font-bold text-white print:text-slate-900">{activeAsset?.name || '—'}</dd>
+                <div className="rounded-lg bg-sand-50 p-3 border border-sand-200/70 print:bg-sand-50 print:border-sand-200">
+                  <dt className="text-[10px] font-bold uppercase tracking-wider text-ink-600 print:text-ink-600">Nombre del Activo</dt>
+                  <dd className="mt-1 font-bold text-ink-900 print:text-ink-900">{activeAsset?.name || '—'}</dd>
                 </div>
-                <div className="rounded-lg bg-[#0c1f2e] p-3 border border-white/5 print:bg-slate-50 print:border-slate-200">
-                  <dt className="text-[10px] font-bold uppercase tracking-wider text-slate-400 print:text-slate-600">Marca / Modelo</dt>
-                  <dd className="mt-1 font-medium text-slate-200 print:text-slate-800">
+                <div className="rounded-lg bg-sand-50 p-3 border border-sand-200/70 print:bg-sand-50 print:border-sand-200">
+                  <dt className="text-[10px] font-bold uppercase tracking-wider text-ink-600 print:text-ink-600">Marca / Modelo</dt>
+                  <dd className="mt-1 font-medium text-ink-900 print:text-ink-900">
                     {[activeAsset?.brand, activeAsset?.model].filter(Boolean).join(' / ') || '—'}
                   </dd>
                 </div>
-                <div className="rounded-lg bg-[#0c1f2e] p-3 border border-white/5 print:bg-slate-50 print:border-slate-200">
-                  <dt className="text-[10px] font-bold uppercase tracking-wider text-slate-400 print:text-slate-600">N° Serie / Código</dt>
-                  <dd className="mt-1 font-mono text-cyan-200 print:text-slate-800">
+                <div className="rounded-lg bg-sand-50 p-3 border border-sand-200/70 print:bg-sand-50 print:border-sand-200">
+                  <dt className="text-[10px] font-bold uppercase tracking-wider text-ink-600 print:text-ink-600">N° Serie / Código</dt>
+                  <dd className="mt-1 font-mono text-ocean-700 print:text-ink-900">
                     {[activeAsset?.serialNumber, activeAsset?.inventoryCode].filter(Boolean).join(' · ') || '—'}
                   </dd>
                 </div>
-                <div className="rounded-lg bg-[#0c1f2e] p-3 border border-white/5 print:bg-slate-50 print:border-slate-200">
-                  <dt className="text-[10px] font-bold uppercase tracking-wider text-slate-400 print:text-slate-600">Ubicación Física</dt>
-                  <dd className="mt-1 font-medium text-slate-200 print:text-slate-800">{activeAsset?.location || 'Sin ubicación'}</dd>
+                <div className="rounded-lg bg-sand-50 p-3 border border-sand-200/70 print:bg-sand-50 print:border-sand-200">
+                  <dt className="text-[10px] font-bold uppercase tracking-wider text-ink-600 print:text-ink-600">Ubicación Física</dt>
+                  <dd className="mt-1 font-medium text-ink-900 print:text-ink-900">{activeAsset?.location || 'Sin ubicación'}</dd>
                 </div>
-                <div className="rounded-lg bg-[#0c1f2e] p-3 border border-white/5 print:bg-slate-50 print:border-slate-200">
-                  <dt className="text-[10px] font-bold uppercase tracking-wider text-slate-400 print:text-slate-600">Horómetro acumulado</dt>
-                  <dd className="mt-1 font-medium text-slate-200 print:text-slate-800">{activeAsset?.currentHorometer ?? 0} h</dd>
+                <div className="rounded-lg bg-sand-50 p-3 border border-sand-200/70 print:bg-sand-50 print:border-sand-200">
+                  <dt className="text-[10px] font-bold uppercase tracking-wider text-ink-600 print:text-ink-600">Horómetro acumulado</dt>
+                  <dd className="mt-1 font-medium text-ink-900 print:text-ink-900">{activeAsset?.currentHorometer ?? 0} h</dd>
                 </div>
 
-                <div className="rounded-lg bg-[#0c1f2e] p-3 border border-white/5 print:bg-slate-50 print:border-slate-200">
-                  <dt className="text-[10px] font-bold uppercase tracking-wider text-slate-400 print:text-slate-600">Categoría</dt>
-                  <dd className="mt-1 font-medium text-slate-200 print:text-slate-800">{activeAsset?.categoryName || '—'}</dd>
+                <div className="rounded-lg bg-sand-50 p-3 border border-sand-200/70 print:bg-sand-50 print:border-sand-200">
+                  <dt className="text-[10px] font-bold uppercase tracking-wider text-ink-600 print:text-ink-600">Categoría</dt>
+                  <dd className="mt-1 font-medium text-ink-900 print:text-ink-900">{activeAsset?.categoryName || '—'}</dd>
                 </div>
-                <div className="rounded-lg bg-[#0c1f2e] p-3 border border-white/5 print:bg-slate-50 print:border-slate-200">
-                  <dt className="text-[10px] font-bold uppercase tracking-wider text-slate-400 print:text-slate-600">Responsable Asignado</dt>
-                  <dd className="mt-1 font-medium text-slate-200 print:text-slate-800">{activeAsset?.responsibleName || '—'}</dd>
+                <div className="rounded-lg bg-sand-50 p-3 border border-sand-200/70 print:bg-sand-50 print:border-sand-200">
+                  <dt className="text-[10px] font-bold uppercase tracking-wider text-ink-600 print:text-ink-600">Responsable Asignado</dt>
+                  <dd className="mt-1 font-medium text-ink-900 print:text-ink-900">{activeAsset?.responsibleName || '—'}</dd>
                 </div>
-                <div className="rounded-lg bg-[#0c1f2e] p-3 border border-white/5 print:bg-slate-50 print:border-slate-200">
-                  <dt className="text-[10px] font-bold uppercase tracking-wider text-slate-400 print:text-slate-600">Adquisición / Costo</dt>
-                  <dd className="mt-1 font-medium text-slate-200 print:text-slate-800">
+                <div className="rounded-lg bg-sand-50 p-3 border border-sand-200/70 print:bg-sand-50 print:border-sand-200">
+                  <dt className="text-[10px] font-bold uppercase tracking-wider text-ink-600 print:text-ink-600">Adquisición / Costo</dt>
+                  <dd className="mt-1 font-medium text-ink-900 print:text-ink-900">
                     {formatDate(activeAsset?.acquisitionDate)} · {formatCurrency(activeAsset?.acquisitionCost)}
                   </dd>
                 </div>
-                <div className="rounded-lg bg-[#0c1f2e] p-3 border border-white/5 print:bg-slate-50 print:border-slate-200">
-                  <dt className="text-[10px] font-bold uppercase tracking-wider text-slate-400 print:text-slate-600">Vencimiento Garantía</dt>
-                  <dd className="mt-1 font-medium text-slate-200 print:text-slate-800">{formatDate(activeAsset?.warrantyExpirationDate)}</dd>
+                <div className="rounded-lg bg-sand-50 p-3 border border-sand-200/70 print:bg-sand-50 print:border-sand-200">
+                  <dt className="text-[10px] font-bold uppercase tracking-wider text-ink-600 print:text-ink-600">Vencimiento Garantía</dt>
+                  <dd className="mt-1 font-medium text-ink-900 print:text-ink-900">{formatDate(activeAsset?.warrantyExpirationDate)}</dd>
                 </div>
 
-                <div className="rounded-lg bg-[#0c1f2e] p-3 border border-white/5 print:bg-slate-50 print:border-slate-200">
-                  <dt className="text-[10px] font-bold uppercase tracking-wider text-slate-400 print:text-slate-600">Proveedor</dt>
-                  <dd className="mt-1 font-medium text-slate-200 print:text-slate-800">{activeAsset?.provider || 'Sin registro'}</dd>
+                <div className="rounded-lg bg-sand-50 p-3 border border-sand-200/70 print:bg-sand-50 print:border-sand-200">
+                  <dt className="text-[10px] font-bold uppercase tracking-wider text-ink-600 print:text-ink-600">Proveedor</dt>
+                  <dd className="mt-1 font-medium text-ink-900 print:text-ink-900">{activeAsset?.provider || 'Sin registro'}</dd>
                 </div>
-                <div className="rounded-lg bg-[#0c1f2e] p-3 border border-white/5 print:bg-slate-50 print:border-slate-200 sm:col-span-2 lg:col-span-3">
-                  <dt className="text-[10px] font-bold uppercase tracking-wider text-slate-400 print:text-slate-600">Telemetría / Predictivo</dt>
-                  <dd className="mt-1 text-slate-200 print:text-slate-800">
+                <div className="rounded-lg bg-sand-50 p-3 border border-sand-200/70 print:bg-sand-50 print:border-sand-200 sm:col-span-2 lg:col-span-3">
+                  <dt className="text-[10px] font-bold uppercase tracking-wider text-ink-600 print:text-ink-600">Telemetría / Predictivo</dt>
+                  <dd className="mt-1 text-ink-900 print:text-ink-900">
                     {activeAsset?.hasMotor ? (
-                      <span className="inline-flex items-center gap-1.5 text-emerald-300 font-semibold print:text-emerald-800">
+                      <span className="inline-flex items-center gap-1.5 text-forest-700 font-semibold print:text-forest-700">
                         <Activity size={13} />
                         Cuenta con sensor de motor y telemetría predictiva activa (ID: {activeAsset.predictiveId || 'MOTOR-' + activeAsset.id})
                       </span>
@@ -508,9 +508,9 @@ export default function AssetReportModal({ asset, isOpen, onClose }) {
                   </dd>
                 </div>
 
-                <div className="rounded-lg bg-[#0c1f2e] p-3 border border-white/5 sm:col-span-3 lg:col-span-4 print:bg-slate-50 print:border-slate-200">
-                  <dt className="text-[10px] font-bold uppercase tracking-wider text-slate-400 print:text-slate-600">Especificaciones Técnicas Adicionales</dt>
-                  <dd className="mt-1.5 whitespace-pre-wrap text-slate-300 text-xs leading-relaxed font-sans print:text-slate-800">
+                <div className="rounded-lg bg-sand-50 p-3 border border-sand-200/70 sm:col-span-3 lg:col-span-4 print:bg-sand-50 print:border-sand-200">
+                  <dt className="text-[10px] font-bold uppercase tracking-wider text-ink-600 print:text-ink-600">Especificaciones Técnicas Adicionales</dt>
+                  <dd className="mt-1.5 whitespace-pre-wrap text-ink-600 text-xs leading-relaxed font-sans print:text-ink-900">
                     {activeAsset?.extraSpecifications || 'No hay especificaciones adicionales registradas.'}
                   </dd>
                 </div>
@@ -518,16 +518,16 @@ export default function AssetReportModal({ asset, isOpen, onClose }) {
             </section>
 
             {/* Select which history categories appear on screen and in the exports. */}
-            <section className="space-y-3 rounded-xl border border-white/10 bg-[#0b1c28] p-3 sm:p-4 print:hidden">
+            <section className="space-y-3 rounded-xl border border-sand-200 bg-sand-50 p-3 sm:p-4 print:hidden">
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <div className="flex items-center gap-2">
-                    <Filter size={17} className="shrink-0 text-cyan-400" />
-                    <h2 className="text-xs font-bold uppercase tracking-wider text-slate-100">
+                    <Filter size={17} className="shrink-0 text-forest-900" />
+                    <h2 className="text-xs font-bold uppercase tracking-wider text-ink-900">
                       ¿Qué deseas incluir en el reporte?
                     </h2>
                   </div>
-                  <p className="mt-1 pl-6 text-[11px] leading-relaxed text-slate-400">
+                  <p className="mt-1 pl-6 text-[11px] leading-relaxed text-ink-600">
                     Puedes combinar categorías. La selección se aplicará a la vista, impresión y PDF.
                   </p>
                 </div>
@@ -536,7 +536,7 @@ export default function AssetReportModal({ asset, isOpen, onClose }) {
                     type="button"
                     onClick={() => setSelectedTypes(reportTypes.map((type) => type.id))}
                     disabled={allTypesSelected}
-                    className="min-h-9 flex-1 rounded-lg border border-cyan-400/25 px-3 text-[11px] font-semibold text-cyan-200 hover:bg-cyan-500/10 disabled:cursor-default disabled:opacity-50 sm:flex-none"
+                    className="min-h-9 flex-1 rounded-lg border border-ocean-300/60 px-3 text-[11px] font-semibold text-ocean-700 hover:bg-gold-600/10 disabled:cursor-default disabled:opacity-50 sm:flex-none"
                   >
                     Seleccionar todo
                   </button>
@@ -544,7 +544,7 @@ export default function AssetReportModal({ asset, isOpen, onClose }) {
                     type="button"
                     onClick={() => setSelectedTypes([])}
                     disabled={selectedTypes.length === 0}
-                    className="min-h-9 flex-1 rounded-lg border border-white/10 px-3 text-[11px] font-semibold text-slate-300 hover:bg-white/5 disabled:cursor-default disabled:opacity-50 sm:flex-none"
+                    className="min-h-9 flex-1 rounded-lg border border-sand-200 px-3 text-[11px] font-semibold text-ink-600 hover:bg-sand-100 disabled:cursor-default disabled:opacity-50 sm:flex-none"
                   >
                     Limpiar
                   </button>
@@ -557,29 +557,29 @@ export default function AssetReportModal({ asset, isOpen, onClose }) {
                   return (
                     <label
                       key={type.id}
-                      className={`flex min-h-[54px] cursor-pointer items-center gap-3 rounded-lg border px-3 py-2.5 transition-colors ${
+                      className={`flex min-h-[54px] cursor-pointer items-center gap-3 rounded-lg border px-3 py-2.5 transition-all duration-200 ease-out ${
                         checked
-                          ? 'border-cyan-400/40 bg-cyan-500/10'
-                          : 'border-white/10 bg-[#102738] hover:border-white/20'
+                          ? 'border-ocean-300/60 bg-info-soft'
+                          : 'border-sand-200 bg-surface hover:border-sand-400'
                       }`}
                     >
                       <input
                         type="checkbox"
                         checked={checked}
                         onChange={() => toggleReportType(type.id)}
-                        className="h-4 w-4 shrink-0 accent-cyan-500"
+                        className="h-4 w-4 shrink-0 accent-gold-500"
                       />
-                      <span className="min-w-0 flex-1 text-xs font-semibold text-slate-100">
+                      <span className="min-w-0 flex-1 text-xs font-semibold text-ink-900">
                         {type.label}
                       </span>
-                      <span className="rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-bold text-slate-300">
+                      <span className="rounded-full bg-sand-100 px-2 py-0.5 text-[10px] font-bold text-ink-600">
                         {type.count}
                       </span>
                     </label>
                   );
                 })}
               </div>
-              <p className="text-[11px] text-slate-400" aria-live="polite">
+              <p className="text-[11px] text-ink-600" aria-live="polite">
                 {selectedTypes.length === 0
                   ? 'No hay categorías seleccionadas.'
                   : `${selectedRecordCount} registros seleccionados: ${selectedTypeSummary}.`}
@@ -589,19 +589,19 @@ export default function AssetReportModal({ asset, isOpen, onClose }) {
             {/* SECCIÓN 2: HISTORIAL DE MANTENIMIENTO / HOJA DE VIDA */}
             <section className="space-y-4">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-cyan-300 print:text-slate-900 font-bold text-xs sm:text-sm uppercase tracking-wider">
+                <div className="flex items-center gap-2 text-ocean-700 print:text-ink-900 font-bold text-xs sm:text-sm uppercase tracking-wider">
                   <Wrench size={18} />
                   <span>2. Historial de Intervenciones y Hoja de Vida Operativa</span>
                 </div>
-                <span className="text-xs text-slate-400 print:text-slate-600 font-medium">
+                <span className="text-xs text-ink-600 print:text-ink-600 font-medium">
                   {selectedRecordCount} registros listados
                 </span>
               </div>
 
               {filteredMaintenance.length === 0 && (!showPredictive || predictiveRecords.length === 0) ? (
-                <div className="rounded-xl border border-white/5 bg-[#102738] p-8 text-center space-y-2">
-                  <Clock size={28} className="mx-auto text-slate-500" />
-                  <p className="text-xs font-medium text-slate-300">
+                <div className="rounded-xl border border-sand-200/70 bg-surface p-8 text-center space-y-2">
+                  <Clock size={28} className="mx-auto text-ink-600" />
+                  <p className="text-xs font-medium text-ink-600">
                     No hay registros para las categorías seleccionadas.
                   </p>
                 </div>
@@ -615,32 +615,32 @@ export default function AssetReportModal({ asset, isOpen, onClose }) {
                     return (
                       <article
                         key={`maint-${item.id || idx}`}
-                        className="rounded-xl border border-[#273d52] bg-[#102738] p-4 sm:p-5 shadow-sm space-y-3.5 break-inside-avoid print:border print:border-slate-300 print:bg-white print:p-3"
+                        className="rounded-xl border border-sand-200 bg-surface p-4 sm:p-5 shadow-sm space-y-3.5 break-inside-avoid print:border print:border-sand-200 print:bg-white print:p-3"
                       >
                         {/* Cabecera del registro */}
-                        <div className="flex flex-wrap items-start justify-between gap-2 border-b border-white/10 pb-2.5 print:border-slate-300">
+                        <div className="flex flex-wrap items-start justify-between gap-2 border-b border-sand-200 pb-2.5 print:border-sand-200">
                           <div className="flex items-center gap-2">
                             <span
                               className={`rounded-md px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wider ${
                                 isCorrective
-                                  ? 'bg-red-500/15 text-red-300 border border-red-500/30 print:text-red-800'
-                                  : 'bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 print:text-cyan-800'
+                                  ? 'bg-error-soft text-error-text border border-error/20 print:text-error-text'
+                                  : 'bg-info-soft text-ocean-700 border border-ocean-300/60 print:text-ocean-700'
                               }`}
                             >
                               {isCorrective ? 'Mantenimiento Correctivo' : 'Mantenimiento Preventivo'}
                             </span>
                             {item.failureReportId && (
-                              <span className="font-mono text-xs text-slate-300 font-bold print:text-slate-800">
+                              <span className="font-mono text-xs text-ink-600 font-bold print:text-ink-900">
                                 F-{item.failureReportId}
                               </span>
                             )}
                           </div>
 
                           <div className="flex items-center gap-2">
-                            <span className="text-xs text-slate-400 font-medium print:text-slate-700">
-                              Ejecutado: <strong className="text-slate-200 print:text-slate-900">{formatDateTime(item.executedAt || item.maintenanceDate || item.scheduledAt)}</strong>
+                            <span className="text-xs text-ink-600 font-medium print:text-ink-600">
+                              Ejecutado: <strong className="text-ink-900 print:text-ink-900">{formatDateTime(item.executedAt || item.maintenanceDate || item.scheduledAt)}</strong>
                             </span>
-                            <span className="rounded-full bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-0.5 text-[10px] font-bold text-emerald-300 print:text-emerald-800">
+                            <span className="rounded-full bg-success-soft border border-forest-300/50 px-2.5 py-0.5 text-[10px] font-bold text-forest-700 print:text-forest-700">
                               {finalStateText}
                             </span>
                           </div>
@@ -648,102 +648,102 @@ export default function AssetReportModal({ asset, isOpen, onClose }) {
 
                         {/* Detalles técnicos estructurados */}
                         <dl className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 text-[11px] sm:text-xs print:grid-cols-3">
-                          <div className="rounded bg-[#0b1c28] p-2.5 border border-white/5 print:bg-slate-50 print:border-slate-200">
-                            <dt className="text-[10px] font-bold uppercase text-slate-400 print:text-slate-600">Técnico Responsable</dt>
-                            <dd className="mt-0.5 font-bold text-white print:text-slate-900">{item.technicianName || 'Sin asignar'}</dd>
+                          <div className="rounded bg-sand-50 p-2.5 border border-sand-200/70 print:bg-sand-50 print:border-sand-200">
+                            <dt className="text-[10px] font-bold uppercase text-ink-600 print:text-ink-600">Técnico Responsable</dt>
+                            <dd className="mt-0.5 font-bold text-ink-900 print:text-ink-900">{item.technicianName || 'Sin asignar'}</dd>
                           </div>
 
-                          <div className="rounded bg-[#0b1c28] p-2.5 border border-white/5 print:bg-slate-50 print:border-slate-200">
-                            <dt className="text-[10px] font-bold uppercase text-slate-400 print:text-slate-600">Tiempo de Trabajo</dt>
-                            <dd className="mt-0.5 font-medium text-slate-200 print:text-slate-800">
+                          <div className="rounded bg-sand-50 p-2.5 border border-sand-200/70 print:bg-sand-50 print:border-sand-200">
+                            <dt className="text-[10px] font-bold uppercase text-ink-600 print:text-ink-600">Tiempo de Trabajo</dt>
+                            <dd className="mt-0.5 font-medium text-ink-900 print:text-ink-900">
                               {item.workMinutes != null ? `${item.workMinutes} minutos` : 'No registrado'}
                             </dd>
                           </div>
 
-                          <div className="rounded bg-[#0b1c28] p-2.5 border border-white/5 print:bg-slate-50 print:border-slate-200">
-                            <dt className="text-[10px] font-bold uppercase text-slate-400 print:text-slate-600">Horómetro registrado</dt>
-                            <dd className="mt-0.5 font-medium text-slate-200 print:text-slate-800">
+                          <div className="rounded bg-sand-50 p-2.5 border border-sand-200/70 print:bg-sand-50 print:border-sand-200">
+                            <dt className="text-[10px] font-bold uppercase text-ink-600 print:text-ink-600">Horómetro registrado</dt>
+                            <dd className="mt-0.5 font-medium text-ink-900 print:text-ink-900">
                               {item.horometerAtMaintenance != null ? `${item.horometerAtMaintenance} h` : 'No registrado'}
                             </dd>
                           </div>
 
-                          <div className="rounded bg-[#0b1c28] p-2.5 border border-white/5 print:bg-slate-50 print:border-slate-200">
-                            <dt className="text-[10px] font-bold uppercase text-slate-400 print:text-slate-600">Inicio Revisión</dt>
-                            <dd className="mt-0.5 text-slate-300 print:text-slate-800">{formatDateTime(item.inspectionStartedAt)}</dd>
+                          <div className="rounded bg-sand-50 p-2.5 border border-sand-200/70 print:bg-sand-50 print:border-sand-200">
+                            <dt className="text-[10px] font-bold uppercase text-ink-600 print:text-ink-600">Inicio Revisión</dt>
+                            <dd className="mt-0.5 text-ink-600 print:text-ink-900">{formatDateTime(item.inspectionStartedAt)}</dd>
                           </div>
 
-                          <div className="rounded bg-[#0b1c28] p-2.5 border border-white/5 print:bg-slate-50 print:border-slate-200">
-                            <dt className="text-[10px] font-bold uppercase text-slate-400 print:text-slate-600">Recibido por</dt>
-                            <dd className="mt-0.5 text-slate-300 print:text-slate-800">{item.receivedBy || 'Sin registrar'}</dd>
+                          <div className="rounded bg-sand-50 p-2.5 border border-sand-200/70 print:bg-sand-50 print:border-sand-200">
+                            <dt className="text-[10px] font-bold uppercase text-ink-600 print:text-ink-600">Recibido por</dt>
+                            <dd className="mt-0.5 text-ink-600 print:text-ink-900">{item.receivedBy || 'Sin registrar'}</dd>
                           </div>
 
                           {item.initialReportedSymptom && (
-                            <div className="rounded bg-[#0b1c28] p-2.5 border border-white/5 col-span-2 print:bg-slate-50 print:border-slate-200">
-                              <dt className="text-[10px] font-bold uppercase text-slate-400 print:text-slate-600">Síntoma Inicial Reportado</dt>
-                              <dd className="mt-0.5 text-slate-200 font-medium print:text-slate-800">{item.initialReportedSymptom}</dd>
+                            <div className="rounded bg-sand-50 p-2.5 border border-sand-200/70 col-span-2 print:bg-sand-50 print:border-sand-200">
+                              <dt className="text-[10px] font-bold uppercase text-ink-600 print:text-ink-600">Síntoma Inicial Reportado</dt>
+                              <dd className="mt-0.5 text-ink-900 font-medium print:text-ink-900">{item.initialReportedSymptom}</dd>
                             </div>
                           )}
 
                           {item.actualFailure && (
-                            <div className="rounded bg-[#0b1c28] p-2.5 border border-white/5 col-span-2 print:bg-slate-50 print:border-slate-200">
-                              <dt className="text-[10px] font-bold uppercase text-slate-400 print:text-slate-600">Falla Encontrada y Causa Raíz</dt>
-                              <dd className="mt-0.5 text-slate-200 print:text-slate-800">
+                            <div className="rounded bg-sand-50 p-2.5 border border-sand-200/70 col-span-2 print:bg-sand-50 print:border-sand-200">
+                              <dt className="text-[10px] font-bold uppercase text-ink-600 print:text-ink-600">Falla Encontrada y Causa Raíz</dt>
+                              <dd className="mt-0.5 text-ink-900 print:text-ink-900">
                                 <strong>{item.actualFailure}</strong> {item.rootCause ? `— Causa: ${item.rootCause}` : ''}
                               </dd>
                             </div>
                           )}
 
-                          <div className="rounded bg-[#0b1c28] p-2.5 border border-white/5 col-span-2 sm:col-span-3 lg:col-span-4 print:bg-slate-50 print:border-slate-200">
-                            <dt className="text-[10px] font-bold uppercase text-slate-400 print:text-slate-600">Tareas y Acciones Ejecutadas</dt>
-                            <dd className="mt-0.5 whitespace-pre-wrap text-slate-200 leading-relaxed font-sans print:text-slate-900">
+                          <div className="rounded bg-sand-50 p-2.5 border border-sand-200/70 col-span-2 sm:col-span-3 lg:col-span-4 print:bg-sand-50 print:border-sand-200">
+                            <dt className="text-[10px] font-bold uppercase text-ink-600 print:text-ink-600">Tareas y Acciones Ejecutadas</dt>
+                            <dd className="mt-0.5 whitespace-pre-wrap text-ink-900 leading-relaxed font-sans print:text-ink-900">
                               {item.tasksDescription || 'Sin detalle de tareas.'}
                             </dd>
                           </div>
 
                           {item.testsPerformed && (
-                            <div className="rounded bg-[#0b1c28] p-2.5 border border-white/5 col-span-2 sm:col-span-2 print:bg-slate-50 print:border-slate-200">
-                              <dt className="text-[10px] font-bold uppercase text-slate-400 print:text-slate-600">Pruebas Realizadas</dt>
-                              <dd className="mt-0.5 text-slate-300 print:text-slate-800">{item.testsPerformed}</dd>
+                            <div className="rounded bg-sand-50 p-2.5 border border-sand-200/70 col-span-2 sm:col-span-2 print:bg-sand-50 print:border-sand-200">
+                              <dt className="text-[10px] font-bold uppercase text-ink-600 print:text-ink-600">Pruebas Realizadas</dt>
+                              <dd className="mt-0.5 text-ink-600 print:text-ink-900">{item.testsPerformed}</dd>
                             </div>
                           )}
 
                           {item.pendingTasks && (
-                            <div className="rounded bg-[#0b1c28] p-2.5 border border-white/5 col-span-2 sm:col-span-2 print:bg-slate-50 print:border-slate-200">
-                              <dt className="text-[10px] font-bold uppercase text-slate-400 print:text-slate-600">Tareas Pendientes</dt>
-                              <dd className="mt-0.5 whitespace-pre-wrap text-slate-300 print:text-slate-800">{item.pendingTasks}</dd>
+                            <div className="rounded bg-sand-50 p-2.5 border border-sand-200/70 col-span-2 sm:col-span-2 print:bg-sand-50 print:border-sand-200">
+                              <dt className="text-[10px] font-bold uppercase text-ink-600 print:text-ink-600">Tareas Pendientes</dt>
+                              <dd className="mt-0.5 whitespace-pre-wrap text-ink-600 print:text-ink-900">{item.pendingTasks}</dd>
                             </div>
                           )}
 
                           {item.recommendations && (
-                            <div className="rounded bg-[#0b1c28] p-2.5 border border-white/5 col-span-2 sm:col-span-2 print:bg-slate-50 print:border-slate-200">
-                              <dt className="text-[10px] font-bold uppercase text-slate-400 print:text-slate-600">Recomendaciones del Técnico</dt>
-                              <dd className="mt-0.5 text-slate-300 print:text-slate-800">{item.recommendations}</dd>
+                            <div className="rounded bg-sand-50 p-2.5 border border-sand-200/70 col-span-2 sm:col-span-2 print:bg-sand-50 print:border-sand-200">
+                              <dt className="text-[10px] font-bold uppercase text-ink-600 print:text-ink-600">Recomendaciones del Técnico</dt>
+                              <dd className="mt-0.5 text-ink-600 print:text-ink-900">{item.recommendations}</dd>
                             </div>
                           )}
                         </dl>
 
                         {/* Repuestos utilizados */}
                         {(item.parts?.length > 0 || item.replacedParts) && (
-                          <div className="rounded-lg bg-[#0b1c28] p-3 border border-white/5 space-y-1.5 print:bg-slate-50 print:border-slate-200">
-                            <p className="text-[10px] font-bold uppercase tracking-wider text-cyan-300 print:text-slate-800 flex items-center gap-1.5">
+                          <div className="rounded-lg bg-sand-50 p-3 border border-sand-200/70 space-y-1.5 print:bg-sand-50 print:border-sand-200">
+                            <p className="text-[10px] font-bold uppercase tracking-wider text-ocean-700 print:text-ink-900 flex items-center gap-1.5">
                               <Package size={13} />
                               Repuestos e Insumos Utilizados:
                             </p>
                             {item.parts?.length > 0 ? (
-                              <ul className="divide-y divide-white/5 text-xs font-mono text-slate-200 print:text-slate-800">
+                              <ul className="divide-y divide-white/5 text-xs font-mono text-ink-900 print:text-ink-900">
                                 {item.parts.map((p, pIdx) => (
                                   <li key={`part-${pIdx}`} className="py-1 flex items-center justify-between">
                                     <span>
                                       <strong>{p.name}</strong> · Código/Parte: {p.partNumber} {p.brand ? `(${p.brand})` : ''}
                                     </span>
-                                    <span className="font-bold text-cyan-300 print:text-slate-900">
+                                    <span className="font-bold text-ocean-700 print:text-ink-900">
                                       {p.quantity} und
                                     </span>
                                   </li>
                                 ))}
                               </ul>
                             ) : (
-                              <p className="text-xs text-slate-200 font-mono print:text-slate-800">{item.replacedParts}</p>
+                              <p className="text-xs text-ink-900 font-mono print:text-ink-900">{item.replacedParts}</p>
                             )}
                           </div>
                         )}
@@ -751,11 +751,11 @@ export default function AssetReportModal({ asset, isOpen, onClose }) {
                         {/* Evidencias adjuntas */}
                         {item.evidences?.length > 0 && (
                           <div className="flex flex-wrap items-center gap-2 pt-1">
-                            <span className="text-[10px] font-bold uppercase text-slate-400 print:text-slate-600">Evidencias:</span>
+                            <span className="text-[10px] font-bold uppercase text-ink-600 print:text-ink-600">Evidencias:</span>
                             {item.evidences.map((url, eIdx) => (
                               <EvidenceLink key={url} url={url} index={eIdx} />
                             ))}
-                            <span className="text-[11px] text-slate-500 italic hidden print:inline">
+                            <span className="text-[11px] text-ink-600 italic hidden print:inline">
                               ({item.evidences.length} archivos fotográficos registrados en el sistema)
                             </span>
                           </div>
@@ -767,14 +767,14 @@ export default function AssetReportModal({ asset, isOpen, onClose }) {
                   {/* Registros Predictivos */}
                   {showPredictive && sortedPredictiveRecords.length > 0 && (
                     <div className="space-y-3 pt-3">
-                      <div className="flex items-center gap-2 text-emerald-400 font-bold text-xs uppercase tracking-wider print:text-slate-800">
+                      <div className="flex items-center gap-2 text-forest-700 font-bold text-xs uppercase tracking-wider print:text-ink-900">
                         <Activity size={16} />
                         <span>Historial de Telemetría y Alertas Predictivas ({sortedPredictiveRecords.length})</span>
                       </div>
 
-                      <div className="overflow-x-auto rounded-xl border border-white/10 print:border-slate-300">
+                      <div className="overflow-x-auto rounded-xl border border-sand-200 print:border-sand-200">
                         <table className="w-full text-left text-xs min-w-[700px] print:min-w-full">
-                          <thead className="bg-[#0b1d2a] text-slate-400 border-b border-white/10 print:bg-slate-100 print:text-slate-700">
+                          <thead className="bg-sand-100 text-ink-600 border-b border-sand-200 print:bg-sand-100 print:text-ink-600">
                             <tr>
                               <th className="px-3.5 py-2.5 font-bold">Fecha / Hora</th>
                               <th className="px-3.5 py-2.5 font-bold">Diagnóstico Predicho</th>
@@ -785,26 +785,26 @@ export default function AssetReportModal({ asset, isOpen, onClose }) {
                               <th className="px-3.5 py-2.5 font-bold">Falla Confirmada</th>
                             </tr>
                           </thead>
-                          <tbody className="divide-y divide-white/5 bg-[#102738] print:bg-white print:divide-slate-200">
+                          <tbody className="divide-y divide-sand-200/70 bg-surface print:bg-white print:divide-sand-200">
                             {sortedPredictiveRecords.map((rec) => {
                               const isAlert = rec.predictionClass === 1;
                               return (
-                                <tr key={`pred-${rec.id}`} className={isAlert ? 'bg-red-500/10 print:bg-red-50' : ''}>
-                                  <td className="px-3.5 py-2.5 font-mono text-[11px] text-slate-200 print:text-slate-800">
+                                <tr key={`pred-${rec.id}`} className={isAlert ? 'bg-error-soft print:bg-error-soft' : ''}>
+                                  <td className="px-3.5 py-2.5 font-mono text-[11px] text-ink-900 print:text-ink-900">
                                     {formatDateTime(rec.timestamp)}
                                   </td>
                                   <td className="px-3.5 py-2.5">
-                                    <span className={`inline-flex items-center gap-1 font-semibold ${isAlert ? 'text-red-300 print:text-red-700' : 'text-emerald-300 print:text-emerald-700'}`}>
+                                    <span className={`inline-flex items-center gap-1 font-semibold ${isAlert ? 'text-error-text print:text-error-text' : 'text-forest-700 print:text-forest-700'}`}>
                                       {rec.tipoFallaPredicha || 'Normal'}
                                     </span>
                                   </td>
-                                  <td className="px-3.5 py-2.5 text-slate-200 print:text-slate-800">{rec.temperature?.toFixed(1)} °C</td>
-                                  <td className="px-3.5 py-2.5 text-slate-200 print:text-slate-800">{rec.vibration?.toFixed(2)} mm/s</td>
-                                  <td className="px-3.5 py-2.5 text-slate-200 print:text-slate-800">{rec.pressure?.toFixed(1)} bar</td>
-                                  <td className="px-3.5 py-2.5 font-bold text-cyan-300 print:text-slate-800">
+                                  <td className="px-3.5 py-2.5 text-ink-900 print:text-ink-900">{rec.temperature?.toFixed(1)} °C</td>
+                                  <td className="px-3.5 py-2.5 text-ink-900 print:text-ink-900">{rec.vibration?.toFixed(2)} mm/s</td>
+                                  <td className="px-3.5 py-2.5 text-ink-900 print:text-ink-900">{rec.pressure?.toFixed(1)} bar</td>
+                                  <td className="px-3.5 py-2.5 font-bold text-ocean-700 print:text-ink-900">
                                     {Math.round((rec.confidence || 0) * 100)}%
                                   </td>
-                                  <td className="px-3.5 py-2.5 text-slate-300 print:text-slate-700">
+                                  <td className="px-3.5 py-2.5 text-ink-600 print:text-ink-600">
                                     {rec.fallaRealConfirmada || 'Pendiente feedback'}
                                   </td>
                                 </tr>
@@ -820,17 +820,17 @@ export default function AssetReportModal({ asset, isOpen, onClose }) {
             </section>
 
             {/* PIE DE PÁGINA IMPRESIÓN CON FIRMAS */}
-            <div className="hidden print:block pt-16 mt-12 border-t-2 border-slate-300">
+            <div className="hidden print:block pt-16 mt-12 border-t-2 border-sand-200">
               <div className="grid grid-cols-2 gap-12 text-center text-xs">
                 <div>
-                  <div className="border-b border-slate-700 w-3/4 mx-auto mb-2" />
-                  <p className="font-bold text-slate-900">Firma del Técnico Responsable</p>
-                  <p className="text-[10px] text-slate-600">AgroSentinel · Mantenimiento Especializado</p>
+                  <div className="border-b border-ink-600 w-3/4 mx-auto mb-2" />
+                  <p className="font-bold text-ink-900">Firma del Técnico Responsable</p>
+                  <p className="text-[10px] text-ink-600">AgroSentinel · Mantenimiento Especializado</p>
                 </div>
                 <div>
-                  <div className="border-b border-slate-700 w-3/4 mx-auto mb-2" />
-                  <p className="font-bold text-slate-900">Firma Supervisor / Recibido Conforme</p>
-                  <p className="text-[10px] text-slate-600">Operaciones de Campo</p>
+                  <div className="border-b border-ink-600 w-3/4 mx-auto mb-2" />
+                  <p className="font-bold text-ink-900">Firma Supervisor / Recibido Conforme</p>
+                  <p className="text-[10px] text-ink-600">Operaciones de Campo</p>
                 </div>
               </div>
             </div>

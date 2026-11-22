@@ -8,7 +8,6 @@ import {
   Clock3,
   FileWarning,
   LayoutDashboard,
-  Menu,
   Package,
   Plus,
   RefreshCw,
@@ -18,11 +17,8 @@ import {
   Wrench,
   Activity as ActivityIcon,
   ClipboardCheck,
-  X,
 } from 'lucide-react';
-import LogoutButton from '../../components/LogoutButton';
-import DashboardRoleSwitcher from '../../components/DashboardRoleSwitcher';
-import BrandLogo from '../../components/BrandLogo';
+import AppShell from '../../components/AppShell';
 import FailureReportModal from '../../components/FailureReportModal';
 import FailureClosureModal from '../../components/FailureClosureModal';
 import FailureReportDetailsModal from '../../components/FailureReportDetailsModal';
@@ -75,7 +71,7 @@ const PRIORITIES = {
 };
 
 const inputClass =
-  'w-full min-h-[44px] rounded-lg border border-[#36556f] bg-[#102a3d] px-3.5 py-2.5 text-xs text-white placeholder:text-slate-500 outline-none transition focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/50';
+  'w-full min-h-[44px] rounded-lg border border-sand-200 bg-sand-50 px-3.5 py-2.5 text-xs text-ink-900 placeholder:text-ink-600 outline-none transition focus:border-ocean-300 focus:ring-1 focus:ring-ocean-500/50';
 
 function errorMessage(error) {
   return (
@@ -105,7 +101,7 @@ function dateOnly(value) {
 
 function statusTone(status) {
   if (status === 'RESUELTO' || status === 'COMPLETED' || status === 'OPERATIONAL') {
-    return 'border-emerald-400/30 bg-emerald-500/15 text-emerald-300';
+    return 'border-forest-300/30 bg-success-soft text-forest-700';
   }
   if (
     status === 'ALTA' ||
@@ -113,7 +109,7 @@ function statusTone(status) {
     status === 'URGENT_CORRECTIVE' ||
     status === 'IN_REPAIR'
   ) {
-    return 'border-red-400/30 bg-red-500/15 text-red-300';
+    return 'border-error/30 bg-error-soft text-error-text';
   }
   if (
     status === 'EN_REVISION' ||
@@ -121,12 +117,12 @@ function statusTone(status) {
     status === 'ESPERA_REPUESTO' ||
     status === 'MEDIA'
   ) {
-    return 'border-amber-400/30 bg-amber-500/15 text-amber-300';
+    return 'border-gold-600/30 bg-warning-soft text-forest-900';
   }
-  return 'border-cyan-400/30 bg-cyan-500/15 text-cyan-300';
+  return 'border-ocean-300/30 bg-info-soft text-ocean-700';
 }
 
-function Badge({ children, tone = 'border-slate-500/30 bg-slate-500/15 text-slate-300' }) {
+function Badge({ children, tone = 'border-sand-200/30 bg-sand-50/15 text-ink-600' }) {
   return (
     <span
       className={`inline-flex items-center whitespace-nowrap rounded-full border px-2.5 py-0.5 text-xs font-semibold ${tone}`}
@@ -136,21 +132,21 @@ function Badge({ children, tone = 'border-slate-500/30 bg-slate-500/15 text-slat
   );
 }
 
-function MetricCard({ label, value, detail, icon: Icon, accent = 'text-cyan-300' }) {
+function MetricCard({ label, value, detail, icon: Icon, accent = 'text-ocean-700' }) {
   return (
-    <article className="rounded-xl border border-[#2d4055] bg-[#13293a] p-4 sm:p-5 shadow-lg min-w-0">
+    <article className="rounded-xl border border-sand-200 bg-sand-50 p-4 sm:p-5 shadow-lg min-w-0">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+          <p className="text-[11px] font-bold uppercase tracking-wider text-ink-600">
             {label}
           </p>
-          <p className="mt-2 text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+          <p className="mt-2 text-2xl sm:text-3xl font-extrabold text-ink-900 tracking-tight">
             {value}
           </p>
-          <p className="mt-1 truncate text-xs text-slate-400">{detail}</p>
+          <p className="mt-1 truncate text-xs text-ink-600">{detail}</p>
         </div>
         <span
-          className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-[#0d2030] ${accent}`}
+          className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-sand-200 bg-sand-50 ${accent}`}
         >
           <Icon size={20} />
         </span>
@@ -161,11 +157,11 @@ function MetricCard({ label, value, detail, icon: Icon, accent = 'text-cyan-300'
 
 function SectionHeading({ eyebrow, title, description, children }) {
   return (
-    <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between border-b border-white/10 pb-4">
+    <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between border-b border-sand-200 pb-4">
       <div>
-        <p className="text-xs font-bold uppercase tracking-wider text-cyan-300">{eyebrow}</p>
-        <h1 className="mt-1 text-xl sm:text-2xl font-bold tracking-tight text-white">{title}</h1>
-        <p className="mt-0.5 text-xs text-slate-400">{description}</p>
+        <p className="text-xs font-bold uppercase tracking-wider text-ocean-700">{eyebrow}</p>
+        <h1 className="mt-1 text-xl sm:text-2xl font-bold tracking-tight text-ink-900">{title}</h1>
+        <p className="mt-0.5 text-xs text-ink-600">{description}</p>
       </div>
       {children}
     </div>
@@ -190,14 +186,14 @@ function Overview({ assets, reports, maintenances, onNavigate, errors }) {
   const maxStatusCount = Math.max(1, ...statusCounts.map((item) => item.count));
 
   return (
-    <div className="space-y-6 text-white min-w-0">
+    <div className="space-y-6 text-ink-900 min-w-0">
       <SectionHeading
         eyebrow="Centro de supervisión"
         title="Resumen operativo"
         description="Estado actual de los activos, fallas reportadas y mantenimientos programados."
       />
 
-      <section className="grid grid-cols-2 gap-2 sm:gap-3.5 xl:grid-cols-4">
+      <section className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3.5 xl:grid-cols-4">
         <MetricCard
           label="Activos activos"
           value={errors.assets ? '—' : activeAssets.length}
@@ -213,35 +209,35 @@ function Overview({ assets, reports, maintenances, onNavigate, errors }) {
           value={errors.reports ? '—' : unresolvedReports.length}
           detail={errors.reports ? 'No disponible' : 'Reportes sin resolver'}
           icon={AlertTriangle}
-          accent="text-amber-300"
+          accent="text-forest-900"
         />
         <MetricCard
           label="En reparación"
           value={errors.assets ? '—' : inRepair.length}
           detail={errors.assets ? 'No disponible' : 'Activos en reparación'}
           icon={Activity}
-          accent="text-red-300"
+          accent="text-error-text"
         />
         <MetricCard
           label="Mantenimientos programados"
           value={errors.maintenance ? '—' : scheduledMaintenances.length}
           detail={errors.maintenance ? 'No disponible' : 'Pendientes de ejecución'}
           icon={Wrench}
-          accent="text-emerald-300"
+          accent="text-forest-700"
         />
       </section>
 
-      <section className="grid grid-cols-1 min-[360px]:grid-cols-2 gap-2 sm:gap-5">
-        <article className="rounded-xl border border-[#2d4055] bg-[#13293a] p-4 sm:p-5 shadow-xl space-y-4 min-w-0">
-          <div className="flex min-w-0 items-center justify-between gap-2 border-b border-white/10 pb-3">
+      <section className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-5">
+        <article className="rounded-xl border border-sand-200 bg-sand-50 p-4 sm:p-5 shadow-xl space-y-4 min-w-0">
+          <div className="flex min-w-0 items-center justify-between gap-2 border-b border-sand-200 pb-3">
           <div className="min-w-0">
-              <h2 className="text-sm sm:text-base font-bold text-white">Reportes de fallas</h2>
-              <p className="mt-0.5 text-xs text-slate-400">Distribución por estado actual</p>
+              <h2 className="text-sm sm:text-base font-bold text-ink-900">Reportes de fallas</h2>
+              <p className="mt-0.5 text-xs text-ink-600">Distribución por estado actual</p>
             </div>
             <button
               type="button"
               onClick={() => onNavigate('Reporte de Fallas')}
-              className="shrink-0 text-xs font-bold text-cyan-300 hover:text-cyan-200 transition-colors"
+              className="shrink-0 text-xs font-bold text-ocean-700 hover:text-ocean-700 transition-all duration-200 ease-out"
             >
               Ver seguimiento
             </button>
@@ -251,12 +247,12 @@ function Overview({ assets, reports, maintenances, onNavigate, errors }) {
             {statusCounts.map((item) => (
               <div key={item.status} className="space-y-1.5">
                 <div className="flex justify-between text-xs font-semibold">
-                  <span className="text-slate-300">{item.label}</span>
-                  <span className="text-white font-mono">{item.count}</span>
+                  <span className="text-ink-600">{item.label}</span>
+                  <span className="text-ink-900 font-mono">{item.count}</span>
                 </div>
-                <div className="h-2.5 w-full rounded-full bg-[#0d2030] border border-white/5 overflow-hidden">
+                <div className="h-2.5 w-full rounded-full bg-sand-50 border border-sand-200 overflow-hidden">
                   <div
-                    className="h-full rounded-full bg-cyan-500 transition-all duration-300"
+                    className="h-full rounded-full bg-ocean-500 transition-all duration-300"
                     style={{
                       width: `${
                         item.count ? Math.max(6, (item.count / maxStatusCount) * 100) : 0
@@ -267,37 +263,37 @@ function Overview({ assets, reports, maintenances, onNavigate, errors }) {
               </div>
             ))}
             {errors.reports && (
-              <p className="text-xs text-red-200 bg-red-500/10 p-2.5 rounded-lg border border-red-500/20">
+              <p className="text-xs text-error-text bg-error-soft p-2.5 rounded-lg border border-error/20">
                 No se pudo cargar la distribución de reportes.
               </p>
             )}
             {!errors.reports && reports.length === 0 && (
-              <p className="text-xs text-slate-400 text-center py-6">
+              <p className="text-xs text-ink-600 text-center py-6">
                 No hay reportes de fallas para mostrar.
               </p>
             )}
           </div>
         </article>
 
-        <article className="rounded-xl border border-[#2d4055] bg-[#13293a] p-4 sm:p-5 shadow-xl space-y-4 min-w-0">
-          <div className="flex items-center justify-between gap-3 border-b border-white/10 pb-3">
+        <article className="rounded-xl border border-sand-200 bg-sand-50 p-4 sm:p-5 shadow-xl space-y-4 min-w-0">
+          <div className="flex items-center justify-between gap-3 border-b border-sand-200 pb-3">
             <div>
-              <h2 className="text-sm sm:text-base font-bold text-white">
+              <h2 className="text-sm sm:text-base font-bold text-ink-900">
                 Próximos mantenimientos
               </h2>
-              <p className="mt-0.5 text-xs text-slate-400">Programaciones pendientes más cercanas</p>
+              <p className="mt-0.5 text-xs text-ink-600">Programaciones pendientes más cercanas</p>
             </div>
             <button
               type="button"
               onClick={() => onNavigate('Mantenimiento Preventivo')}
-              className="text-xs font-bold text-cyan-300 hover:text-cyan-200 transition-colors"
+              className="text-xs font-bold text-ocean-700 hover:text-ocean-700 transition-all duration-200 ease-out"
             >
               Ver todos
             </button>
           </div>
 
           {errors.maintenance ? (
-            <p className="text-xs text-red-200 bg-red-500/10 p-2.5 rounded-lg border border-red-500/20">
+            <p className="text-xs text-error-text bg-error-soft p-2.5 rounded-lg border border-error/20">
               No se pudo cargar el calendario de mantenimientos.
             </p>
           ) : upcoming.length ? (
@@ -308,29 +304,29 @@ function Overview({ assets, reports, maintenances, onNavigate, errors }) {
                   className="flex items-center justify-between gap-3 py-2.5 first:pt-0 last:pb-0"
                 >
                   <div className="min-w-0">
-                    <p className="truncate text-xs font-bold text-white">
+                    <p className="truncate text-xs font-bold text-ink-900">
                       {item.assetName || 'Activo sin nombre'}
                     </p>
-                    <p className="mt-0.5 truncate text-[11px] text-slate-400">
+                    <p className="mt-0.5 truncate text-[11px] text-ink-600">
                       {item.technicianName || 'Técnico no asignado'} · Atención:{' '}
-                      <strong className="text-slate-300">{item.attentionIndex || 'LOW'}</strong>
+                      <strong className="text-ink-600">{item.attentionIndex || 'LOW'}</strong>
                     </p>
                   </div>
-                  <span className="shrink-0 text-right text-xs font-mono text-cyan-300 font-semibold">
+                  <span className="shrink-0 text-right text-xs font-mono text-ocean-700 font-semibold">
                     {formatDate(item.scheduledAt, true)}
                   </span>
                 </li>
               ))}
             </ul>
           ) : (
-            <p className="rounded-lg border border-white/5 bg-[#0d2030] p-6 text-center text-xs text-slate-400">
+            <p className="rounded-lg border border-sand-200 bg-sand-50 p-6 text-center text-xs text-ink-600">
               No hay mantenimientos preventivos programados.
             </p>
           )}
         </article>
       </section>
 
-      <div className="rounded-xl border border-cyan-400/30 bg-cyan-400/10 px-4 py-3 text-xs text-cyan-200 leading-relaxed font-medium">
+      <div className="rounded-xl border border-ocean-300/30 bg-info-soft px-4 py-3 text-xs text-ocean-700 leading-relaxed font-medium">
         Este perfil permite consultar y dar seguimiento operativo. La creación y ejecución de mantenimientos, la gestión de órdenes y la administración de usuarios siguen en los perfiles autorizados.
       </div>
     </div>
@@ -367,7 +363,7 @@ function OrdersView({ reports, error, title = 'Reporte de Fallas', onReportCreat
   const pageReports = pagination.pageItems;
 
   return (
-    <div className="space-y-5 text-white min-w-0">
+    <div className="space-y-5 text-ink-900 min-w-0">
       <SectionHeading
         eyebrow="Seguimiento operativo"
         title={title}
@@ -376,16 +372,16 @@ function OrdersView({ reports, error, title = 'Reporte de Fallas', onReportCreat
         <button
           type="button"
           onClick={() => setShowReportModal(true)}
-          className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-cyan-600 px-4 text-xs font-semibold text-white shadow-lg shadow-cyan-950/40 transition-colors hover:bg-cyan-500 sm:w-auto"
+          className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-gold-500 to-gold-600 px-4 text-xs font-semibold text-pine-900 shadow-lg shadow-gold-600/20 transition-all duration-200 ease-out hover:brightness-105 sm:w-auto"
         >
           <Plus size={17} />
           Reportar falla
         </button>
       </SectionHeading>
 
-      <div className="flex flex-wrap items-center gap-3 rounded-xl border border-[#2d4055] bg-[#13293a] p-3 shadow-lg">
+      <div className="flex flex-wrap items-center gap-3 rounded-xl border border-sand-200 bg-sand-50 p-3 shadow-lg">
         <label className="relative min-w-[220px] flex-1">
-          <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+          <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-600" />
           <input
             value={query}
             onChange={(event) => {
@@ -415,40 +411,40 @@ function OrdersView({ reports, error, title = 'Reporte de Fallas', onReportCreat
           ))}
         </select>
 
-        <span className="text-xs font-semibold text-slate-400 px-1">
+        <span className="text-xs font-semibold text-ink-600 px-1">
           {visibleReports.length} de {reports.length}
         </span>
       </div>
 
       {/* Vista Móvil (Tarjetas) */}
-      <div className="grid grid-cols-2 gap-2 lg:hidden">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 lg:hidden">
         {pageReports.map((report) => (
           <article
             key={report.id}
-            className="rounded-xl border border-[#2d4055] bg-[#13293a] p-4 shadow-md space-y-3"
+            className="rounded-xl border border-sand-200 bg-sand-50 p-4 shadow-md space-y-3"
           >
-            <div className="flex items-start justify-between gap-2 border-b border-white/5 pb-2.5">
+            <div className="flex items-start justify-between gap-2 border-b border-sand-200 pb-2.5">
               <div>
-                <p className="font-bold text-xs text-white">{report.assetName || 'Activo sin nombre'}</p>
-                <p className="text-[11px] text-cyan-300">{report.tipoFalla || 'Falla no especificada'}</p>
+                <p className="font-bold text-xs text-ink-900">{report.assetName || 'Activo sin nombre'}</p>
+                <p className="text-[11px] text-ocean-700">{report.tipoFalla || 'Falla no especificada'}</p>
               </div>
               <Badge tone={statusTone(report.estado)}>
                 {REPORT_STATUSES[report.estado] || report.estado || 'Sin estado'}
               </Badge>
             </div>
 
-            <div className="grid grid-cols-2 gap-2 text-xs pt-1">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs pt-1">
               <div>
-                <span className="text-slate-500 block text-[10px] uppercase">Zona/Grupo</span>
-                <span className="text-slate-200 font-medium">{report.groupName || 'Sin grupo'}</span>
+                <span className="text-ink-600 block text-[10px] uppercase">Zona/Grupo</span>
+                <span className="text-ink-900 font-medium">{report.groupName || 'Sin grupo'}</span>
               </div>
               <div>
-                <span className="text-slate-500 block text-[10px] uppercase">Técnico</span>
-                <span className="text-slate-200 font-medium">{report.assignedTechnicianName || 'Sin asignar'}</span>
+                <span className="text-ink-600 block text-[10px] uppercase">Técnico</span>
+                <span className="text-ink-900 font-medium">{report.assignedTechnicianName || 'Sin asignar'}</span>
               </div>
             </div>
 
-            <div className="flex items-center justify-between pt-2 border-t border-white/5 text-xs">
+            <div className="flex items-center justify-between pt-2 border-t border-sand-200 text-xs">
               <Badge tone={statusTone(report.prioridad)}>
                 {PRIORITIES[report.prioridad] || report.prioridad || 'Sin prioridad'}
               </Badge>
@@ -456,7 +452,7 @@ function OrdersView({ reports, error, title = 'Reporte de Fallas', onReportCreat
                 <button
                   type="button"
                   onClick={() => setSelectedReport(report)}
-                  className="font-bold text-cyan-300 hover:text-cyan-200 p-1"
+                  className="font-bold text-ocean-700 hover:text-ocean-700 p-1"
                 >
                   Ver Detalle / Hoja de Vida
                 </button>
@@ -464,7 +460,7 @@ function OrdersView({ reports, error, title = 'Reporte de Fallas', onReportCreat
                   <button
                     type="button"
                     onClick={() => setReportToReview(report)}
-                    className="font-bold text-emerald-300 hover:text-emerald-200 p-1"
+                    className="font-bold text-forest-700 hover:text-forest-700 p-1"
                   >
                     Revisar cierre
                   </button>
@@ -475,17 +471,17 @@ function OrdersView({ reports, error, title = 'Reporte de Fallas', onReportCreat
         ))}
 
         {!visibleReports.length && (
-          <div className="rounded-xl border border-[#2d4055] bg-[#13293a] p-8 text-center text-xs text-slate-400">
+          <div className="rounded-xl border border-sand-200 bg-sand-50 p-8 text-center text-xs text-ink-600">
             {error ? 'No se pudieron cargar los reportes.' : 'No hay reportes que coincidan con el filtro.'}
           </div>
         )}
       </div>
 
       {/* Vista Escritorio (Tabla) */}
-      <div className="hidden lg:block overflow-hidden rounded-xl border border-[#2d4055] bg-[#13293a] shadow-xl">
+      <div className="hidden lg:block overflow-hidden rounded-xl border border-sand-200 bg-sand-50 shadow-xl">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[820px] text-left text-xs sm:text-sm">
-            <thead className="border-b border-[#2d4055] bg-[#0b1d2a] text-xs font-semibold uppercase tracking-wider text-slate-400">
+            <thead className="border-b border-sand-200 bg-sand-50 text-xs font-semibold uppercase tracking-wider text-ink-600">
               <tr>
                 <th className="px-4 py-3.5">Activo / Falla</th>
                 <th className="px-4 py-3.5">Zona</th>
@@ -498,20 +494,20 @@ function OrdersView({ reports, error, title = 'Reporte de Fallas', onReportCreat
             </thead>
             <tbody className="divide-y divide-white/5">
               {pageReports.map((report) => (
-                <tr key={report.id} className="hover:bg-white/[0.03] transition-colors">
+                <tr key={report.id} className="hover:bg-surface/[0.03] transition-all duration-200 ease-out">
                   <td className="max-w-[240px] px-4 py-3.5">
-                    <p className="truncate font-bold text-white">
+                    <p className="truncate font-bold text-ink-900">
                       {report.assetName || 'Activo sin nombre'}
                     </p>
-                    <p className="mt-0.5 truncate text-xs text-slate-400">
+                    <p className="mt-0.5 truncate text-xs text-ink-600">
                       {report.tipoFalla || 'Falla no especificada'}
                     </p>
                   </td>
-                  <td className="px-4 py-3.5 text-slate-300">{report.groupName || 'Sin grupo'}</td>
-                  <td className="whitespace-nowrap px-4 py-3.5 font-mono text-xs text-slate-300">
+                  <td className="px-4 py-3.5 text-ink-600">{report.groupName || 'Sin grupo'}</td>
+                  <td className="whitespace-nowrap px-4 py-3.5 font-mono text-xs text-ink-600">
                     {formatDate(report.fechaReporte, true)}
                   </td>
-                  <td className="px-4 py-3.5 text-slate-300">
+                  <td className="px-4 py-3.5 text-ink-600">
                     {report.assignedTechnicianName || 'Sin asignar'}
                   </td>
                   <td className="px-4 py-3.5">
@@ -529,7 +525,7 @@ function OrdersView({ reports, error, title = 'Reporte de Fallas', onReportCreat
                       <button
                         type="button"
                         onClick={() => setSelectedReport(report)}
-                        className="font-bold text-cyan-300 hover:text-cyan-200 transition-colors"
+                        className="font-bold text-ocean-700 hover:text-ocean-700 transition-all duration-200 ease-out"
                       >
                         Ver Detalle / Hoja de Vida
                       </button>
@@ -537,7 +533,7 @@ function OrdersView({ reports, error, title = 'Reporte de Fallas', onReportCreat
                         <button
                           type="button"
                           onClick={() => setReportToReview(report)}
-                          className="font-bold text-emerald-300 hover:text-emerald-200 transition-colors"
+                          className="font-bold text-forest-700 hover:text-forest-700 transition-all duration-200 ease-out"
                         >
                           Revisar y cerrar
                         </button>
@@ -548,7 +544,7 @@ function OrdersView({ reports, error, title = 'Reporte de Fallas', onReportCreat
               ))}
               {!visibleReports.length && (
                 <tr>
-                  <td colSpan="7" className="px-4 py-12 text-center text-xs text-slate-400">
+                  <td colSpan="7" className="px-4 py-12 text-center text-xs text-ink-600">
                     {error
                       ? 'No se pudieron cargar los reportes.'
                       : 'No hay reportes que coincidan con el filtro.'}
@@ -597,7 +593,7 @@ function OrdersView({ reports, error, title = 'Reporte de Fallas', onReportCreat
 
 function WorkGroupsView({ groups, error }) {
   return (
-    <div className="space-y-5 text-white min-w-0">
+    <div className="space-y-5 text-ink-900 min-w-0">
       <SectionHeading
         eyebrow="Organización operativa"
         title="Grupos de Trabajo"
@@ -607,36 +603,36 @@ function WorkGroupsView({ groups, error }) {
       {error && (
         <div
           role="alert"
-          className="rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-xs text-red-200"
+          className="rounded-xl border border-error/30 bg-error-soft p-4 text-xs text-error-text"
         >
           {error}
         </div>
       )}
 
       {!error && groups.length === 0 && (
-        <div className="rounded-xl border border-[#2d4055] bg-[#13293a] p-10 text-center text-xs text-slate-400">
+        <div className="rounded-xl border border-sand-200 bg-sand-50 p-10 text-center text-xs text-ink-600">
           No hay grupos disponibles para tu usuario.
         </div>
       )}
 
-      <div className="grid grid-cols-2 gap-2 sm:gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4">
         {groups.map((group) => (
           <article
             key={group.id}
-            className="rounded-xl border border-[#2d4055] bg-[#13293a] p-4 sm:p-5 shadow-xl space-y-4"
+            className="rounded-xl border border-sand-200 bg-sand-50 p-4 sm:p-5 shadow-xl space-y-4"
           >
-            <div className="flex items-start justify-between gap-3 border-b border-white/10 pb-3">
+            <div className="flex items-start justify-between gap-3 border-b border-sand-200 pb-3">
               <div className="min-w-0">
-                <h2 className="truncate text-sm sm:text-base font-bold text-white">{group.name}</h2>
-                <p className="mt-0.5 text-xs text-slate-400">
+                <h2 className="truncate text-sm sm:text-base font-bold text-ink-900">{group.name}</h2>
+                <p className="mt-0.5 text-xs text-ink-600">
                   {group.description || 'Sin descripción registrada'}
                 </p>
               </div>
               <Badge
                 tone={
                   group.active
-                    ? 'border-emerald-400/30 bg-emerald-500/15 text-emerald-300'
-                    : 'border-slate-500/30 bg-slate-500/15 text-slate-300'
+                    ? 'border-forest-300/30 bg-success-soft text-forest-700'
+                    : 'border-sand-200/30 bg-sand-50/15 text-ink-600'
                 }
               >
                 {group.active ? 'Activo' : 'Inactivo'}
@@ -644,14 +640,14 @@ function WorkGroupsView({ groups, error }) {
             </div>
 
             <div className="flex items-center justify-between text-xs">
-              <span className="text-slate-400 font-semibold uppercase tracking-wider text-[10px]">Líder asignado</span>
-              <span className="font-bold text-cyan-300">{group.leaderName || 'Sin líder asignado'}</span>
+              <span className="text-ink-600 font-semibold uppercase tracking-wider text-[10px]">Líder asignado</span>
+              <span className="font-bold text-ocean-700">{group.leaderName || 'Sin líder asignado'}</span>
             </div>
 
-            <div className="space-y-2 pt-1 border-t border-white/5">
+            <div className="space-y-2 pt-1 border-t border-sand-200">
               <div className="flex items-center justify-between text-xs">
-                <span className="font-semibold text-slate-300">Integrantes del grupo</span>
-                <span className="font-mono text-slate-400">
+                <span className="font-semibold text-ink-600">Integrantes del grupo</span>
+                <span className="font-mono text-ink-600">
                   {Array.isArray(group.members) ? group.members.length : 0}
                 </span>
               </div>
@@ -660,14 +656,14 @@ function WorkGroupsView({ groups, error }) {
                   {group.members.map((member) => (
                     <span
                       key={member.id}
-                      className="rounded-lg border border-[#36556f] bg-[#0d2030] px-3 py-1.5 text-xs text-slate-300 font-medium"
+                      className="rounded-lg border border-sand-200 bg-sand-50 px-3 py-1.5 text-xs text-ink-600 font-medium"
                     >
                       {member.nombre || member.email || `Usuario ${member.id}`}
                     </span>
                   ))}
                 </div>
               ) : (
-                <p className="text-xs text-slate-500 italic">Sin integrantes registrados.</p>
+                <p className="text-xs text-ink-600 italic">Sin integrantes registrados.</p>
               )}
             </div>
           </article>
@@ -687,15 +683,15 @@ function MaintenanceView({ maintenances, error }) {
   );
 
   return (
-    <div className="space-y-5 text-white min-w-0">
+    <div className="space-y-5 text-ink-900 min-w-0">
       <SectionHeading
         eyebrow="Plan de mantenimiento"
         title="Mantenimiento preventivo"
         description="Consulta las programaciones, tareas registradas y resultados de ejecución."
       />
 
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#2d4055] bg-[#13293a] p-3 shadow-lg">
-        <p className="text-xs font-semibold text-slate-400">
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-sand-200 bg-sand-50 p-3 shadow-lg">
+        <p className="text-xs font-semibold text-ink-600">
           {visibleMaintenances.length} de {maintenances.length} programaciones
         </p>
         <select
@@ -719,32 +715,32 @@ function MaintenanceView({ maintenances, error }) {
           const expanded = expandedId === item.id;
 
           return (
-            <article key={item.id} className="rounded-xl border border-[#2d4055] bg-[#13293a] shadow-lg">
+            <article key={item.id} className="rounded-xl border border-sand-200 bg-sand-50 shadow-lg">
               <div className="flex flex-wrap items-center justify-between gap-3 p-4 sm:p-5">
                 <div className="min-w-[220px] flex-1">
                   <div className="flex flex-wrap items-center gap-2">
-                    <h2 className="text-xs sm:text-sm font-bold text-white">
+                    <h2 className="text-xs sm:text-sm font-bold text-ink-900">
                       {item.assetName || 'Activo sin nombre'}
                     </h2>
                     <Badge tone={statusTone(item.status)}>
                       {MAINTENANCE_STATUSES[item.status] || item.status || 'Sin estado'}
                     </Badge>
                     {overdue && (
-                      <Badge tone="border-red-400/30 bg-red-500/15 text-red-300">Atrasado</Badge>
+                      <Badge tone="border-error/30 bg-error-soft text-error-text">Atrasado</Badge>
                     )}
                   </div>
-                  <p className="mt-1 text-xs text-slate-400">
+                  <p className="mt-1 text-xs text-ink-600">
                     {item.categoryName || 'Sin categoría'} · Técnico:{' '}
-                    <strong className="text-slate-200">{item.technicianName || 'No asignado'}</strong>
+                    <strong className="text-ink-900">{item.technicianName || 'No asignado'}</strong>
                   </p>
                 </div>
 
                 <div className="flex items-center gap-4">
                   <div className="text-right">
-                    <p className="text-[10px] uppercase font-bold tracking-wider text-slate-400">
+                    <p className="text-[10px] uppercase font-bold tracking-wider text-ink-600">
                       Programado
                     </p>
-                    <p className="mt-0.5 text-xs font-mono font-semibold text-cyan-300">
+                    <p className="mt-0.5 text-xs font-mono font-semibold text-ocean-700">
                       {formatDate(item.scheduledAt, true)}
                     </p>
                   </div>
@@ -752,7 +748,7 @@ function MaintenanceView({ maintenances, error }) {
                     type="button"
                     aria-expanded={expanded}
                     onClick={() => setExpandedId(expanded ? null : item.id)}
-                    className="flex min-h-[38px] items-center rounded-lg border border-[#36556f] px-3.5 py-1.5 text-xs font-bold text-slate-200 hover:bg-white/10 transition-colors"
+                    className="flex min-h-[38px] items-center rounded-lg border border-sand-200 px-3.5 py-1.5 text-xs font-bold text-ink-900 hover:bg-sand-100 transition-all duration-200 ease-out"
                   >
                     {expanded ? 'Ocultar' : 'Ver seguimiento'}
                   </button>
@@ -760,28 +756,28 @@ function MaintenanceView({ maintenances, error }) {
               </div>
 
               {expanded && (
-                <div className="grid grid-cols-2 gap-2 border-t border-white/10 bg-[#0d2030] p-3 sm:gap-4 sm:p-5 rounded-b-xl">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 border-t border-sand-200 bg-sand-50 p-3 sm:gap-4 sm:p-5 rounded-b-xl">
                   <div className="space-y-3 text-xs">
                     <p>
-                      <span className="text-slate-400 font-semibold">Atención:</span>{' '}
-                      <span className="text-white font-bold">{item.attentionIndex || 'Baja'}</span>
+                      <span className="text-ink-600 font-semibold">Atención:</span>{' '}
+                      <span className="text-ink-900 font-bold">{item.attentionIndex || 'Baja'}</span>
                     </p>
                     {item.executedAt && (
                       <p>
-                        <span className="text-slate-400 font-semibold">Ejecutado:</span>{' '}
-                        <span className="text-white font-mono">{formatDate(item.executedAt, true)}</span>
+                        <span className="text-ink-600 font-semibold">Ejecutado:</span>{' '}
+                        <span className="text-ink-900 font-mono">{formatDate(item.executedAt, true)}</span>
                       </p>
                     )}
                     {item.nextMaintenanceDate && (
                       <p>
-                        <span className="text-slate-400 font-semibold">Próxima fecha:</span>{' '}
-                        <span className="text-white font-mono">{formatDate(item.nextMaintenanceDate)}</span>
+                        <span className="text-ink-600 font-semibold">Próxima fecha:</span>{' '}
+                        <span className="text-ink-900 font-mono">{formatDate(item.nextMaintenanceDate)}</span>
                       </p>
                     )}
                     {item.predictiveContext && (
                       <div>
-                        <span className="text-slate-400 font-semibold">Contexto predictivo:</span>
-                        <p className="mt-1 whitespace-pre-wrap rounded-lg bg-[#102637] p-3 text-slate-200 leading-relaxed border border-white/5">
+                        <span className="text-ink-600 font-semibold">Contexto predictivo:</span>
+                        <p className="mt-1 whitespace-pre-wrap rounded-lg bg-sand-50 p-3 text-ink-900 leading-relaxed border border-sand-200">
                           {item.predictiveContext}
                         </p>
                       </div>
@@ -791,34 +787,34 @@ function MaintenanceView({ maintenances, error }) {
                   <div className="space-y-3 text-xs">
                     {item.workDescription && (
                       <div>
-                        <span className="text-slate-400 font-semibold">Trabajo realizado:</span>
-                        <p className="mt-1 whitespace-pre-wrap rounded-lg bg-[#102637] p-3 text-slate-200 leading-relaxed border border-white/5">
+                        <span className="text-ink-600 font-semibold">Trabajo realizado:</span>
+                        <p className="mt-1 whitespace-pre-wrap rounded-lg bg-sand-50 p-3 text-ink-900 leading-relaxed border border-sand-200">
                           {item.workDescription}
                         </p>
                       </div>
                     )}
                     {item.replacedParts && (
                       <p>
-                        <span className="text-slate-400 font-semibold">Repuestos:</span>{' '}
-                        <span className="text-white">{item.replacedParts}</span>
+                        <span className="text-ink-600 font-semibold">Repuestos:</span>{' '}
+                        <span className="text-ink-900">{item.replacedParts}</span>
                       </p>
                     )}
                     {item.technicianNotes && (
                       <div>
-                        <span className="text-slate-400 font-semibold">Notas del técnico:</span>
-                        <p className="mt-1 whitespace-pre-wrap rounded-lg bg-[#102637] p-3 text-slate-200 leading-relaxed border border-white/5">
+                        <span className="text-ink-600 font-semibold">Notas del técnico:</span>
+                        <p className="mt-1 whitespace-pre-wrap rounded-lg bg-sand-50 p-3 text-ink-900 leading-relaxed border border-sand-200">
                           {item.technicianNotes}
                         </p>
                       </div>
                     )}
                     {Array.isArray(item.tasks) && item.tasks.length > 0 && (
                       <div className="space-y-1.5">
-                        <span className="text-slate-400 font-semibold">Tareas registradas:</span>
-                        <ul className="space-y-1 rounded-lg bg-[#102637] p-3 border border-white/5">
+                        <span className="text-ink-600 font-semibold">Tareas registradas:</span>
+                        <ul className="space-y-1 rounded-lg bg-sand-50 p-3 border border-sand-200">
                           {item.tasks.map((task, index) => (
                             <li
                               key={`${task.description}-${index}`}
-                              className={task.completed ? 'text-emerald-300 font-medium' : 'text-slate-300'}
+                              className={task.completed ? 'text-forest-700 font-medium' : 'text-ink-600'}
                             >
                               {task.completed ? '✓' : '○'} {task.description}
                             </li>
@@ -834,7 +830,7 @@ function MaintenanceView({ maintenances, error }) {
         })}
 
         {!visibleMaintenances.length && (
-          <div className="rounded-xl border border-[#2d4055] bg-[#13293a] p-10 text-center text-xs text-slate-400">
+          <div className="rounded-xl border border-sand-200 bg-sand-50 p-10 text-center text-xs text-ink-600">
             {error
               ? 'No se pudieron cargar los mantenimientos.'
               : 'No hay mantenimientos preventivos para este filtro.'}
@@ -842,7 +838,7 @@ function MaintenanceView({ maintenances, error }) {
         )}
       </div>
 
-      <p className="text-xs text-slate-500">
+      <p className="text-xs text-ink-600">
         El perfil de supervisor puede consultar el plan y sus resultados, pero no programar ni registrar ejecuciones.
       </p>
     </div>
@@ -868,7 +864,7 @@ function AssetsView({ assets, error }) {
   );
 
   return (
-    <div className="space-y-5 text-white min-w-0">
+    <div className="space-y-5 text-ink-900 min-w-0">
       <SectionHeading
         eyebrow="Equipos y maquinaria"
         title="Activos"
@@ -876,7 +872,7 @@ function AssetsView({ assets, error }) {
       />
 
       <label className="relative block max-w-xl">
-        <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+        <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-600" />
         <input
           value={query}
           onChange={(event) => setQuery(event.target.value)}
@@ -886,18 +882,18 @@ function AssetsView({ assets, error }) {
         />
       </label>
 
-      <div className="grid grid-cols-2 gap-2 sm:gap-3.5 xl:grid-cols-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3.5 xl:grid-cols-3">
         {visibleAssets.map((asset) => (
           <article
             key={asset.id}
-            className="rounded-xl border border-[#2d4055] bg-[#13293a] p-4 sm:p-5 shadow-xl space-y-3"
+            className="rounded-xl border border-sand-200 bg-sand-50 p-4 sm:p-5 shadow-xl space-y-3"
           >
-            <div className="flex items-start justify-between gap-3 border-b border-white/10 pb-3">
+            <div className="flex items-start justify-between gap-3 border-b border-sand-200 pb-3">
               <div className="min-w-0">
-                <h2 className="truncate text-xs sm:text-sm font-bold text-white">
+                <h2 className="truncate text-xs sm:text-sm font-bold text-ink-900">
                   {asset.name || 'Activo sin nombre'}
                 </h2>
-                <p className="mt-0.5 truncate text-[11px] text-slate-400">
+                <p className="mt-0.5 truncate text-[11px] text-ink-600">
                   {[asset.brand, asset.model].filter(Boolean).join(' ') ||
                     'Marca y modelo no registrados'}
                 </p>
@@ -909,26 +905,26 @@ function AssetsView({ assets, error }) {
 
             <dl className="space-y-2 text-xs">
               <div className="flex justify-between gap-3">
-                <dt className="text-slate-400">Código:</dt>
-                <dd className="truncate font-mono font-semibold text-slate-200">
+                <dt className="text-ink-600">Código:</dt>
+                <dd className="truncate font-mono font-semibold text-ink-900">
                   {asset.inventoryCode || 'Sin código'}
                 </dd>
               </div>
               <div className="flex justify-between gap-3">
-                <dt className="text-slate-400">Ubicación:</dt>
-                <dd className="truncate text-slate-200 font-medium">
+                <dt className="text-ink-600">Ubicación:</dt>
+                <dd className="truncate text-ink-900 font-medium">
                   {asset.location || 'Sin ubicación'}
                 </dd>
               </div>
               <div className="flex justify-between gap-3">
-                <dt className="text-slate-400">Responsable:</dt>
-                <dd className="truncate text-slate-200 font-medium">
+                <dt className="text-ink-600">Responsable:</dt>
+                <dd className="truncate text-ink-900 font-medium">
                   {asset.responsibleName || 'Sin responsable'}
                 </dd>
               </div>
-              <div className="flex justify-between gap-3 pt-1 border-t border-white/5">
-                <dt className="text-slate-400">Condición:</dt>
-                <dd className="text-slate-200 font-semibold">
+              <div className="flex justify-between gap-3 pt-1 border-t border-sand-200">
+                <dt className="text-ink-600">Condición:</dt>
+                <dd className="text-ink-900 font-semibold">
                   {asset.isActive ? 'Activo' : 'Inactivo'}
                   {asset.hasMotor ? ' · Con motor' : ''}
                 </dd>
@@ -938,7 +934,7 @@ function AssetsView({ assets, error }) {
         ))}
 
         {!visibleAssets.length && (
-          <div className="rounded-xl border border-[#2d4055] bg-[#13293a] p-10 text-center text-xs text-slate-400 md:col-span-2 xl:col-span-3">
+          <div className="rounded-xl border border-sand-200 bg-sand-50 p-10 text-center text-xs text-ink-600 md:col-span-2 xl:col-span-3">
             {error ? 'No se pudieron cargar los activos.' : 'No hay activos que coincidan con la búsqueda.'}
           </div>
         )}
@@ -1064,172 +1060,76 @@ export default function SupervisorDashboard() {
     );
 
   return (
-    <div className="flex min-h-screen bg-[#020d16] font-sans text-white min-w-0">
-      {/* Backdrop Móvil */}
-      {mobileMenuOpen && (
-        <div
-          className="fixed inset-0 z-40 bg-black/75 backdrop-blur-xs md:hidden"
-          onClick={() => setMobileMenuOpen(false)}
-        />
-      )}
-
-      {/* Sidebar Lateral */}
-      <aside
-        className={`fixed inset-y-0 left-0 z-50 flex w-60 flex-col border-r border-[#1f3446] bg-[#0d1f2d] transition-transform duration-200 md:static md:translate-x-0 ${
-          mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
-        }`}
-      >
-        <div className="flex h-[70px] items-center justify-between border-b border-[#1f3446] px-5">
-          <div className="flex items-center gap-2.5">
-            <BrandLogo className="h-10 w-10" />
-            <div>
-              <p className="text-base font-bold leading-none text-cyan-400 tracking-wide">
-                AgroSentinel
-              </p>
-              <p className="mt-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                Supervisor
-              </p>
-            </div>
-          </div>
+    <AppShell
+      navigation={NAVIGATION}
+      activeTab={activeView}
+      onNavigate={handleNavClick}
+      mobileOpen={mobileMenuOpen}
+      onMobileOpenChange={setMobileMenuOpen}
+      userName={userName}
+      userRole="Supervisor"
+      userInitials={initials}
+      sidebarFooter="Perfil de consulta y seguimiento operativo."
+      headerActions={
+        <>
+          {showInventoryScope && (
+            <label className="flex items-center gap-2">
+              <span className="hidden text-xs text-ink-600 sm:inline">Bodega</span>
+              <select
+                value={selectedGroupId ?? 'central'}
+                onChange={(event) =>
+                  setSelectedGroupId(
+                    event.target.value === 'central' ? null : Number(event.target.value),
+                  )
+                }
+                aria-label="Filtrar por bodega o grupo"
+                className="min-h-11 max-w-[130px] rounded-xl border border-sand-200 bg-surface px-2.5 py-1.5 text-xs text-ink-900 outline-none focus-visible:border-gold-600 focus-visible:ring-2 focus-visible:ring-gold-500/25 sm:max-w-[180px]"
+              >
+                <option value="central">Bodega central</option>
+                {groups.map((group) => (
+                  <option key={group.id} value={group.id}>
+                    {group.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
           <button
             type="button"
-            onClick={() => setMobileMenuOpen(false)}
-            aria-label="Cerrar menú"
-            className="text-slate-400 hover:text-white md:hidden p-1"
+            onClick={() => {
+              setLoading(true);
+              setErrors({});
+              setRefreshKey((value) => value + 1);
+            }}
+            disabled={loading}
+            aria-label="Actualizar panel"
+            className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-sand-200 bg-surface px-3 text-xs font-semibold text-forest-700 transition-all duration-200 hover:bg-sand-100 disabled:opacity-50"
           >
-            <X size={20} />
+            <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
+            <span className="hidden sm:inline">Actualizar</span>
           </button>
+        </>
+      }
+      contentClassName="px-4 pt-4 sm:px-7 sm:pt-7"
+    >
+      {Object.entries(errors).map(([key, message]) => (
+        <p
+          key={key}
+          role="alert"
+          className="mb-4 rounded-xl border border-error/20 bg-error-soft p-3.5 text-xs text-error-text"
+        >
+          {message}
+        </p>
+      ))}
+
+      {loading && (
+        <div className="mb-4 flex items-center gap-2.5 rounded-xl border border-info/20 bg-info-soft p-3.5 text-xs font-semibold text-ocean-700">
+          <Clock3 size={16} className="animate-pulse" />
+          <span>Actualizando datos del sistema…</span>
         </div>
+      )}
 
-        <nav className="flex-1 space-y-1.5 p-3 overflow-y-auto" aria-label="Navegación de supervisor">
-          {NAVIGATION.map(({ id, label, icon: Icon }) => {
-            const isActive = activeView === id;
-            return (
-              <button
-                key={id}
-                type="button"
-                onClick={() => handleNavClick(id)}
-                aria-current={isActive ? 'page' : undefined}
-                className={`flex min-h-[44px] w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-left text-xs font-semibold transition-all ${
-                  isActive
-                    ? 'bg-cyan-500/20 text-cyan-200 border border-cyan-400/40 shadow-sm'
-                    : 'text-slate-300 hover:bg-white/5 hover:text-white'
-                }`}
-              >
-                <Icon size={18} className={isActive ? 'text-cyan-300' : 'text-slate-400'} />
-                <span>{label}</span>
-              </button>
-            );
-          })}
-        </nav>
-
-        <div className="border-t border-[#1f3446] p-4 text-[11px] text-slate-400 text-center leading-relaxed">
-          Perfil de consulta y seguimiento operativo.
-        </div>
-      </aside>
-
-      {/* Ámbito Principal */}
-      <div className="flex flex-1 flex-col min-w-0">
-        {/* Encabezado Superior */}
-        <header className="sticky top-0 z-30 flex h-[70px] items-center justify-between border-b border-[#1f3446] bg-[#0d2437]/90 px-4 sm:px-7 backdrop-blur-md">
-          <div className="flex items-center gap-3">
-            <button
-              type="button"
-              onClick={() => setMobileMenuOpen(true)}
-              aria-label="Abrir menú de navegación"
-              className="flex h-10 w-10 items-center justify-center rounded-lg border border-white/10 bg-[#102a3d] text-slate-200 hover:bg-white/10 md:hidden"
-            >
-              <Menu size={20} />
-            </button>
-
-            <div className="flex items-center gap-2 text-xs sm:text-sm font-medium min-w-0">
-              <span className="hidden sm:inline font-bold text-cyan-300 truncate">
-                AgroSentinel
-              </span>
-              <span className="hidden sm:inline text-slate-500">|</span>
-              <span className="text-slate-200 truncate">
-                {NAVIGATION.find((item) => item.id === activeView)?.label}
-              </span>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2.5 sm:gap-3">
-            <DashboardRoleSwitcher />
-            {showInventoryScope && (
-              <label className="flex items-center gap-2">
-                <span className="hidden text-xs text-slate-400 sm:inline">Bodega</span>
-                <select
-                  value={selectedGroupId ?? 'central'}
-                  onChange={(event) =>
-                    setSelectedGroupId(
-                      event.target.value === 'central' ? null : Number(event.target.value),
-                    )
-                  }
-                  aria-label="Filtrar por bodega o grupo"
-                  className="min-h-[38px] max-w-[130px] sm:max-w-[180px] rounded-lg border border-[#36556f] bg-[#102a3d] px-2.5 py-1.5 text-xs text-white outline-none focus:border-cyan-400"
-                >
-                  <option value="central">Bodega central</option>
-                  {groups.map((group) => (
-                    <option key={group.id} value={group.id}>
-                      {group.name}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            )}
-
-            <button
-              type="button"
-              onClick={() => {
-                setLoading(true);
-                setErrors({});
-                setRefreshKey((value) => value + 1);
-              }}
-              disabled={loading}
-              aria-label="Actualizar panel"
-              className="flex min-h-[38px] items-center gap-2 rounded-lg border border-[#36556f] bg-[#102a3d] px-3 text-xs font-semibold text-slate-200 hover:bg-white/10 transition-colors disabled:opacity-50"
-            >
-              <RefreshCw size={14} className={loading ? 'animate-spin text-cyan-400' : ''} />
-              <span className="hidden sm:inline">Actualizar</span>
-            </button>
-
-            <LogoutButton className="text-slate-300 hover:bg-white/10 hover:text-white [&>span]:hidden sm:[&>span]:inline-flex" />
-
-            <div className="hidden text-right leading-tight sm:block">
-              <p className="max-w-[140px] truncate text-xs font-bold text-white">{userName}</p>
-              <p className="text-[10px] font-bold uppercase tracking-wider text-cyan-300">
-                Supervisor
-              </p>
-            </div>
-
-            <div className="flex h-9 w-9 items-center justify-center rounded-full border border-cyan-400/40 bg-gradient-to-br from-cyan-400 via-blue-500 to-indigo-700 text-xs font-bold text-white shadow-md">
-              {initials}
-            </div>
-          </div>
-        </header>
-
-        {/* Contenido Interactivo */}
-        <main className="flex-1 overflow-y-auto p-4 sm:p-7 min-w-0">
-          {Object.entries(errors).map(([key, message]) => (
-            <p
-              key={key}
-              role="alert"
-              className="mb-4 rounded-xl border border-red-500/30 bg-red-500/10 p-3.5 text-xs text-red-200"
-            >
-              {message}
-            </p>
-          ))}
-
-          {loading && (
-            <div className="mb-4 flex items-center gap-2.5 rounded-xl border border-cyan-400/30 bg-cyan-400/10 p-3.5 text-xs font-semibold text-cyan-200">
-              <Clock3 size={16} className="animate-pulse" />
-              <span>Actualizando datos del sistema…</span>
-            </div>
-          )}
-
-          {content}
-        </main>
-      </div>
-    </div>
+      {content}
+    </AppShell>
   );
 }

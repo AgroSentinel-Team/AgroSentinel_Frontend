@@ -21,9 +21,9 @@ const STATUS_LABELS = {
 };
 
 const STATUS_TONES = {
-  PENDIENTE: 'border-amber-400/30 bg-amber-500/15 text-amber-300',
-  EN_REVISION: 'border-cyan-400/30 bg-cyan-500/15 text-cyan-300',
-  RESUELTO: 'border-emerald-400/30 bg-emerald-500/15 text-emerald-300',
+  PENDIENTE: 'border-warning/30 bg-warning-soft text-forest-900',
+  EN_REVISION: 'border-ocean-300/60 bg-info-soft text-ocean-700',
+  RESUELTO: 'border-forest-300/50 bg-success-soft text-forest-700',
 };
 
 const PRIORITY_LABELS = {
@@ -84,11 +84,11 @@ export default function MisReportes() {
   };
 
   return (
-    <section className="space-y-5 text-white min-w-0">
+    <section className="space-y-5 text-ink-900 min-w-0">
       {/* Encabezado Principal */}
-      <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b border-white/10 pb-4">
+      <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b border-sand-200 pb-4">
         <div>
-          <div className="flex items-center gap-2 text-cyan-300">
+          <div className="flex items-center gap-2 text-ocean-700">
             <FileText size={18} />
             <span className="text-xs font-bold uppercase tracking-wider">
               Historial de incidencias
@@ -97,7 +97,7 @@ export default function MisReportes() {
           <h1 className="mt-1 text-xl sm:text-2xl font-bold tracking-tight">
             Mis reportes
           </h1>
-          <p className="mt-0.5 text-xs text-slate-400">
+          <p className="mt-0.5 text-xs text-ink-600">
             Historial de fallas que has registrado y el estado actual de cada una.
           </p>
         </div>
@@ -106,9 +106,9 @@ export default function MisReportes() {
           type="button"
           onClick={handleRefresh}
           disabled={loading}
-          className="flex min-h-[44px] items-center justify-center gap-2 rounded-lg border border-white/10 bg-[#102a3d] px-4 py-2 text-xs font-semibold text-slate-200 hover:bg-white/10 transition-colors shrink-0"
+          className="flex min-h-[44px] items-center justify-center gap-2 rounded-lg border border-sand-200 bg-sand-50 px-4 py-2 text-xs font-semibold text-ink-900 hover:bg-sand-100 transition-all duration-200 ease-out shrink-0"
         >
-          <RefreshCw size={16} className={loading ? 'animate-spin text-cyan-400' : ''} />
+          <RefreshCw size={16} className={loading ? 'animate-spin text-ocean-700' : ''} />
           <span>Actualizar</span>
         </button>
       </header>
@@ -117,13 +117,13 @@ export default function MisReportes() {
       {error && (
         <div
           role="alert"
-          className="flex items-start justify-between gap-3 rounded-lg border border-red-500/30 bg-red-500/10 p-3.5 text-xs text-red-200"
+          className="flex items-start justify-between gap-3 rounded-lg border border-error/20 bg-error-soft p-3.5 text-xs text-error-text"
         >
           <span className="min-w-0 flex-1">{error}</span>
           <button
             type="button"
             onClick={() => setError('')}
-            className="text-red-300 hover:text-white p-1"
+            className="text-error-text hover:text-ink-900 p-1"
           >
             <X size={16} />
           </button>
@@ -132,62 +132,62 @@ export default function MisReportes() {
 
       {/* Contenido Principal */}
       {loading ? (
-        <div className="py-16 text-center text-xs text-slate-400">
-          <LoaderCircle className="mx-auto mb-2 animate-spin text-cyan-400" size={24} />
+        <div className="py-16 text-center text-xs text-ink-600">
+          <LoaderCircle className="mx-auto mb-2 animate-spin text-ocean-700" size={24} />
           <span>Cargando reportes...</span>
         </div>
       ) : !error && reports.length === 0 ? (
-        <div className="rounded-xl border border-[#2d4055] bg-[#13293a] p-8 text-center text-xs text-slate-400 shadow-xl space-y-2">
-          <AlertTriangle size={24} className="mx-auto text-slate-500" />
-          <p className="font-semibold text-slate-300">Aún no has registrado reportes de falla.</p>
-          <p className="text-[11px] text-slate-400">
+        <div className="rounded-xl border border-sand-200 bg-sand-50 p-8 text-center text-xs text-ink-600 shadow-xl space-y-2">
+          <AlertTriangle size={24} className="mx-auto text-ink-600" />
+          <p className="font-semibold text-ink-600">Aún no has registrado reportes de falla.</p>
+          <p className="text-[11px] text-ink-600">
             Los reportes creados desde el módulo de maquinaria aparecerán aquí.
           </p>
         </div>
       ) : (
         !error && (
-          <div className="grid grid-cols-2 gap-2 sm:gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
             {pagination.pageItems.map((report) => (
               <article
                 key={report.id}
-                className="flex flex-col gap-3 rounded-xl border border-[#2d4055] bg-[#13293a] p-4 shadow-md sm:flex-row sm:items-center sm:justify-between transition-all hover:border-[#3d5873]"
+                className="flex flex-col gap-3 rounded-xl border border-sand-200 bg-sand-50 p-4 shadow-md sm:flex-row sm:items-center sm:justify-between transition-all hover:border-sand-200"
               >
                 <div className="flex min-w-0 items-start gap-3">
-                  <span className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-cyan-400/30 bg-cyan-400/10 text-cyan-300">
+                  <span className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-ocean-300/60 bg-info-soft text-ocean-700">
                     <Wrench size={18} />
                   </span>
                   <div className="min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <p className="truncate text-xs sm:text-sm font-bold text-white">
+                      <p className="truncate text-xs sm:text-sm font-bold text-ink-900">
                         {report.assetName || 'Activo'}
                       </p>
-                      <span className="text-[11px] font-medium text-slate-400">
+                      <span className="text-[11px] font-medium text-ink-600">
                         #{report.id}
                       </span>
                     </div>
-                    <p className="mt-1 text-xs text-slate-300 flex items-center gap-2 flex-wrap">
-                      <span className="font-semibold text-cyan-200">{report.tipoFalla}</span>
-                      <span className="text-slate-500">·</span>
+                    <p className="mt-1 text-xs text-ink-600 flex items-center gap-2 flex-wrap">
+                      <span className="font-semibold text-ocean-700">{report.tipoFalla}</span>
+                      <span className="text-ink-600">·</span>
                       <span>
                         Prioridad:{' '}
-                        <strong className="text-white">
+                        <strong className="text-ink-900">
                           {PRIORITY_LABELS[report.prioridad] || report.prioridad}
                         </strong>
                       </span>
                     </p>
-                    <p className="mt-2 flex items-center gap-1.5 text-[11px] text-slate-400 font-mono">
-                      <Clock3 size={13} className="text-slate-500 shrink-0" />
+                    <p className="mt-2 flex items-center gap-1.5 text-[11px] text-ink-600 font-mono">
+                      <Clock3 size={13} className="text-ink-600 shrink-0" />
                       {formatDate(report.fechaReporte)}
                     </p>
                   </div>
                 </div>
 
-                <div className="flex shrink-0 items-center justify-between sm:justify-end gap-2.5 pt-2 border-t border-white/5 sm:border-t-0 sm:pt-0">
+                <div className="flex shrink-0 items-center justify-between sm:justify-end gap-2.5 pt-2 border-t border-sand-200/70 sm:border-t-0 sm:pt-0">
                   <StatusBadge status={report.estado} />
                   <button
                     type="button"
                     onClick={() => setSelectedReport(report)}
-                    className="inline-flex min-h-[38px] items-center gap-1.5 rounded-lg border border-cyan-400/30 bg-cyan-400/10 px-3.5 py-1.5 text-xs font-semibold text-cyan-200 hover:bg-cyan-400/20 transition-colors"
+                    className="inline-flex min-h-[38px] items-center gap-1.5 rounded-lg border border-ocean-300/60 bg-info-soft px-3.5 py-1.5 text-xs font-semibold text-ocean-700 hover:bg-ocean-300/30 transition-all duration-200 ease-out"
                   >
                     <Eye size={14} />
                     <span>Ver detalles</span>
@@ -219,7 +219,7 @@ function StatusBadge({ status }) {
   return (
     <span
       className={`inline-flex shrink-0 rounded-full border px-2.5 py-0.5 text-xs font-semibold ${
-        STATUS_TONES[status] || 'border-slate-500/30 bg-slate-500/15 text-slate-300'
+        STATUS_TONES[status] || 'border-sand-200/30 bg-sand-100 text-ink-600'
       }`}
     >
       {STATUS_LABELS[status] || status || 'Sin estado'}
@@ -233,7 +233,7 @@ function ReportDetails({ report, onClose }) {
 
   return (
     <div
-      className="fixed inset-0 z-[80] flex items-center justify-center bg-black/75 backdrop-blur-xs p-3 sm:p-6 overflow-y-auto"
+      className="fixed inset-0 z-[80] flex items-center justify-center bg-pine-900/35 backdrop-blur-xs p-3 sm:p-6 overflow-y-auto"
       role="presentation"
       onMouseDown={(event) => {
         if (event.target === event.currentTarget) onClose();
@@ -243,14 +243,14 @@ function ReportDetails({ report, onClose }) {
         role="dialog"
         aria-modal="true"
         aria-labelledby="report-details-title"
-        className="max-h-[92vh] w-full max-w-xl overflow-y-auto rounded-xl border border-[#36556f] bg-[#102637] p-5 sm:p-6 shadow-2xl space-y-5 min-w-0"
+        className="max-h-[92vh] w-full max-w-xl overflow-y-auto rounded-xl border border-sand-200 bg-sand-50 p-5 sm:p-6 shadow-2xl space-y-5 min-w-0"
       >
-        <div className="flex items-start justify-between gap-3 border-b border-white/10 pb-3">
+        <div className="flex items-start justify-between gap-3 border-b border-sand-200 pb-3">
           <div>
-            <p className="text-xs font-bold uppercase tracking-wider text-cyan-300">
+            <p className="text-xs font-bold uppercase tracking-wider text-ocean-700">
               Reporte #{report.id}
             </p>
-            <h2 id="report-details-title" className="mt-1 text-base sm:text-lg font-bold text-white">
+            <h2 id="report-details-title" className="mt-1 text-base sm:text-lg font-bold text-ink-900">
               {report.tipoFalla}
             </h2>
           </div>
@@ -258,20 +258,20 @@ function ReportDetails({ report, onClose }) {
             type="button"
             onClick={onClose}
             aria-label="Cerrar detalles del reporte"
-            className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-400 hover:bg-white/10 hover:text-white transition-colors shrink-0"
+            className="flex h-9 w-9 items-center justify-center rounded-lg text-ink-600 hover:bg-sand-100 hover:text-ink-900 transition-all duration-200 ease-out shrink-0"
           >
             <X size={20} />
           </button>
         </div>
 
         {/* Progreso del Estado */}
-        <div className="rounded-xl border border-[#2d4055] bg-[#0d2030] p-4 space-y-3 shadow-inner">
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/5 pb-2">
-            <span className="text-xs font-semibold text-slate-300">Estado actual del reporte</span>
+        <div className="rounded-xl border border-sand-200 bg-sand-50 p-4 space-y-3 shadow-inner">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-sand-200/70 pb-2">
+            <span className="text-xs font-semibold text-ink-600">Estado actual del reporte</span>
             <StatusBadge status={report.estado} />
           </div>
 
-          <div className="grid grid-cols-3 gap-2 pt-1">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 pt-1">
             <StatusStep label="Registrado" date={formatDate(report.fechaReporte)} active />
             <StatusStep
               label="En revisión"
@@ -291,7 +291,7 @@ function ReportDetails({ report, onClose }) {
         </div>
 
         {/* Ficha Informativa */}
-        <div className="grid grid-cols-2 gap-2 sm:gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
           <Detail label="Maquinaria" value={report.assetName} />
           <Detail
             label="Marca y modelo"
@@ -314,7 +314,7 @@ function ReportDetails({ report, onClose }) {
           </div>
 
           {report.evidenciaUrl && (
-            <div className="sm:col-span-2 rounded-lg border border-cyan-400/30 bg-cyan-400/10 p-3 text-xs text-cyan-200 font-medium">
+            <div className="sm:col-span-2 rounded-lg border border-ocean-300/60 bg-info-soft p-3 text-xs text-ocean-700 font-medium">
               Este reporte incluye evidencia adjunta registrada en el sistema.
             </div>
           )}
@@ -323,7 +323,7 @@ function ReportDetails({ report, onClose }) {
         <button
           type="button"
           onClick={onClose}
-          className="flex min-h-[44px] w-full items-center justify-center rounded-lg border border-white/10 bg-[#163044] text-xs font-bold uppercase tracking-wider text-slate-200 hover:bg-white/10 transition-colors"
+          className="flex min-h-[44px] w-full items-center justify-center rounded-lg border border-sand-200 bg-sand-50 text-xs font-bold uppercase tracking-wider text-ink-900 hover:bg-sand-100 transition-all duration-200 ease-out"
         >
           Cerrar
         </button>
@@ -335,25 +335,25 @@ function ReportDetails({ report, onClose }) {
 function StatusStep({ label, date, active }) {
   return (
     <div
-      className={`rounded-lg border p-2.5 text-center transition-colors ${
+      className={`rounded-lg border p-2.5 text-center transition-all duration-200 ease-out ${
         active
-          ? 'border-cyan-400/40 bg-cyan-500/15 text-cyan-200'
-          : 'border-white/5 bg-white/[0.02] text-slate-500'
+          ? 'border-ocean-300/60 bg-info-soft text-ocean-700'
+          : 'border-sand-200/70 bg-sand-100 text-ink-600'
       }`}
     >
-      <p className={`text-xs font-bold ${active ? 'text-cyan-200' : 'text-slate-500'}`}>
+      <p className={`text-xs font-bold ${active ? 'text-ocean-700' : 'text-ink-600'}`}>
         {label}
       </p>
-      <p className="mt-1 text-[10px] text-slate-400 truncate">{date}</p>
+      <p className="mt-1 text-[10px] text-ink-600 truncate">{date}</p>
     </div>
   );
 }
 
 function Detail({ label, value }) {
   return (
-    <div className="rounded-lg border border-[#30485a] bg-[#0d2030] p-3 min-w-0">
-      <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">{label}</p>
-      <p className="mt-1 text-xs sm:text-sm font-medium text-slate-200 break-words whitespace-pre-wrap">
+    <div className="rounded-lg border border-sand-200 bg-sand-50 p-3 min-w-0">
+      <p className="text-[11px] font-semibold uppercase tracking-wider text-ink-600">{label}</p>
+      <p className="mt-1 text-xs sm:text-sm font-medium text-ink-900 break-words whitespace-pre-wrap">
         {value || 'No registrado'}
       </p>
     </div>

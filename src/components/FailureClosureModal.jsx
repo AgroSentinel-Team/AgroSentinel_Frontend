@@ -146,32 +146,32 @@ export default function FailureClosureModal({ report, onClose, onClosed }) {
   };
 
   return (
-    <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/80 p-3 sm:p-6">
+    <div className="fixed inset-0 z-[80] flex items-end justify-center bg-pine-900/35 px-0 pt-[env(safe-area-inset-top)] backdrop-blur-xl sm:items-center sm:p-6">
       <section
         role="dialog"
         aria-modal="true"
         aria-labelledby="failure-closure-title"
-        className="max-h-[92vh] w-full max-w-3xl overflow-y-auto rounded-xl border border-[#36556f] bg-[#102637] p-5 text-white shadow-2xl"
+        className="max-h-[92dvh] w-full max-w-3xl overflow-y-auto rounded-t-3xl border border-surface/40 bg-surface/70 px-4 pt-5 pb-[calc(1.5rem+env(safe-area-inset-bottom))] text-ink-900 shadow-2xl backdrop-blur-xl sm:rounded-2xl sm:p-6"
       >
-        <header className="flex items-start justify-between gap-3 border-b border-white/10 pb-4">
+        <header className="flex items-start justify-between gap-3 border-b border-sand-200 pb-4">
           <div>
-            <p className="text-xs font-bold uppercase tracking-wider text-cyan-300">
+            <p className="text-xs font-bold uppercase tracking-wider text-ocean-700">
               Revisión de cierre · Falla #{report.id}
             </p>
             <h2 id="failure-closure-title" className="mt-1 text-lg font-bold">
               {report.assetName || 'Activo sin nombre'}
             </h2>
-            <p className="mt-1 text-xs text-slate-400">
+            <p className="mt-1 text-xs text-ink-600">
               Verifica las actividades, repuestos, pruebas y evidencia antes de autorizar.
             </p>
           </div>
-          <button type="button" onClick={onClose} aria-label="Cerrar" className="rounded-lg p-2 text-slate-300 hover:bg-white/10">
+          <button type="button" onClick={onClose} aria-label="Cerrar" className="rounded-lg p-2 text-ink-600 hover:bg-sand-100">
             <X size={20} />
           </button>
         </header>
 
         {loading ? (
-          <div className="flex items-center justify-center gap-2 py-12 text-sm text-slate-300">
+          <div className="flex items-center justify-center gap-2 py-12 text-sm text-ink-600">
             <LoaderCircle size={18} className="animate-spin" /> Cargando intervención…
           </div>
         ) : intervention ? (
@@ -189,26 +189,26 @@ export default function FailureClosureModal({ report, onClose, onClosed }) {
                 ['Recomendaciones', intervention.recommendations],
                 ['Pendientes', intervention.pendingTasks || 'Ninguno'],
               ].map(([label, value]) => (
-                <div key={label} className="rounded-lg border border-white/10 bg-[#0b1d2a] p-3">
-                  <dt className="text-[10px] font-bold uppercase tracking-wide text-slate-400">{label}</dt>
-                  <dd className="mt-1 whitespace-pre-wrap text-xs text-slate-100">{value || '—'}</dd>
+                <div key={label} className="rounded-lg border border-sand-200 bg-sand-50 p-3">
+                  <dt className="text-[10px] font-bold uppercase tracking-wide text-ink-600">{label}</dt>
+                  <dd className="mt-1 whitespace-pre-wrap text-xs text-ink-900">{value || '—'}</dd>
                 </div>
               ))}
             </dl>
 
             {evidenceUrls.length > 0 && (
               <div>
-                <h3 className="mb-2 text-xs font-bold uppercase tracking-wide text-cyan-200">Fotos del mantenimiento</h3>
-                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                <h3 className="mb-2 text-xs font-bold uppercase tracking-wide text-ocean-700">Fotos del mantenimiento</h3>
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
                   {evidenceUrls.map(({ path, objectUrl }) => (
                     <a
                       key={path}
                       href={objectUrl}
                       download={`falla-${report.id}-${path.split('/').pop()}`}
-                      className="group relative overflow-hidden rounded-lg border border-white/10"
+                      className="group relative overflow-hidden rounded-lg border border-sand-200"
                     >
                       <img src={objectUrl} alt="Evidencia de mantenimiento" className="h-32 w-full object-cover" />
-                      <span className="absolute inset-x-0 bottom-0 flex items-center justify-center gap-1 bg-black/70 p-2 text-[11px] text-white">
+                      <span className="absolute inset-x-0 bottom-0 flex items-center justify-center gap-1 bg-pine-900/80 p-2 text-[11px] text-white">
                         <Download size={13} /> Descargar
                       </span>
                     </a>
@@ -217,8 +217,8 @@ export default function FailureClosureModal({ report, onClose, onClosed }) {
               </div>
             )}
 
-            <form onSubmit={submitReview} className="space-y-3 border-t border-white/10 pt-4">
-              <label className="block text-xs font-semibold text-slate-200" htmlFor="closure-observations">
+            <form onSubmit={submitReview} className="space-y-3 border-t border-sand-200 pt-4">
+              <label className="block text-xs font-semibold text-ink-900" htmlFor="closure-observations">
                 Observaciones de revisión y cierre definitivo
                 <textarea
                   id="closure-observations"
@@ -227,23 +227,23 @@ export default function FailureClosureModal({ report, onClose, onClosed }) {
                   required
                   maxLength={5000}
                   rows={3}
-                  className="mt-2 w-full rounded-lg border border-white/10 bg-[#081723] p-3 text-sm text-white outline-none focus:border-cyan-400"
+                  className="mt-2 w-full rounded-lg border border-sand-200 bg-sand-50 p-3 text-sm text-ink-900 outline-none focus:border-gold-600"
                   placeholder="Confirma qué se revisó o indica ajustes requeridos…"
                 />
               </label>
-              {error && <p role="alert" className="rounded-lg border border-red-400/20 bg-red-400/10 p-3 text-xs text-red-200">{error}</p>}
+              {error && <p role="alert" className="rounded-lg border border-error/20 bg-error-soft p-3 text-xs text-error-text">{error}</p>}
               <div className="flex flex-wrap justify-end gap-2">
                 <button
                   type="button"
                   onClick={() => downloadReport(closedReport || report)}
-                  className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-white/15 px-3 text-xs font-semibold text-slate-200 hover:bg-white/5"
+                  className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-sand-200 px-3 text-xs font-semibold text-ink-900 hover:bg-sand-100"
                 >
                   <Download size={15} /> Descargar PDF
                 </button>
                 <button
                   type="submit"
                   disabled={saving || Boolean(closedReport)}
-                  className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-emerald-600 px-4 text-xs font-bold text-white hover:bg-emerald-500 disabled:opacity-60"
+                  className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-gold-500 px-4 text-xs font-bold text-pine-900 transition-all duration-200 ease-out hover:bg-gold-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-500 disabled:opacity-60"
                 >
                   {saving ? <LoaderCircle size={15} className="animate-spin" /> : <CheckCircle2 size={15} />}
                   {closedReport ? 'Orden cerrada' : 'Autorizar cierre definitivo'}
@@ -252,7 +252,7 @@ export default function FailureClosureModal({ report, onClose, onClosed }) {
             </form>
           </div>
         ) : (
-          <p role="alert" className="my-5 rounded-lg border border-red-400/20 bg-red-400/10 p-3 text-xs text-red-200">
+          <p role="alert" className="my-5 rounded-lg border border-error/20 bg-error-soft p-3 text-xs text-error-text">
             {error || 'No existe una intervención para revisar.'}
           </p>
         )}

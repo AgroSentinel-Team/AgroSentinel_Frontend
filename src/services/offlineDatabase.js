@@ -5,6 +5,26 @@ const QUEUE_STORE = 'offline_operations';
 
 let databasePromise;
 
+export const OPERATION_STATUS = Object.freeze({
+  PENDING: 'pending',
+  CONFLICT: 'conflict',
+});
+
+/** Identificador único de la operación; el servidor lo usa para no ejecutarla dos veces. */
+export function createClientOperationId() {
+  const cryptoApi = globalThis.crypto;
+  if (typeof cryptoApi?.randomUUID === 'function') {
+    return cryptoApi.randomUUID();
+  }
+  const bytes = new Uint8Array(16);
+  if (typeof cryptoApi?.getRandomValues === 'function') {
+    cryptoApi.getRandomValues(bytes);
+  } else {
+    for (let index = 0; index < bytes.length; index++) bytes[index] = Math.floor(Math.random() * 256);
+  }
+  return Array.from(bytes, (byte) => byte.toString(16).padStart(2, '0')).join('');
+}
+
 function requireOwnerKey(ownerKey) {
   const normalized = String(ownerKey ?? '').trim().toLowerCase();
   if (!normalized) {
@@ -97,6 +117,15 @@ export async function readCachedCollection(ownerKey, collection) {
   return record?.value;
 }
 
+export async function deleteCachedCollection(ownerKey, collection) {
+  const owner = requireOwnerKey(ownerKey);
+  const database = await openOfflineDatabase();
+  const transaction = database.transaction(CACHE_STORE, 'readwrite');
+  const completed = transactionCompletion(transaction);
+  transaction.objectStore(CACHE_STORE).delete(`${owner}:${collection}`);
+  await completed;
+}
+
 export async function enqueueOfflineOperation(operation) {
   const ownerKey = requireOwnerKey(operation.ownerKey);
   const database = await openOfflineDatabase();
@@ -105,8 +134,9 @@ export async function enqueueOfflineOperation(operation) {
   const id = await requestValue(
     transaction.objectStore(QUEUE_STORE).add({
       ...operation,
+      clientOperationId: operation.clientOperationId || createClientOperationId(),
       ownerKey,
-      status: 'pending',
+      status: OPERATION_STATUS.PENDING,
       attempts: 0,
       createdAt: new Date().toISOString(),
       lastError: null,
@@ -131,6 +161,65 @@ export async function listPendingOperations(ownerKey) {
   return operations.sort((first, second) => first.id - second.id);
 }
 
+/** Pendientes y en conflicto, en el orden en que se crearon. */
+export async function listQueuedOperations(ownerKey) {
+  const owner = requireOwnerKey(ownerKey);
+  const database = await openOfflineDatabase();
+  const transaction = database.transaction(QUEUE_STORE, 'readonly');
+  const index = transaction.objectStore(QUEUE_STORE).index('owner_status');
+  const [pending, conflicts] = await Promise.all([
+    requestValue(index.getAll([owner, OPERATION_STATUS.PENDING])),
+    requestValue(index.getAll([owner, OPERATION_STATUS.CONFLICT])),
+  ]);
+  await transactionCompletion(transaction);
+  return [...pending, ...conflicts].sort((first, second) => first.id - second.id);
+}
+
+async function updateOperation(id, ownerKey, update) {
+  const owner = requireOwnerKey(ownerKey);
+  const database = await openOfflineDatabase();
+  const transaction = database.transaction(QUEUE_STORE, 'readwrite');
+  const completed = transactionCompletion(transaction);
+  const store = transaction.objectStore(QUEUE_STORE);
+  const operation = await requestValue(store.get(id));
+  let updated = null;
+  if (operation?.ownerKey === owner) {
+    updated = update(operation);
+    store.put(updated);
+  }
+  await completed;
+  dispatchQueueChanged(owner);
+  return updated;
+}
+
+/** El servidor rechazó la operación de forma definitiva: se aparta para revisión. */
+export function markOperationConflict(id, ownerKey, error, httpStatus) {
+  return updateOperation(id, ownerKey, (operation) => ({
+    ...operation,
+    status: OPERATION_STATUS.CONFLICT,
+    attempts: operation.attempts + 1,
+    lastError: String(error),
+    lastHttpStatus: httpStatus ?? null,
+    lastAttemptAt: new Date().toISOString(),
+  }));
+}
+
+/** Vuelve a poner en cola una operación en conflicto para reintentarla. */
+export function requeueOperation(id, ownerKey) {
+  return updateOperation(id, ownerKey, (operation) => ({
+    ...operation,
+    status: OPERATION_STATUS.PENDING,
+    lastError: null,
+    lastHttpStatus: null,
+  }));
+}
+
+export async function countQueuedOperations(ownerKey) {
+  const operations = await listQueuedOperations(ownerKey);
+  const conflicts = operations.filter((operation) => operation.status === OPERATION_STATUS.CONFLICT).length;
+  return { pending: operations.length - conflicts, conflicts };
+}
+
 export async function countPendingOperations(ownerKey) {
   return (await listPendingOperations(ownerKey)).length;
 }
@@ -149,23 +238,14 @@ export async function removePendingOperation(id, ownerKey) {
   dispatchQueueChanged(owner);
 }
 
+/** Falla temporal (sin red, servidor caído): la operación sigue pendiente. */
 export async function markOperationFailed(id, ownerKey, error) {
-  const owner = requireOwnerKey(ownerKey);
-  const database = await openOfflineDatabase();
-  const transaction = database.transaction(QUEUE_STORE, 'readwrite');
-  const completed = transactionCompletion(transaction);
-  const store = transaction.objectStore(QUEUE_STORE);
-  const operation = await requestValue(store.get(id));
-  if (operation?.ownerKey === owner) {
-    store.put({
-      ...operation,
-      attempts: operation.attempts + 1,
-      lastError: String(error),
-      lastAttemptAt: new Date().toISOString(),
-    });
-  }
-  await completed;
-  dispatchQueueChanged(owner);
+  await updateOperation(id, ownerKey, (operation) => ({
+    ...operation,
+    attempts: operation.attempts + 1,
+    lastError: String(error),
+    lastAttemptAt: new Date().toISOString(),
+  }));
 }
 
 export async function clearCachedCollections(ownerKey) {

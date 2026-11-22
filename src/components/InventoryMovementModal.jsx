@@ -5,11 +5,11 @@ import { getInventoryItems } from '../services/inventoryService';
 import CreateCategoryForm from './CreateCategoryForm';
 
 const inputClass =
-  'mt-1 w-full rounded-lg border border-[#36556f] bg-[#102a3d] px-3.5 py-2.5 text-xs sm:text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/50 min-h-[44px] disabled:opacity-50 disabled:cursor-not-allowed';
+  'mt-1 w-full rounded-lg border border-sand-200 bg-surface px-3.5 py-2.5 text-xs sm:text-sm text-ink-900 outline-none transition-all duration-200 ease-out placeholder:text-ink-600 focus-visible:border-gold-600 focus:ring-1 focus-visible:ring-gold-500/25 min-h-[44px] disabled:opacity-50 disabled:cursor-not-allowed';
 
 function Field({ label, children }) {
   return (
-    <label className="block text-xs font-medium text-slate-300">
+    <label className="block text-xs font-medium text-ink-600">
       <span>{label}</span>
       {children}
     </label>
@@ -134,7 +134,7 @@ export default function InventoryMovementModal({
 
   return (
     <div
-      className="fixed inset-0 z-[70] flex items-center justify-center bg-black/80 backdrop-blur-sm p-3 sm:p-4 md:p-6 overflow-y-auto"
+      className="fixed inset-0 z-[70] flex items-end justify-center bg-pine-900/35 backdrop-blur-xl px-0 pt-[env(safe-area-inset-top)] sm:items-center sm:p-4 md:p-6 overflow-y-auto"
       role="presentation"
       onMouseDown={(event) => {
         if (event.target === event.currentTarget && !saving) onClose();
@@ -144,25 +144,25 @@ export default function InventoryMovementModal({
         role="dialog"
         aria-modal="true"
         aria-labelledby="inventory-movement-title"
-        className="relative my-auto max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-xl border border-white/10 bg-[#102637] p-4 sm:p-6 shadow-2xl transition-all min-w-0"
+        className="relative my-auto max-h-[92dvh] w-full max-w-2xl min-w-0 overflow-y-auto rounded-t-3xl border border-surface/40 bg-surface/70 px-4 pt-4 pb-[calc(1.5rem+env(safe-area-inset-bottom))] shadow-2xl backdrop-blur-xl transition-all sm:rounded-2xl sm:p-6"
       >
         {/* Header Modal */}
-        <div className="mb-4 sm:mb-5 flex items-start justify-between gap-3 border-b border-white/10 pb-3.5">
+        <div className="mb-4 sm:mb-5 flex items-start justify-between gap-3 border-b border-sand-200 pb-3.5">
           <div className="flex items-center gap-3 min-w-0">
             <span
               className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border ${
                 isEntry
-                  ? 'bg-emerald-400/10 text-emerald-300 border-emerald-400/20'
-                  : 'bg-amber-400/10 text-amber-300 border-amber-400/20'
+                  ? 'bg-success-soft text-forest-700 border-forest-300/50'
+                  : 'bg-gold-100 text-forest-900 border-gold-300'
               }`}
             >
               <Icon size={20} />
             </span>
             <div className="min-w-0">
-              <h2 id="inventory-movement-title" className="text-base sm:text-lg font-semibold text-white truncate">
+              <h2 id="inventory-movement-title" className="text-base sm:text-lg font-semibold text-ink-900 truncate">
                 Registrar {isEntry ? 'entrada' : 'salida'}
               </h2>
-              <p className="mt-0.5 text-xs text-slate-400">
+              <p className="mt-0.5 text-xs text-ink-600">
                 {scoped
                   ? `Inventario de ${
                       targetGroupName ||
@@ -178,7 +178,7 @@ export default function InventoryMovementModal({
             disabled={saving}
             title="Cerrar"
             aria-label={`Cerrar formulario de ${isEntry ? 'entrada' : 'salida'}`}
-            className="flex h-11 w-11 items-center justify-center rounded-lg text-slate-400 hover:bg-white/10 hover:text-white transition-colors shrink-0 disabled:opacity-50"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-ink-600 transition-all duration-200 ease-out hover:bg-sand-100 hover:text-ink-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-500 disabled:opacity-50"
           >
             <X size={20} />
           </button>
@@ -186,8 +186,8 @@ export default function InventoryMovementModal({
 
         <form onSubmit={submit} className="space-y-5">
           {scoped && (
-            <section className="rounded-lg bg-[#0a1b28]/60 p-3.5 sm:p-4 border border-white/5 space-y-3">
-              <h3 className="text-xs font-semibold uppercase tracking-wider text-cyan-300">
+            <section className="rounded-lg bg-sand-50 p-3.5 sm:p-4 border border-sand-200/70 space-y-3">
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-ocean-700">
                 Zona de inventario
               </h3>
               <Field label="Almacén / grupo *">
@@ -212,8 +212,8 @@ export default function InventoryMovementModal({
             </section>
           )}
 
-          <section className="rounded-lg bg-[#0a1b28]/60 p-3.5 sm:p-4 border border-white/5 space-y-3.5">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-cyan-300">
+          <section className="rounded-lg bg-sand-50 p-3.5 sm:p-4 border border-sand-200/70 space-y-3.5">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-ocean-700">
               Producto y cantidad
             </h3>
             <div className="grid gap-3.5 grid-cols-1 sm:grid-cols-2">
@@ -251,27 +251,27 @@ export default function InventoryMovementModal({
             </div>
 
             {!isEntry && selectedItem && (
-              <p className="flex items-center gap-1.5 text-xs text-cyan-200 pt-1">
+              <p className="flex items-center gap-1.5 text-xs text-ocean-700 pt-1">
                 <Package size={14} className="shrink-0" />
                 Stock disponible: {selectedItem.stock} {selectedItem.unit}
               </p>
             )}
-            {itemsLoading && <p className="text-xs text-slate-400">Cargando productos de la zona...</p>}
+            {itemsLoading && <p className="text-xs text-ink-600">Cargando productos de la zona...</p>}
             {itemsError && (
-              <p role="alert" className="text-xs text-red-300">
+              <p role="alert" className="text-xs text-error-text">
                 {itemsError}
               </p>
             )}
             {!isEntry && !itemsLoading && targetItems.length === 0 && !itemsError && (
-              <p className="text-xs text-amber-200">
+              <p className="text-xs text-ink-900">
                 No hay productos disponibles en este inventario. Registra primero una entrada.
               </p>
             )}
           </section>
 
           {isEntry && form.itemId === '__new__' && (
-            <section className="rounded-lg bg-[#0a1b28]/60 p-3.5 sm:p-4 border border-white/5 space-y-3.5">
-              <h3 className="text-xs font-semibold uppercase tracking-wider text-cyan-300">
+            <section className="rounded-lg bg-sand-50 p-3.5 sm:p-4 border border-sand-200/70 space-y-3.5">
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-ocean-700">
                 Datos del nuevo producto
               </h3>
               <div className="grid gap-3.5 grid-cols-1 sm:grid-cols-2">
@@ -308,12 +308,12 @@ export default function InventoryMovementModal({
                   <button
                     type="button"
                     onClick={() => setShowCategoryForm(true)}
-                    className="mt-2 inline-flex items-center gap-1.5 min-h-[36px] px-2.5 py-1 rounded-md text-xs font-medium text-cyan-300 bg-cyan-500/10 hover:bg-cyan-500/20 active:bg-cyan-500/30 transition-colors"
+                    className="mt-2 inline-flex items-center gap-1.5 min-h-[36px] px-2.5 py-1 rounded-md text-xs font-medium text-ocean-700 bg-info-soft hover:bg-ocean-300/30 active:bg-ocean-300/30 transition-all duration-200 ease-out"
                   >
                     <Plus size={14} /> Crear categoría
                   </button>
                   {categoriesError && (
-                    <p role="alert" className="mt-1 text-xs text-red-300">
+                    <p role="alert" className="mt-1 text-xs text-error-text">
                       {categoriesError}
                     </p>
                   )}
@@ -346,8 +346,8 @@ export default function InventoryMovementModal({
             </section>
           )}
 
-          <section className="rounded-lg bg-[#0a1b28]/60 p-3.5 sm:p-4 border border-white/5 space-y-3">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-cyan-300">
+          <section className="rounded-lg bg-sand-50 p-3.5 sm:p-4 border border-sand-200/70 space-y-3">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-ocean-700">
               {isEntry ? 'Origen y observaciones' : 'Destino y observaciones'}
             </h3>
             <Field label={isEntry ? 'Proveedor / motivo' : 'Destino / motivo'}>
@@ -363,18 +363,18 @@ export default function InventoryMovementModal({
           </section>
 
           {error && (
-            <p role="alert" className="rounded-lg border border-red-400/20 bg-red-400/10 p-3.5 text-xs text-red-200">
+            <p role="alert" className="rounded-lg border border-error/20 bg-error-soft p-3.5 text-xs text-error-text">
               {error}
             </p>
           )}
 
           {/* Acciones */}
-          <div className="flex flex-col-reverse sm:flex-row justify-end gap-2.5 sm:gap-3 border-t border-white/10 pt-4">
+          <div className="flex flex-col-reverse sm:flex-row justify-end gap-2.5 sm:gap-3 border-t border-sand-200 pt-4">
             <button
               type="button"
               onClick={onClose}
               disabled={saving}
-              className="inline-flex h-11 w-full sm:w-auto items-center justify-center rounded-lg border border-white/10 px-4 text-xs font-medium text-slate-300 hover:bg-white/5 active:bg-white/10 disabled:opacity-50 transition-colors"
+              className="inline-flex h-11 w-full sm:w-auto items-center justify-center rounded-lg border border-sand-200 px-4 text-xs font-medium text-ink-600 hover:bg-sand-100 active:bg-sand-100 disabled:opacity-50 transition-all duration-200 ease-out"
             >
               Cancelar
             </button>
@@ -392,10 +392,10 @@ export default function InventoryMovementModal({
                         !categories.some((category) => category.name === form.category)))
                   : targetItems.length === 0)
               }
-              className={`inline-flex h-11 w-full sm:w-auto items-center justify-center rounded-lg px-5 text-xs font-medium text-white transition-colors shadow-lg disabled:cursor-not-allowed disabled:opacity-50 ${
+              className={`inline-flex h-11 w-full sm:w-auto items-center justify-center rounded-lg px-5 text-xs font-medium text-ink-900 transition-all duration-200 ease-out shadow-lg disabled:cursor-not-allowed disabled:opacity-50 ${
                 isEntry
-                  ? 'bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 shadow-emerald-950/40'
-                  : 'bg-amber-600 hover:bg-amber-500 active:bg-amber-700 shadow-amber-950/40'
+                  ? 'bg-gold-500 hover:bg-gold-600 active:bg-gold-600 shadow-gold-600/20'
+                  : 'bg-gold-500 hover:bg-gold-600 active:bg-gold-600 shadow-gold-600/20'
               }`}
             >
               {saving ? 'Guardando...' : `Guardar ${isEntry ? 'entrada' : 'salida'}`}

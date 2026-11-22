@@ -17,7 +17,7 @@ const PRIORITIES = [
 ];
 
 const inputClass =
-    'w-full rounded-lg border border-white/10 bg-[#081723] px-3.5 py-2.5 text-xs sm:text-sm text-white outline-none placeholder:text-slate-500 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/50 min-h-[44px] transition-colors disabled:opacity-50 disabled:cursor-not-allowed';
+    'w-full rounded-lg border border-sand-200 bg-sand-50 px-3.5 py-2.5 text-xs sm:text-sm text-ink-900 outline-none placeholder:text-ink-600 focus:border-gold-600 focus:ring-1 focus:ring-gold-500/25 min-h-[44px] transition-all duration-200 ease-out disabled:opacity-50 disabled:cursor-not-allowed';
 
 function describeError(error) {
     if (error.response?.status === 403) return 'Tu perfil no tiene permiso para registrar reportes de falla.';
@@ -197,7 +197,7 @@ export default function FailureReportModal({ onClose, onSaved }) {
 
     return (
         <div
-            className="fixed inset-0 z-[70] flex items-center justify-center bg-black/80 backdrop-blur-sm p-3 sm:p-4 md:p-6 overflow-y-auto"
+            className="fixed inset-0 z-[70] flex items-end justify-center bg-pine-900/35 backdrop-blur-xl px-0 pt-[env(safe-area-inset-top)] sm:items-center sm:p-4 md:p-6 overflow-y-auto"
             role="presentation"
             onMouseDown={(event) => {
                 if (event.target === event.currentTarget && !submitting) onClose();
@@ -207,19 +207,19 @@ export default function FailureReportModal({ onClose, onSaved }) {
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby="failure-report-title"
-                className="relative my-auto max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-xl border border-white/10 bg-[#102637] p-4 sm:p-6 shadow-2xl transition-all min-w-0"
+                className="relative my-auto max-h-[92dvh] w-full max-w-2xl min-w-0 overflow-y-auto rounded-t-3xl border border-surface/40 bg-surface/70 px-4 pt-4 pb-[calc(1.5rem+env(safe-area-inset-bottom))] shadow-2xl backdrop-blur-xl transition-all sm:rounded-2xl sm:p-6"
             >
                 {/* Header Modal */}
-                <div className="mb-4 sm:mb-5 flex items-start justify-between gap-3 border-b border-white/10 pb-3.5">
+                <div className="mb-4 sm:mb-5 flex items-start justify-between gap-3 border-b border-sand-200 pb-3.5">
                     <div className="flex items-center gap-3 min-w-0">
-                        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-red-400/10 text-red-400 border border-red-400/20">
+                        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-error-soft text-error-text border border-error/20">
                             <AlertTriangle size={20} />
                         </span>
                         <div className="min-w-0">
-                            <h2 id="failure-report-title" className="text-base sm:text-lg font-semibold text-white truncate">
+                            <h2 id="failure-report-title" className="text-base sm:text-lg font-semibold text-ink-900 truncate">
                                 Reportar Falla
                             </h2>
-                            <p className="mt-0.5 text-xs text-slate-400">
+                            <p className="mt-0.5 text-xs text-ink-600">
                                 Registra el activo y los detalles observados.
                             </p>
                         </div>
@@ -230,7 +230,7 @@ export default function FailureReportModal({ onClose, onSaved }) {
                         disabled={submitting}
                         title="Cerrar"
                         aria-label="Cerrar reporte de falla"
-                        className="flex h-11 w-11 items-center justify-center rounded-lg text-slate-400 hover:bg-white/10 hover:text-white transition-colors shrink-0 disabled:opacity-50"
+                        className="flex h-11 w-11 items-center justify-center rounded-lg text-ink-600 hover:bg-sand-100 hover:text-ink-900 transition-all duration-200 ease-out shrink-0 disabled:opacity-50"
                     >
                         <X size={20} />
                     </button>
@@ -239,11 +239,11 @@ export default function FailureReportModal({ onClose, onSaved }) {
                 <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
                     {/* Sección Selección de Activo */}
                     <div className="space-y-2">
-                        <label htmlFor="failure-asset-search" className="block text-xs font-medium text-slate-300">
+                        <label htmlFor="failure-asset-search" className="block text-xs font-medium text-ink-600">
                             Buscar activo
                         </label>
                         <div className="relative">
-                            <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                            <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-600 pointer-events-none" />
                             <input
                                 id="failure-asset-search"
                                 value={query}
@@ -276,12 +276,12 @@ export default function FailureReportModal({ onClose, onSaved }) {
                             ))}
                         </select>
                         {assetError && (
-                            <p className="text-xs text-red-200" role="alert">
+                            <p className="text-xs text-error-text" role="alert">
                                 No se pudieron cargar los activos: {assetError}
                             </p>
                         )}
                         {!assetsLoading && !assetError && filteredAssets.length === 0 && (
-                            <p className="text-xs text-slate-400">
+                            <p className="text-xs text-ink-600">
                                 No hay activos que coincidan con la búsqueda.
                             </p>
                         )}
@@ -290,9 +290,9 @@ export default function FailureReportModal({ onClose, onSaved }) {
                     {/* Grupo o zona de atención */}
                     {(isAdministrator || groups.length !== 1 || groupsLoading || groupError) && (
                         <div>
-                            <label htmlFor="failure-group" className="mb-1 block text-xs font-medium text-slate-300">
+                            <label htmlFor="failure-group" className="mb-1 block text-xs font-medium text-ink-600">
                                 Grupo o zona de atención
-                                {(isAdministrator || groups.length > 1) && <span className="text-cyan-400"> *</span>}
+                                {(isAdministrator || groups.length > 1) && <span className="text-ocean-700"> *</span>}
                             </label>
                             <select
                                 id="failure-group"
@@ -317,12 +317,12 @@ export default function FailureReportModal({ onClose, onSaved }) {
                                 ))}
                             </select>
                             {groupError && (
-                                <p className="mt-1 text-xs text-red-200" role="alert">
+                                <p className="mt-1 text-xs text-error-text" role="alert">
                                     No se pudieron cargar los grupos: {groupError}
                                 </p>
                             )}
                             {!groupsLoading && !groupError && groups.length === 0 && (
-                                <p className="mt-1 text-xs text-red-200" role="alert">
+                                <p className="mt-1 text-xs text-error-text" role="alert">
                                     No hay un grupo activo disponible para asignar esta falla.
                                 </p>
                             )}
@@ -331,9 +331,9 @@ export default function FailureReportModal({ onClose, onSaved }) {
 
                     {canChooseTechnician && (
                         <div>
-                            <label htmlFor="failure-technician" className="mb-1 block text-xs font-medium text-slate-300">
+                            <label htmlFor="failure-technician" className="mb-1 block text-xs font-medium text-ink-600">
                                 Asignar técnico
-                                <span className="ml-1 font-normal text-slate-400">(opcional)</span>
+                                <span className="ml-1 font-normal text-ink-600">(opcional)</span>
                             </label>
                             <select
                                 id="failure-technician"
@@ -368,11 +368,11 @@ export default function FailureReportModal({ onClose, onSaved }) {
                                 })}
                             </select>
                             {selectedTechnician && selectedTechnician.activeWorkload >= selectedTechnician.workloadCapacity && (
-                                <span className="mt-2 inline-flex rounded-full border border-cyan-400/30 bg-cyan-500/10 px-2.5 py-1 text-[10px] font-semibold text-cyan-200">
+                                <span className="mt-2 inline-flex rounded-full border border-ocean-300/60 bg-info-soft px-2.5 py-1 text-[10px] font-semibold text-ocean-700">
                                     Carga alta: {selectedTechnician.activeWorkload} activas
                                 </span>
                             )}
-                            <p className="mt-1 text-[11px] leading-relaxed text-slate-400">
+                            <p className="mt-1 text-[11px] leading-relaxed text-ink-600">
                                 La asignación automática sigue priorizando la menor carga disponible. Administradores y supervisores pueden asignar manualmente a cualquier técnico activo, sin bloqueo por carga.
                             </p>
                         </div>
@@ -381,8 +381,8 @@ export default function FailureReportModal({ onClose, onSaved }) {
                     {/* Tipo de Falla y Prioridad */}
                     <div className="grid gap-3.5 grid-cols-1 sm:grid-cols-2">
                         <div>
-                            <label htmlFor="failure-type" className="mb-1 block text-xs font-medium text-slate-300">
-                                Tipo de falla <span className="text-cyan-400">*</span>
+                            <label htmlFor="failure-type" className="mb-1 block text-xs font-medium text-ink-600">
+                                Tipo de falla <span className="text-ocean-700">*</span>
                             </label>
                             <input
                                 id="failure-type"
@@ -396,7 +396,7 @@ export default function FailureReportModal({ onClose, onSaved }) {
                             />
                         </div>
                         <div>
-                            <label htmlFor="failure-priority" className="mb-1 block text-xs font-medium text-slate-300">
+                            <label htmlFor="failure-priority" className="mb-1 block text-xs font-medium text-ink-600">
                                 Prioridad
                             </label>
                             <select
@@ -417,8 +417,8 @@ export default function FailureReportModal({ onClose, onSaved }) {
 
                     {/* Descripción */}
                     <div>
-                        <label htmlFor="failure-description" className="mb-1 block text-xs font-medium text-slate-300">
-                            Descripción <span className="text-cyan-400">*</span>
+                        <label htmlFor="failure-description" className="mb-1 block text-xs font-medium text-ink-600">
+                            Descripción <span className="text-ocean-700">*</span>
                         </label>
                         <textarea
                             id="failure-description"
@@ -435,43 +435,43 @@ export default function FailureReportModal({ onClose, onSaved }) {
 
                     {/* Evidencia Fotográfica */}
                     <div>
-                        <label htmlFor="failure-evidence" className="mb-1 block text-xs font-medium text-slate-300">
-                            Evidencia fotográfica <span className="font-normal text-slate-500">(opcional)</span>
+                        <label htmlFor="failure-evidence" className="mb-1 block text-xs font-medium text-ink-600">
+                            Evidencia fotográfica <span className="font-normal text-ink-600">(opcional)</span>
                         </label>
-                        <div className="flex items-center gap-3 rounded-lg border border-white/10 bg-[#081723] px-3.5 py-2.5 min-h-[44px]">
-                            <ImagePlus size={18} className="shrink-0 text-cyan-300" />
+                        <div className="flex items-center gap-3 rounded-lg border border-sand-200 bg-sand-50 px-3.5 py-2.5 min-h-[44px]">
+                            <ImagePlus size={18} className="shrink-0 text-ocean-700" />
                             <input
                                 id="failure-evidence"
                                 type="file"
                                 accept="image/jpeg,image/png,image/webp"
                                 onChange={handleEvidenceChange}
-                                className="min-w-0 flex-1 text-xs text-slate-300 file:mr-3 file:rounded-md file:border-0 file:bg-cyan-500/15 file:px-2.5 file:py-1.5 file:text-xs file:font-medium file:text-cyan-200 hover:file:bg-cyan-500/25 transition-colors cursor-pointer"
+                                className="min-w-0 flex-1 text-xs text-ink-600 file:mr-3 file:rounded-md file:border-0 file:bg-info-soft file:px-2.5 file:py-1.5 file:text-xs file:font-medium file:text-ocean-700 hover:file:bg-ocean-300/30 transition-all duration-200 ease-out cursor-pointer"
                             />
                         </div>
                         {evidence && (
-                            <p className="mt-1.5 text-xs text-slate-400 truncate">
+                            <p className="mt-1.5 text-xs text-ink-600 truncate">
                                 {evidence.name} · {(evidence.size / (1024 * 1024)).toFixed(1)} MB
                             </p>
                         )}
-                        <p className="mt-1 text-[11px] text-slate-500">JPG, PNG o WEBP. Máximo 10 MB.</p>
+                        <p className="mt-1 text-[11px] text-ink-600">JPG, PNG o WEBP. Máximo 10 MB.</p>
                     </div>
 
                     {submitError && (
                         <p
                             role="alert"
-                            className="rounded-lg border border-red-400/20 bg-red-400/10 p-3.5 text-xs text-red-200"
+                            className="rounded-lg border border-error/20 bg-error-soft p-3.5 text-xs text-error-text"
                         >
                             {submitError}
                         </p>
                     )}
 
                     {/* Acciones */}
-                    <div className="flex flex-col-reverse sm:flex-row justify-end gap-2.5 sm:gap-3 border-t border-white/10 pt-4">
+                    <div className="flex flex-col-reverse sm:flex-row justify-end gap-2.5 sm:gap-3 border-t border-sand-200 pt-4">
                         <button
                             type="button"
                             disabled={submitting}
                             onClick={onClose}
-                            className="inline-flex h-11 w-full sm:w-auto items-center justify-center rounded-lg border border-white/10 px-4 text-xs font-medium text-slate-300 hover:bg-white/5 active:bg-white/10 disabled:opacity-50 transition-colors"
+                            className="inline-flex h-11 w-full sm:w-auto items-center justify-center rounded-lg border border-sand-200 px-4 text-xs font-medium text-ink-600 hover:bg-sand-100 active:bg-sand-100 disabled:opacity-50 transition-all duration-200 ease-out"
                         >
                             Cancelar
                         </button>
@@ -486,7 +486,7 @@ export default function FailureReportModal({ onClose, onSaved }) {
                                 Boolean(groupError) ||
                                 groups.length === 0
                             }
-                            className="inline-flex h-11 w-full sm:w-auto items-center justify-center gap-2 rounded-lg bg-cyan-600 px-5 text-xs font-semibold text-white hover:bg-cyan-500 active:bg-cyan-700 disabled:cursor-not-allowed disabled:opacity-50 transition-colors shadow-lg shadow-cyan-950/40"
+                            className="inline-flex h-11 w-full sm:w-auto items-center justify-center gap-2 rounded-lg bg-gold-500 px-5 text-xs font-semibold text-pine-900 hover:bg-gold-600 active:bg-gold-600 disabled:cursor-not-allowed disabled:opacity-50 transition-all duration-200 ease-out shadow-lg shadow-gold-600/20"
                         >
                             {submitting && <LoaderCircle size={15} className="animate-spin shrink-0" />}
                             {submitting ? 'Enviando...' : 'Enviar reporte'}

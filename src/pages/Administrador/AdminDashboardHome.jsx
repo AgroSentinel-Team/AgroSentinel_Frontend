@@ -7,8 +7,16 @@ import {
   Tractor,
   Wrench,
 } from 'lucide-react';
+import { Button, Card, EmptyState, PageHeader, Skeleton, StatCard } from '../../components/ui';
 
-const COLORS = ['#22d3ee', '#38bdf8', '#818cf8', '#f59e0b', '#fb7185', '#34d399'];
+const COLORS = [
+  'var(--color-forest-500)',
+  'var(--color-ocean-500)',
+  'var(--color-gold-500)',
+  'var(--color-forest-300)',
+  'var(--color-ocean-300)',
+  'var(--color-gold-600)',
+];
 const MONTH_FORMATTER = new Intl.DateTimeFormat('es-CO', { month: 'short' });
 const DATE_FORMATTER = new Intl.DateTimeFormat('es-CO', { dateStyle: 'medium' });
 
@@ -55,22 +63,18 @@ function statusLabel(status) {
 
 function Panel({ title, description, children, className = '' }) {
   return (
-    <section className={`min-w-0 rounded-2xl border border-[#263e51] bg-[#102536] p-4 sm:p-5 shadow-lg ${className}`}>
+    <Card className={`min-w-0 p-4 sm:p-5 ${className}`}>
       <div className="mb-3.5 sm:mb-4">
-        <h2 className="text-sm sm:text-base font-semibold leading-snug text-white">{title}</h2>
-        {description && <p className="mt-0.5 text-xs leading-relaxed text-slate-400">{description}</p>}
+        <h2 className="text-sm font-semibold leading-snug text-ink-900 sm:text-base">{title}</h2>
+        {description && <p className="mt-0.5 text-xs leading-relaxed text-ink-600">{description}</p>}
       </div>
       {children}
-    </section>
+    </Card>
   );
 }
 
 function EmptyChart({ message = 'No hay registros para mostrar.' }) {
-  return (
-    <div className="flex min-h-[120px] sm:min-h-[160px] items-center justify-center rounded-xl border border-dashed border-[#30485a] p-4 text-center text-xs text-slate-400">
-      {message}
-    </div>
-  );
+  return <EmptyState title={message} className="min-h-[120px] border-dashed bg-sand-50 text-xs sm:min-h-[160px]" />;
 }
 
 function TrendChart({ points }) {
@@ -96,8 +100,8 @@ function TrendChart({ points }) {
           const y = 12 + line * (chartHeight / 3);
           return (
             <g key={line}>
-              <line x1="30" y1={y} x2={chartWidth - 8} y2={y} stroke="#294255" strokeDasharray="4 5" />
-              <text x="4" y={y + 4} fill="#7f93a5" fontSize="10">
+              <line x1="30" y1={y} x2={chartWidth - 8} y2={y} stroke="var(--color-sand-200)" strokeDasharray="4 5" />
+              <text x="4" y={y + 4} fill="var(--color-ink-400)" fontSize="10">
                 {Math.round(max * (1 - line / 3))}
               </text>
             </g>
@@ -110,10 +114,10 @@ function TrendChart({ points }) {
           return (
             <g key={`${point.year}-${point.month}`}>
               <rect x={x} y={y} width={barWidth} height={height} rx="6" fill="url(#reportBars)" />
-              <text x={x + barWidth / 2} y="152" textAnchor="middle" fill="#9aabba" fontSize="9">
+              <text x={x + barWidth / 2} y="152" textAnchor="middle" fill="var(--color-ink-600)" fontSize="9">
                 {point.label}
               </text>
-              <text x={x + barWidth / 2} y={Math.max(11, y - 5)} textAnchor="middle" fill="#e2e8f0" fontSize="9">
+              <text x={x + barWidth / 2} y={Math.max(11, y - 5)} textAnchor="middle" fill="var(--color-ink-900)" fontSize="9">
                 {point.value}
               </text>
             </g>
@@ -121,8 +125,8 @@ function TrendChart({ points }) {
         })}
         <defs>
           <linearGradient id="reportBars" x1="0" x2="0" y1="0" y2="1">
-            <stop offset="0%" stopColor="#22d3ee" />
-            <stop offset="100%" stopColor="#0e7490" />
+            <stop offset="0%" stopColor="var(--color-forest-300)" />
+            <stop offset="100%" stopColor="var(--color-forest-500)" />
           </linearGradient>
         </defs>
       </svg>
@@ -141,10 +145,10 @@ function CategoryChart({ items }) {
       {entries.map(([label, value], index) => (
         <div key={label}>
           <div className="mb-1.5 flex items-center justify-between gap-3 text-xs">
-            <span className="truncate text-slate-300 font-medium">{label}</span>
-            <span className="shrink-0 font-semibold text-white">{value}</span>
+            <span className="truncate font-medium text-ink-600">{label}</span>
+            <span className="shrink-0 font-semibold tabular-nums text-ink-900">{value}</span>
           </div>
-          <div className="h-2.5 overflow-hidden rounded-full bg-[#1d3547]">
+          <div className="h-2.5 overflow-hidden rounded-full bg-sand-100">
             <div
               className="h-full rounded-full transition-all duration-500"
               style={{ width: `${(value / max) * 100}%`, backgroundColor: COLORS[index % COLORS.length] }}
@@ -175,7 +179,7 @@ function DonutChart({ items, emptyMessage }) {
     <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 py-2">
       <div className="relative h-28 w-28 sm:h-36 sm:w-36 shrink-0">
         <svg viewBox="0 0 120 120" role="img" aria-label={`Distribución total: ${total}`} className="h-full w-full">
-          <circle cx="60" cy="60" r={radius} fill="none" stroke="#1d3547" strokeWidth="14" />
+          <circle cx="60" cy="60" r={radius} fill="none" stroke="var(--color-sand-200)" strokeWidth="14" />
           {segments.map((item, index) => (
             <circle
               key={item.label}
@@ -190,18 +194,18 @@ function DonutChart({ items, emptyMessage }) {
               transform="rotate(-90 60 60)"
             />
           ))}
-          <text x="60" y="56" textAnchor="middle" fill="white" fontSize="20" fontWeight="700">{total}</text>
-          <text x="60" y="72" textAnchor="middle" fill="#91a5b7" fontSize="8" fontWeight="600" letterSpacing="0.05em">REGISTROS</text>
+          <text x="60" y="56" textAnchor="middle" fill="var(--color-ink-900)" fontSize="20" fontWeight="700">{total}</text>
+          <text x="60" y="72" textAnchor="middle" fill="var(--color-ink-600)" fontSize="8" fontWeight="600" letterSpacing="0.05em">REGISTROS</text>
         </svg>
       </div>
       <ul className="grid w-full grid-cols-2 gap-1.5 text-[10px] sm:gap-2 sm:text-xs">
         {entries.map((item, index) => (
-          <li key={item.label} className="flex items-center justify-between gap-3 bg-[#0c1e2c]/60 p-2 rounded-lg border border-white/5">
-            <span className="flex min-w-0 items-center gap-2 text-slate-300">
+          <li key={item.label} className="flex items-center justify-between gap-3 rounded-lg border border-sand-200 bg-sand-50 p-2">
+            <span className="flex min-w-0 items-center gap-2 text-ink-600">
               <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: COLORS[index % COLORS.length] }} />
               <span className="truncate">{item.label}</span>
             </span>
-            <span className="shrink-0 font-semibold text-white">{item.value}</span>
+            <span className="shrink-0 font-semibold tabular-nums text-ink-900">{item.value}</span>
           </li>
         ))}
       </ul>
@@ -211,16 +215,14 @@ function DonutChart({ items, emptyMessage }) {
 
 function MetricCard({ title, value, caption, icon: Icon, tone }) {
   return (
-    <article className="min-w-0 rounded-2xl border border-[#263e51] bg-[#102536] p-3.5 sm:p-5 shadow-lg">
-      <div className="flex items-start justify-between gap-2.5 sm:gap-3">
-        <div className="min-w-0">
-          <p className="text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-slate-400 truncate">{title}</p>
-          <p className="mt-1.5 sm:mt-2.5 text-xl sm:text-3xl font-bold leading-none text-white tracking-tight">{value}</p>
-        </div>
-        <span className={`rounded-xl p-2.5 sm:p-3 shrink-0 ${tone}`}><Icon size={20} className="sm:w-6 sm:h-6" /></span>
-      </div>
-      <p className="mt-2.5 sm:mt-3 text-[11px] sm:text-xs leading-tight text-slate-400 line-clamp-2">{caption}</p>
-    </article>
+    <StatCard
+      label={title}
+      value={value}
+      detail={caption}
+      icon={<Icon size={20} />}
+      accent={tone}
+      className="min-w-0"
+    />
   );
 }
 
@@ -295,81 +297,82 @@ export default function AdminDashboardHome({
       value: data.assets ? activeAssets.length : '—',
       caption: data.assets ? `de ${assets.length} activos registrados` : 'Sin datos de activos',
       icon: Tractor,
-      tone: 'bg-cyan-400/10 text-cyan-300 border border-cyan-400/20',
+      tone: 'forest',
     },
     {
       title: 'Reportes abiertos',
       value: data.reports ? openReports.length : '—',
       caption: data.reports ? 'Pendientes, en revisión o esperando repuesto' : 'Sin datos de reportes',
       icon: AlertTriangle,
-      tone: 'bg-amber-400/10 text-amber-300 border border-amber-400/20',
+      tone: 'gold',
     },
     {
       title: 'Motores monitoreados',
       value: data.predictiveAssets ? motorCount : '—',
       caption: data.predictiveAssets ? 'Activos con telemetría predictiva' : 'Sin datos predictivos',
       icon: Activity,
-      tone: 'bg-indigo-400/10 text-indigo-300 border border-indigo-400/20',
+      tone: 'ocean',
     },
     {
       title: 'Preventivos programados',
       value: data.maintenances ? scheduledCount : '—',
       caption: data.maintenances ? 'Mantenimientos en estado programado' : 'Sin datos de mantenimiento',
       icon: Wrench,
-      tone: 'bg-emerald-400/10 text-emerald-300 border border-emerald-400/20',
+      tone: 'forest',
     },
   ];
 
   return (
     <div className="space-y-4 sm:space-y-6 min-w-0">
-      {/* Encabezado */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between border-b border-white/10 pb-4">
-        <div>
-          <p className="text-xs font-bold uppercase tracking-wider text-cyan-300">Centro de operaciones</p>
-          <h1 className="mt-1 text-xl sm:text-2xl lg:text-3xl font-bold text-white tracking-tight">Dashboard administrativo</h1>
-          <p className="mt-1 text-xs sm:text-sm text-slate-400">Indicadores en tiempo real de los registros del sistema.</p>
-        </div>
-        <div className="flex items-center gap-3 self-start sm:self-auto flex-wrap">
+      <p className="text-xs font-bold uppercase tracking-wider text-forest-700">Centro de operaciones</p>
+      <PageHeader
+        title="Dashboard administrativo"
+        description="Indicadores en tiempo real de los registros del sistema."
+        actions={
+          <div className="flex flex-wrap items-center gap-3">
           {refreshedAt && (
-            <span className="text-xs text-slate-400">
+            <span className="text-xs text-ink-600">
               Actualizado {refreshedAt.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' })}
             </span>
           )}
-          <button
-            type="button"
+          <Button
+            variant="secondary"
             onClick={onRefresh}
             disabled={loading}
-            className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-lg border border-[#36556f] bg-[#102536] px-4 text-xs font-semibold text-slate-200 transition-colors hover:border-cyan-400 hover:text-cyan-200 active:bg-[#143c50] disabled:cursor-wait disabled:opacity-60 shadow-md"
+            className="gap-2"
           >
-            <RefreshCw size={16} className={loading ? 'animate-spin shrink-0' : 'shrink-0'} />
-            <span>Actualizar</span>
-          </button>
-        </div>
-      </div>
+            <RefreshCw size={16} className={loading ? 'shrink-0 animate-spin' : 'shrink-0'} />
+            Actualizar
+          </Button>
+          </div>
+        }
+      />
 
       {/* Errores de carga de indicadores */}
       {errors.length > 0 && (
-        <div role="alert" className="rounded-xl border border-amber-400/25 bg-amber-400/10 p-4 text-xs text-amber-100">
+        <div role="alert" className="rounded-xl border border-gold-500/25 bg-gold-100 p-4 text-xs text-ink-900">
           <p className="font-semibold">Algunos datos no están disponibles; los indicadores afectados aparecen como “—”.</p>
-          <ul className="mt-1.5 list-inside list-disc text-amber-100/90 space-y-0.5">
+          <ul className="mt-1.5 list-inside list-disc space-y-0.5 text-ink-600">
             {errors.map((error) => <li key={error}>{error}</li>)}
           </ul>
         </div>
       )}
 
       {loading && !refreshedAt && (
-        <div className="rounded-xl border border-cyan-400/20 bg-cyan-400/5 p-4 text-xs text-cyan-100 animate-pulse" role="status">
-          Cargando indicadores desde el backend…
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4" role="status" aria-label="Cargando indicadores">
+          {Array.from({ length: 4 }, (_, index) => (
+            <Skeleton key={index} variant="rect" className="h-28 rounded-2xl" />
+          ))}
         </div>
       )}
 
       {/* Tarjetas Métricas principales */}
-      <section className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
+      <section className="grid grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-4 lg:grid-cols-4">
         {metrics.map((metric) => <MetricCard key={metric.title} {...metric} />)}
       </section>
 
       {/* Gráficas Principales */}
-      <section className="grid grid-cols-2 gap-2 sm:gap-5">
+      <section className="grid grid-cols-1 gap-2 sm:gap-5 lg:grid-cols-2">
         <Panel title="Reportes de fallas" description="Registros creados durante los últimos seis meses.">
           {data.reports
             ? <TrendChart points={months} />
@@ -403,15 +406,15 @@ export default function AdminDashboardHome({
             <div className="space-y-2.5">
               <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
                 {recentReports(reports).map((report) => (
-                  <article key={report.id} className="flex min-w-0 flex-col justify-between gap-2 rounded-xl border border-[#294255] bg-[#0c1e2c] p-3 shadow-md">
+                  <article key={report.id} className="flex min-w-0 flex-col justify-between gap-2 rounded-xl border border-sand-200 bg-sand-50 p-3 shadow-sm">
                     <div className="min-w-0">
-                      <p className="truncate text-xs font-semibold text-white">{report.assetName || `Activo ${report.assetId}`}</p>
-                      <p className="mt-0.5 truncate text-xs text-cyan-300 font-medium">{report.tipoFalla || 'Falla sin clasificar'}</p>
-                      <p className="mt-1 line-clamp-2 text-xs text-slate-400 leading-relaxed">{report.descripcion || 'Sin descripción'}</p>
+                    <p className="truncate text-xs font-semibold text-ink-900">{report.assetName || `Activo ${report.assetId}`}</p>
+                    <p className="mt-0.5 truncate text-xs font-medium text-forest-700">{report.tipoFalla || 'Falla sin clasificar'}</p>
+                    <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-ink-600">{report.descripcion || 'Sin descripción'}</p>
                     </div>
-                    <div className="flex min-w-0 flex-wrap items-center justify-between gap-2 border-t border-white/5 pt-1 text-xs">
-                      <span className="max-w-full rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] font-medium text-slate-300">{statusLabel(report.estado)}</span>
-                      <span className="shrink-0 whitespace-nowrap text-[11px] text-slate-400">{formatDate(report.fechaReporte)}</span>
+                  <div className="flex min-w-0 flex-wrap items-center justify-between gap-2 border-t border-sand-200 pt-1 text-xs">
+                    <span className="max-w-full rounded-full border border-sand-200 bg-surface px-2 py-0.5 text-[10px] font-medium text-ink-600">{statusLabel(report.estado)}</span>
+                    <span className="shrink-0 whitespace-nowrap text-[11px] text-ink-600">{formatDate(report.fechaReporte)}</span>
                     </div>
                   </article>
                 ))}
@@ -428,15 +431,15 @@ export default function AdminDashboardHome({
           ) : (
             <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
               {scheduledMaintenances(maintenances).map((maintenance) => (
-                <article key={maintenance.id} className="flex min-w-0 items-center gap-3 rounded-xl border border-[#294255] bg-[#0c1e2c] p-3 shadow-md">
-                  <span className="rounded-xl bg-emerald-400/10 p-2.5 text-emerald-300 border border-emerald-400/20 shrink-0">
+                <article key={maintenance.id} className="flex min-w-0 items-center gap-3 rounded-xl border border-sand-200 bg-sand-50 p-3 shadow-sm">
+                  <span className="shrink-0 rounded-xl border border-forest-300/40 bg-forest-300/20 p-2.5 text-forest-700">
                     <CalendarClock size={18} />
                   </span>
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-xs font-semibold text-white">{maintenance.assetName || `Activo ${maintenance.assetId}`}</p>
-                    <p className="mt-0.5 truncate text-xs text-slate-400">{maintenance.technicianName || 'Sin técnico asignado'}</p>
+                    <p className="truncate text-xs font-semibold text-ink-900">{maintenance.assetName || `Activo ${maintenance.assetId}`}</p>
+                    <p className="mt-0.5 truncate text-xs text-ink-600">{maintenance.technicianName || 'Sin técnico asignado'}</p>
                   </div>
-                  <span className="shrink-0 text-right text-xs font-medium text-slate-300">{formatDate(maintenance.scheduledAt)}</span>
+                  <span className="shrink-0 text-right text-xs font-medium text-ink-600">{formatDate(maintenance.scheduledAt)}</span>
                 </article>
               ))}
             </div>
@@ -445,8 +448,8 @@ export default function AdminDashboardHome({
       </section>
 
       {/* Pie de página aclaratorio */}
-      <div className="flex items-center gap-2 pt-2 text-xs text-slate-400 leading-normal">
-        <CheckCircle2 size={15} className="text-emerald-400 shrink-0" />
+      <div className="flex items-center gap-2 pt-2 text-xs leading-normal text-ink-600">
+        <CheckCircle2 size={15} className="shrink-0 text-forest-500" />
         <span>Las métricas se calculan con registros consultados al backend; no se usan datos de demostración.</span>
       </div>
     </div>

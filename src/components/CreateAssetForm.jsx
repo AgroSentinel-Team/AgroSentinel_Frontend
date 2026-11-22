@@ -29,7 +29,7 @@ const STATUS_LABELS = {
 };
 
 const fieldClass =
-    'mt-1 w-full rounded-lg border border-white/10 bg-[#081723] px-3.5 py-2.5 text-xs sm:text-sm text-white outline-none placeholder:text-slate-500 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/50 min-h-[44px] transition-colors disabled:opacity-50 disabled:cursor-not-allowed';
+    'mt-1 w-full rounded-lg border border-sand-200 bg-sand-50 px-3.5 py-2.5 text-xs sm:text-sm text-ink-900 outline-none placeholder:text-ink-600 focus:border-gold-600 focus:ring-1 focus:ring-gold-500/25 min-h-[44px] transition-all duration-200 ease-out disabled:opacity-50 disabled:cursor-not-allowed';
 
 function describeError(error) {
     if (error.response?.status === 403) {
@@ -62,9 +62,9 @@ function getInitialForm(asset) {
 
 function InputField({ label, name, value, onChange, type = 'text', required = false, min, step, maxLength, hint }) {
     return (
-        <label className="block text-xs font-medium text-slate-300">
+        <label className="block text-xs font-medium text-ink-600">
             <span>
-                {label} {required && <span className="text-cyan-400">*</span>}
+                {label} {required && <span className="text-ocean-700">*</span>}
             </span>
             <input
                 className={fieldClass}
@@ -77,7 +77,7 @@ function InputField({ label, name, value, onChange, type = 'text', required = fa
                 step={step}
                 maxLength={maxLength}
             />
-            {hint && <span className="mt-1 block text-[11px] leading-relaxed text-slate-400">{hint}</span>}
+            {hint && <span className="mt-1 block text-[11px] leading-relaxed text-ink-600">{hint}</span>}
         </label>
     );
 }
@@ -170,22 +170,22 @@ export default function CreateAssetForm({ asset = null, onCancel, onSaved }) {
 
     return (
         <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-3 sm:p-4 md:p-6 overflow-y-auto"
+            className="fixed inset-0 z-50 flex items-end justify-center bg-pine-900/35 backdrop-blur-xl px-0 pt-[env(safe-area-inset-top)] sm:items-center sm:p-4 md:p-6 overflow-y-auto"
             role="presentation"
         >
             <div
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby="asset-form-title"
-                className="relative my-auto max-h-[92vh] w-full max-w-3xl overflow-y-auto rounded-xl border border-white/10 bg-[#102637] p-4 sm:p-6 shadow-2xl transition-all min-w-0"
+                className="relative my-auto max-h-[92dvh] w-full max-w-3xl min-w-0 overflow-y-auto rounded-t-3xl border border-surface/40 bg-surface/70 px-4 pt-4 pb-[calc(1.5rem+env(safe-area-inset-bottom))] shadow-2xl backdrop-blur-xl transition-all sm:rounded-2xl sm:p-6"
             >
                 {/* Header Modal */}
-                <div className="mb-4 sm:mb-6 flex items-start justify-between gap-3 border-b border-white/10 pb-3.5">
+                <div className="mb-4 sm:mb-6 flex items-start justify-between gap-3 border-b border-sand-200 pb-3.5">
                     <div className="min-w-0">
-                        <h3 id="asset-form-title" className="text-base sm:text-lg font-semibold text-white truncate">
+                        <h3 id="asset-form-title" className="text-base sm:text-lg font-semibold text-ink-900 truncate">
                             {asset ? 'Editar activo' : 'Registrar activo'}
                         </h3>
-                        <p className="mt-0.5 text-xs text-slate-400">
+                        <p className="mt-0.5 text-xs text-ink-600">
                             Completa la ficha técnica, compra, asignación y estado.
                         </p>
                     </div>
@@ -194,7 +194,7 @@ export default function CreateAssetForm({ asset = null, onCancel, onSaved }) {
                         onClick={onCancel}
                         title="Cerrar"
                         aria-label="Cerrar formulario de activo"
-                        className="flex h-11 w-11 items-center justify-center rounded-lg text-slate-400 hover:bg-white/10 hover:text-white transition-colors shrink-0"
+                        className="flex h-11 w-11 items-center justify-center rounded-lg text-ink-600 hover:bg-sand-100 hover:text-ink-900 transition-all duration-200 ease-out shrink-0"
                     >
                         <X size={20} />
                     </button>
@@ -203,7 +203,7 @@ export default function CreateAssetForm({ asset = null, onCancel, onSaved }) {
                 {optionsError && (
                     <p
                         role="alert"
-                        className="mb-4 rounded-lg border border-red-400/20 bg-red-400/10 p-3.5 text-xs text-red-200"
+                        className="mb-4 rounded-lg border border-error/20 bg-error-soft p-3.5 text-xs text-error-text"
                     >
                         No se pudieron cargar categorías y usuarios: {optionsError}
                     </p>
@@ -211,8 +211,8 @@ export default function CreateAssetForm({ asset = null, onCancel, onSaved }) {
 
                 <form onSubmit={submit} className="space-y-5 sm:space-y-6">
                     {/* Ficha técnica */}
-                    <div className="rounded-lg bg-[#0a1b28]/60 p-3.5 sm:p-4 border border-white/5 space-y-3.5">
-                        <h4 className="text-xs font-semibold uppercase tracking-wider text-cyan-300">
+                    <div className="rounded-lg bg-sand-50 p-3.5 sm:p-4 border border-sand-200/70 space-y-3.5">
+                        <h4 className="text-xs font-semibold uppercase tracking-wider text-ocean-700">
                             Ficha técnica
                         </h4>
                         <div className="grid gap-3.5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
@@ -229,7 +229,7 @@ export default function CreateAssetForm({ asset = null, onCancel, onSaved }) {
                                 hint="Identificador interno o placa física del activo."
                             />
 
-                            <label className="block text-xs font-medium text-slate-300">
+                            <label className="block text-xs font-medium text-ink-600">
                                 <span>Tiene motor</span>
                                 <select
                                     name="hasMotor"
@@ -246,7 +246,7 @@ export default function CreateAssetForm({ asset = null, onCancel, onSaved }) {
                                     <option value="true">Sí</option>
                                 </select>
                                 {form.hasMotor && (
-                                    <span className="mt-1 block text-[11px] text-cyan-300 font-normal leading-tight">
+                                    <span className="mt-1 block text-[11px] text-ocean-700 font-normal leading-tight">
                                         {asset?.predictiveId
                                             ? `ID predictivo: ${asset.predictiveId}`
                                             : 'El ID predictivo se asignará al guardar el activo.'}
@@ -254,8 +254,8 @@ export default function CreateAssetForm({ asset = null, onCancel, onSaved }) {
                                 )}
                             </label>
 
-                            <label className="block text-xs font-medium text-slate-300">
-                                <span>Categoría <span className="text-cyan-400">*</span></span>
+                            <label className="block text-xs font-medium text-ink-600">
+                                <span>Categoría <span className="text-ocean-700">*</span></span>
                                 <select
                                     name="categoryId"
                                     value={form.categoryId}
@@ -284,14 +284,14 @@ export default function CreateAssetForm({ asset = null, onCancel, onSaved }) {
                                 <button
                                     type="button"
                                     onClick={() => setShowCategoryForm(true)}
-                                    className="mt-2 inline-flex items-center gap-1.5 min-h-[36px] px-2.5 py-1 rounded-md text-xs font-medium text-cyan-300 bg-cyan-500/10 hover:bg-cyan-500/20 active:bg-cyan-500/30 transition-colors"
+                                    className="mt-2 inline-flex items-center gap-1.5 min-h-[36px] px-2.5 py-1 rounded-md text-xs font-medium text-ocean-700 bg-info-soft hover:bg-gold-600/20 active:bg-ocean-300/30 transition-all duration-200 ease-out"
                                 >
                                     <Plus size={14} /> Crear categoría
                                 </button>
                             </label>
 
-                            <label className="block text-xs font-medium text-slate-300">
-                                <span>Responsable <span className="text-cyan-400">*</span></span>
+                            <label className="block text-xs font-medium text-ink-600">
+                                <span>Responsable <span className="text-ocean-700">*</span></span>
                                 <select
                                     name="responsibleId"
                                     value={form.responsibleId}
@@ -312,7 +312,7 @@ export default function CreateAssetForm({ asset = null, onCancel, onSaved }) {
                             </label>
                         </div>
 
-                        <label className="block text-xs font-medium text-slate-300 pt-1">
+                        <label className="block text-xs font-medium text-ink-600 pt-1">
                             <span>Especificaciones adicionales (texto o JSON)</span>
                             <textarea
                                 name="extraSpecifications"
@@ -324,29 +324,29 @@ export default function CreateAssetForm({ asset = null, onCancel, onSaved }) {
                         </label>
                     </div>
 
-                    <div className="rounded-lg bg-[#0a1b28]/60 p-3.5 sm:p-4 border border-white/5 space-y-3.5">
-                        <h4 className="text-xs font-semibold uppercase tracking-wider text-cyan-300">Imagen del activo</h4>
-                        <label className="block text-xs font-medium text-slate-300">
+                    <div className="rounded-lg bg-sand-50 p-3.5 sm:p-4 border border-sand-200/70 space-y-3.5">
+                        <h4 className="text-xs font-semibold uppercase tracking-wider text-ocean-700">Imagen del activo</h4>
+                        <label className="block text-xs font-medium text-ink-600">
                             <span>Foto (JPG, PNG o WEBP, máximo 10 MB)</span>
                             <input
                                 type="file"
                                 accept="image/jpeg,image/png,image/webp"
                                 onChange={selectImage}
-                                className={`${fieldClass} file:mr-3 file:rounded-md file:border-0 file:bg-cyan-500/15 file:px-3 file:py-1 file:text-cyan-200`}
+                                className={`${fieldClass} file:mr-3 file:rounded-md file:border-0 file:bg-info-soft file:px-3 file:py-1 file:text-ocean-700`}
                             />
                         </label>
                         {(imagePreview || asset?.imageUrl) && (
                             <img
                                 src={imagePreview || `${API_ORIGIN}${asset.imageUrl}`}
                                 alt={`Vista previa de ${asset?.name || form.name || 'activo'}`}
-                                className="h-28 w-36 rounded-lg border border-white/10 object-cover"
+                                className="h-28 w-36 rounded-lg border border-sand-200 object-cover"
                             />
                         )}
                     </div>
 
                     {/* Adquisición y garantía */}
-                    <div className="rounded-lg bg-[#0a1b28]/60 p-3.5 sm:p-4 border border-white/5 space-y-3.5">
-                        <h4 className="text-xs font-semibold uppercase tracking-wider text-cyan-300">
+                    <div className="rounded-lg bg-sand-50 p-3.5 sm:p-4 border border-sand-200/70 space-y-3.5">
+                        <h4 className="text-xs font-semibold uppercase tracking-wider text-ocean-700">
                             Adquisición y garantía
                         </h4>
                         <div className="grid gap-3.5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
@@ -376,7 +376,7 @@ export default function CreateAssetForm({ asset = null, onCancel, onSaved }) {
                             />
                             <InputField label="Ubicación" name="location" value={form.location} onChange={changeForm} />
                             
-                            <label className="block text-xs font-medium text-slate-300">
+                            <label className="block text-xs font-medium text-ink-600">
                                 <span>Estado operativo</span>
                                 <select
                                     name="operationalStatus"
@@ -396,13 +396,13 @@ export default function CreateAssetForm({ asset = null, onCancel, onSaved }) {
 
                     {/* Activo / Inactivo */}
                     <div className="pt-1">
-                        <label className="inline-flex min-h-[44px] items-center gap-3 text-xs font-medium text-slate-300 cursor-pointer select-none">
+                        <label className="inline-flex min-h-[44px] items-center gap-3 text-xs font-medium text-ink-600 cursor-pointer select-none">
                             <input
                                 type="checkbox"
                                 name="isActive"
                                 checked={Boolean(form.isActive)}
                                 onChange={changeForm}
-                                className="h-5 w-5 rounded border-white/20 bg-[#081723] text-cyan-500 focus:ring-cyan-400 focus:ring-offset-[#102637] accent-cyan-500 cursor-pointer"
+                                className="h-5 w-5 cursor-pointer rounded border-sand-200 bg-surface text-forest-700 accent-gold-500 focus:ring-2 focus:ring-gold-500 focus:ring-offset-2 focus:ring-offset-sand-50"
                             />
                             <span>Activo</span>
                         </label>
@@ -411,18 +411,18 @@ export default function CreateAssetForm({ asset = null, onCancel, onSaved }) {
                     {formError && (
                         <p
                             role="alert"
-                            className="rounded-lg border border-red-400/20 bg-red-400/10 p-3.5 text-xs text-red-200"
+                            className="rounded-lg border border-error/20 bg-error-soft p-3.5 text-xs text-error-text"
                         >
                             {formError}
                         </p>
                     )}
 
                     {/* Acciones del formulario */}
-                    <div className="flex flex-col-reverse sm:flex-row justify-end gap-2.5 sm:gap-3 border-t border-white/10 pt-4">
+                    <div className="flex flex-col-reverse sm:flex-row justify-end gap-2.5 sm:gap-3 border-t border-sand-200 pt-4">
                         <button
                             type="button"
                             onClick={onCancel}
-                            className="inline-flex h-11 w-full sm:w-auto items-center justify-center rounded-lg border border-white/10 px-4 text-xs font-medium text-slate-300 hover:bg-white/5 active:bg-white/10 transition-colors"
+                            className="inline-flex h-11 w-full sm:w-auto items-center justify-center rounded-lg border border-sand-200 px-4 text-xs font-medium text-ink-600 hover:bg-sand-100 active:bg-sand-100 transition-all duration-200 ease-out"
                         >
                             Cancelar
                         </button>
@@ -435,7 +435,7 @@ export default function CreateAssetForm({ asset = null, onCancel, onSaved }) {
                                 !categories.length ||
                                 !users.length
                             }
-                            className="inline-flex h-11 w-full sm:w-auto items-center justify-center rounded-lg bg-cyan-600 px-5 text-xs font-medium text-white hover:bg-cyan-500 active:bg-cyan-700 disabled:opacity-60 disabled:cursor-not-allowed transition-colors shadow-lg shadow-cyan-950/40"
+                            className="inline-flex h-11 w-full sm:w-auto items-center justify-center rounded-lg bg-gold-500 px-5 text-xs font-medium text-pine-900 hover:bg-gold-600 active:bg-gold-600 disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-200 ease-out shadow-lg shadow-gold-600/20"
                         >
                             {saving ? 'Guardando...' : 'Guardar activo'}
                         </button>

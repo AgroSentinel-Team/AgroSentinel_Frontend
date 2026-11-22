@@ -16,13 +16,13 @@ export const getFailureAssetResume = async (failureId) =>
 	cachedRequest(`failure-asset-resume:${failureId}`, async () =>
 		(await apiClient.get(`/failure-reports/${failureId}/asset`)).data);
 
-export const startFailureReview = async (failureId) =>
+export const startFailureReview = async (failureId, startedAt = new Date().toISOString()) =>
 	sendOrQueueJson({
 		endpoint: `/failure-reports/${failureId}/start-review`,
 		method: 'POST',
-		payload: null,
+		payload: { startedAt },
 		operationType: 'failure_report.start_review',
-		metadata: { failureId },
+		metadata: { failureId, startedAt },
 	});
 
 export const saveFailureIntervention = async (failureId, intervention, evidences) => {

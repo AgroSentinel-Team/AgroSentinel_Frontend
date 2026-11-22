@@ -17,6 +17,15 @@ import {
 } from '../../services/assetService';
 import { isNetworkAvailable, subscribeToNetworkChanges } from '../../services/offlineNetwork';
 import { requestPreventiveSchedule } from '../../services/preventiveMaintenanceNavigation';
+import {
+  Badge,
+  Button,
+  Card,
+  EmptyState,
+  Select,
+  Skeleton,
+  StatCard,
+} from '../../components/ui';
 
 const TELEMETRY_POLL_INTERVAL = 30_000;
 
@@ -52,17 +61,17 @@ function formatRecordTimestamp(timestamp) {
 }
 
 const riskStyles = {
-  Alto: 'border-red-400/30 bg-red-500/15 text-red-300',
-  Medio: 'border-amber-400/30 bg-amber-500/15 text-amber-300',
-  Bajo: 'border-emerald-400/30 bg-emerald-500/15 text-emerald-300',
-  'Sin datos': 'border-slate-400/30 bg-slate-500/15 text-slate-300',
+  Alto: 'border-error/20 bg-error-soft text-error-text',
+  Medio: 'border-gold-300 bg-gold-100 text-ink-900',
+  Bajo: 'border-forest-300/50 bg-success-soft text-forest-700',
+  'Sin datos': 'border-sand-200 bg-sand-100 text-ink-600',
 };
 
 const healthStyles = {
-  Alto: 'bg-red-400',
-  Medio: 'bg-amber-400',
-  Bajo: 'bg-emerald-400',
-  'Sin datos': 'bg-slate-500',
+  Alto: 'bg-error',
+  Medio: 'bg-gold-500',
+  Bajo: 'bg-forest-500',
+  'Sin datos': 'bg-sand-400',
 };
 
 function mapPredictiveAssets(data) {
@@ -156,24 +165,23 @@ function getMlopsRecommendation(record) {
   return `⚠️ Precaución: El modelo instantáneo detecta ${fallaPredichaEs} pero la tendencia histórica marca ${tendenciaLstmEs}. Requiere inspección manual para confirmar.`;
 }
 
-function Metric({ label, value, icon: Icon, tone }) {
+function Metric({ label, value, icon: Icon, accent }) {
   return (
-    <div className="rounded-xl border border-[#2d4055] bg-[#13293a] p-4 shadow-lg min-w-0">
-      <div className={`flex items-center gap-2 ${tone}`}>
-        <Icon size={16} className="shrink-0" />
-        <span className="text-xs font-semibold uppercase tracking-wider truncate">{label}</span>
-      </div>
-      <p className="mt-2 text-2xl sm:text-3xl font-bold text-white tracking-tight">{value}</p>
-    </div>
+    <StatCard
+      label={label}
+      value={value}
+      icon={<Icon size={19} />}
+      accent={accent}
+    />
   );
 }
 
 function Info({ label, value }) {
   return (
-    <div className="rounded-lg border border-[#30485a] bg-[#13293a] p-3 min-w-0">
-      <p className="text-[11px] font-medium text-slate-400 uppercase tracking-wider truncate">{label}</p>
-      <p className="mt-1 text-xs sm:text-sm font-semibold text-white break-words">{value}</p>
-    </div>
+    <Card variant="muted" className="min-w-0 rounded-xl p-3 shadow-none">
+      <p className="truncate text-xs font-semibold uppercase tracking-wider text-ink-600">{label}</p>
+      <p className="mt-1 break-words text-sm font-semibold text-ink-900">{value}</p>
+    </Card>
   );
 }
 
@@ -492,30 +500,34 @@ export default function MantenimientoPredictivo({ assignedOnly = false }) {
 
   if (loading && equipment.length === 0) {
     return (
-      <div className="rounded-xl border border-[#2d4055] bg-[#13293a] p-12 text-center text-emerald-300 font-bold shadow-xl">
-        <RefreshCcw size={28} className="mx-auto mb-3 animate-spin text-emerald-400" />
-        <p className="text-sm">Cargando telemetría de sensores y modelo predictivo...</p>
-      </div>
+      <Card className="grid gap-3 p-5 sm:p-8">
+        <Skeleton variant="rect" label="Cargando telemetría de sensores y modelo predictivo" />
+        <Skeleton label="Cargando telemetría de sensores y modelo predictivo" className="max-w-sm" />
+      </Card>
     );
   }
 
   if (equipment.length === 0) {
     return (
-      <div className="rounded-xl border border-[#2d4055] bg-[#13293a] p-12 text-center text-slate-400 shadow-xl text-sm">
-        {loadError ||
+      <EmptyState
+        icon={<Gauge size={22} />}
+        title={assignedOnly ? 'Sin activos predictivos asignados' : 'Sin activos con motor'}
+        description={
+          loadError ||
           (assignedOnly
             ? 'No tienes activos asignados con motor y telemetría predictiva.'
-            : 'No hay activos marcados con motor.')}
-      </div>
+            : 'No hay activos marcados con motor.')
+        }
+      />
     );
   }
 
   return (
-    <section className="space-y-5 text-white min-w-0">
+    <section className="min-w-0 space-y-5 text-ink-900">
       {/* Header Principal */}
-      <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-white/10 pb-4">
+      <header className="flex flex-col gap-4 border-b border-sand-200 pb-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <div className="flex items-center gap-2 text-emerald-300">
+          <div className="flex items-center gap-2 text-forest-700">
             <Activity size={18} />
             <span className="text-xs font-bold uppercase tracking-wider">
               Centro de mantenimiento
@@ -524,43 +536,42 @@ export default function MantenimientoPredictivo({ assignedOnly = false }) {
           <h1 className="mt-1 text-xl sm:text-2xl font-bold tracking-tight">
             Mantenimiento predictivo y alertas
           </h1>
-          <p className="mt-0.5 text-xs text-slate-400 max-w-2xl">
+          <p className="mt-1.5 max-w-2xl text-sm text-ink-600">
             Anticipa fallas con lecturas de sensores y señales de operación en tiempo real.
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2.5 sm:shrink-0">
-          <button
-            type="button"
+          <Button
+            variant="ghost"
             onClick={cargarEquipos}
             disabled={refreshing}
             aria-label="Actualizar telemetría"
             title="Actualizar telemetría"
-            className="flex min-h-[44px] items-center gap-2 rounded-lg bg-[#102a3d] border border-[#2d4055] px-3.5 py-2 text-xs font-semibold text-slate-200 transition-colors hover:bg-[#1d3d52] hover:text-white disabled:cursor-wait disabled:opacity-60"
+            leftIcon={<RefreshCcw size={16} className={refreshing ? 'animate-spin' : ''} />}
           >
-            <RefreshCcw size={16} className={refreshing ? 'animate-spin' : ''} />
             <span>{refreshing ? 'Actualizando…' : 'Actualizar'}</span>
-          </button>
-          <div className="flex min-h-[44px] items-center gap-2 rounded-lg border border-emerald-400/30 bg-emerald-500/10 px-3.5 py-2 text-xs font-semibold text-emerald-200">
+          </Button>
+          <Badge variant="success" className="min-h-11 px-3.5">
             <Gauge size={16} />
             <span>Sistema en vivo</span>
-          </div>
+          </Badge>
         </div>
       </header>
 
       {/* Métricas Principales */}
-      <div className="grid grid-cols-2 gap-2 sm:gap-3 sm:grid-cols-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
         <Metric
           label="Equipos monitoreados"
           value={equipment.length}
           icon={Gauge}
-          tone="text-emerald-300"
+          accent="forest"
         />
         <Metric
           label="Alertas activas"
           value={equipment.filter((item) => item.risk === 'Alto' || item.risk === 'Medio').length}
           icon={AlertTriangle}
-          tone="text-amber-300"
+          accent="gold"
         />
         <Metric
           label="Confianza media IA"
@@ -575,7 +586,7 @@ export default function MantenimientoPredictivo({ assignedOnly = false }) {
               : 'Sin lecturas'
           }
           icon={Activity}
-          tone="text-cyan-300"
+          accent="ocean"
         />
       </div>
 
@@ -583,58 +594,63 @@ export default function MantenimientoPredictivo({ assignedOnly = false }) {
       {loadError && (
         <div
           role="alert"
-          className="flex items-start justify-between gap-3 rounded-lg border border-red-500/30 bg-red-500/10 p-3.5 text-xs text-red-200"
+          className="flex items-start justify-between gap-3 rounded-xl border border-error/20 bg-error-soft p-3.5 text-sm text-error-text"
         >
           <span className="min-w-0 flex-1">{loadError}</span>
-          <button
-            type="button"
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={() => setLoadError('')}
-            className="text-red-300 hover:text-white p-1"
+            aria-label="Cerrar aviso"
+            className="size-8 min-h-8 shrink-0"
           >
             <X size={16} />
-          </button>
+          </Button>
         </div>
       )}
 
       {message && (
-        <div className="flex items-start justify-between gap-3 rounded-lg border border-emerald-400/30 bg-emerald-500/10 p-3.5 text-xs text-emerald-200">
+        <div role="status" className="flex items-start justify-between gap-3 rounded-xl border border-forest-300/50 bg-success-soft p-3.5 text-sm text-forest-700">
           <div className="flex items-center gap-2 min-w-0">
-            <CheckCircle2 size={16} className="shrink-0 text-emerald-400" />
+            <CheckCircle2 size={16} className="shrink-0 text-forest-700" />
             <span>{message}</span>
           </div>
-          <button
-            type="button"
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={() => setMessage('')}
-            className="text-emerald-300 hover:text-white p-1"
+            aria-label="Cerrar aviso"
+            className="size-8 min-h-8 shrink-0"
           >
             <X size={16} />
-          </button>
+          </Button>
         </div>
       )}
 
       {/* Disposición Principal: Lista y Panel de Detalle */}
-      <div className="grid grid-cols-2 gap-2 sm:gap-4">
+      <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
         {/* Lista de Equipos */}
-        <div className="rounded-xl border border-[#2d4055] bg-[#13293a] p-4 sm:p-5 shadow-xl min-w-0">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/10 pb-3">
+        <Card className="min-w-0 p-4 sm:p-5">
+          <div className="flex flex-col gap-3 border-b border-sand-200 pb-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h2 className="text-sm sm:text-base font-semibold text-white">Alertas por equipo</h2>
-              <p className="mt-0.5 text-xs text-slate-400">
+              <h2 className="text-base font-semibold text-ink-900">Alertas por equipo</h2>
+              <p className="mt-1 text-sm text-ink-600">
                 Selecciona un equipo para consultar la telemetría y recomendación del modelo.
               </p>
             </div>
 
             {/* Filtros de Riesgo */}
-            <div className="flex flex-wrap gap-1 rounded-lg bg-[#0d1f2d] p-1 border border-[#2d4055]">
+            <div className="flex flex-wrap gap-1 rounded-xl border border-sand-200 bg-sand-100 p-1">
               {['Todos', 'Alto', 'Medio', 'Bajo', 'Sin datos'].map((option) => (
                 <button
                   key={option}
                   type="button"
                   onClick={() => setFilter(option)}
-                  className={`min-h-[36px] rounded-md px-3 py-1 text-xs font-semibold transition-colors ${
+                  aria-pressed={filter === option}
+                  className={`min-h-9 rounded-lg px-3 py-1 text-xs font-semibold transition-all duration-200 ease-out focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-600 ${
                     filter === option
-                      ? 'bg-amber-500 text-slate-950 shadow-md'
-                      : 'text-slate-400 hover:text-white'
+                      ? 'bg-gold-500 text-pine-900 shadow-sm'
+                      : 'text-ink-600 hover:bg-surface hover:text-ink-900'
                   }`}
                 >
                   {option}
@@ -652,44 +668,40 @@ export default function MantenimientoPredictivo({ assignedOnly = false }) {
                   setSelectedId(item.id);
                   setMessage('');
                 }}
-                className={`w-full rounded-xl border p-4 text-left transition-all ${
+                className={`w-full rounded-2xl border p-4 text-left transition-all duration-200 ease-out focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-600 hover:-translate-y-0.5 hover:shadow-md ${
                   selected?.id === item.id
-                    ? 'border-emerald-400/80 bg-[#1a382d] shadow-lg ring-1 ring-emerald-400/40'
-                    : 'border-[#30485a] bg-[#102a3d] hover:border-emerald-400/50 hover:bg-[#143247]'
+                    ? 'border-forest-500 bg-success-soft shadow-sm ring-1 ring-forest-500/30'
+                    : 'border-sand-200 bg-surface hover:border-forest-300 hover:bg-sand-50'
                 }`}
               >
                 <div className="flex flex-wrap items-start justify-between gap-2.5">
                   <div className="flex min-w-0 items-start gap-3">
-                    <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
+                    <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-full bg-success-soft text-forest-700">
                       <Wrench size={18} />
                     </span>
                     <div className="min-w-0">
-                      <p className="truncate text-xs sm:text-sm font-semibold text-white">
+                      <p className="truncate text-sm font-semibold text-ink-900">
                         {item.name}
                       </p>
-                      <p className="mt-0.5 text-xs text-slate-400">
+                      <p className="mt-0.5 text-xs text-ink-600">
                         Activo #{item.assetId} · {item.id} · {item.location}
                       </p>
                     </div>
                   </div>
-                  <span
-                    className={`shrink-0 rounded-full border px-2.5 py-0.5 text-xs font-semibold ${
-                      riskStyles[item.risk]
-                    }`}
-                  >
+                  <Badge className={`shrink-0 border ${riskStyles[item.risk]}`}>
                     {item.risk}
-                  </span>
+                  </Badge>
                 </div>
 
                 {/* Barra de Estado de Salud del Motor */}
-                <div className="mt-3.5 space-y-1.5 border-t border-white/5 pt-2.5">
-                  <div className="flex items-center justify-between text-xs text-slate-400">
+                <div className="mt-3.5 space-y-1.5 border-t border-sand-200 pt-2.5">
+                  <div className="flex items-center justify-between text-xs text-ink-600">
                     <span className="font-medium">Estado de salud del motor</span>
-                    <span className="font-semibold text-slate-200">
+                    <span className="font-semibold text-ink-900">
                       {item.record ? `${item.confidence}% respaldo IA` : 'Sin lecturas'}
                     </span>
                   </div>
-                  <div className="h-2 w-full overflow-hidden rounded-full bg-slate-800">
+                  <div className="h-2 w-full overflow-hidden rounded-full bg-sand-200">
                     <div
                       className={`h-full rounded-full transition-all duration-300 ${
                         healthStyles[item.risk]
@@ -701,20 +713,20 @@ export default function MantenimientoPredictivo({ assignedOnly = false }) {
               </button>
             ))}
           </div>
-        </div>
+        </Card>
 
         {/* Aside Detalle de Equipo Seleccionado */}
         {selected && (
-          <aside className="rounded-xl border border-[#2d4055] bg-[#102a3d] p-4 sm:p-5 shadow-xl min-w-0 space-y-4">
-            <div className="flex items-start justify-between gap-3 border-b border-white/10 pb-3">
+          <Card as="aside" className="min-w-0 space-y-4 p-4 sm:p-5">
+            <div className="flex items-start justify-between gap-3 border-b border-sand-200 pb-3">
               <div>
-                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-ink-600">
                   Equipo seleccionado
                 </p>
-                <h2 className="mt-0.5 text-base sm:text-lg font-bold text-white leading-tight">
+                <h2 className="mt-0.5 text-base font-bold leading-tight text-ink-900 sm:text-lg">
                   {selected.name}
                 </h2>
-                <p className="mt-1 flex items-center gap-1.5 text-xs text-slate-400">
+                <p className="mt-1 flex items-center gap-1.5 text-xs text-ink-600">
                   <Clock3 size={13} className="shrink-0" />
                   {selected.record?.timestamp
                     ? `Última lectura: ${formatRecordTimestamp(selected.record.timestamp)}`
@@ -723,17 +735,13 @@ export default function MantenimientoPredictivo({ assignedOnly = false }) {
                       : 'Sin lecturas registradas'}
                 </p>
               </div>
-              <span
-                className={`shrink-0 rounded-full border px-2.5 py-0.5 text-xs font-semibold ${
-                  riskStyles[selected.risk]
-                }`}
-              >
+              <Badge className={`shrink-0 border ${riskStyles[selected.risk]}`}>
                 {selected.risk}
-              </span>
+              </Badge>
             </div>
 
             {/* Grid de Métricas Telemetría */}
-            <div className="grid grid-cols-2 gap-2.5">
+            <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
               <Info
                 label="Temperatura"
                 value={selected.record ? `${selected.record.temperature} °C` : 'Sin lectura'}
@@ -760,23 +768,23 @@ export default function MantenimientoPredictivo({ assignedOnly = false }) {
             </div>
 
             {/* Recomendación MLOps */}
-            <div className="rounded-xl border border-amber-400/30 bg-amber-500/10 p-3.5 space-y-2">
-              <div className="flex items-center gap-2 text-amber-300">
+            <div className="space-y-2 rounded-2xl border border-gold-300 bg-gold-100 p-3.5">
+              <div className="flex items-center gap-2 text-ink-900">
                 <Clock3 size={16} className="shrink-0" />
                 <span className="text-xs font-bold uppercase tracking-wider">
                   Recomendación MLOps
                 </span>
               </div>
-              <p className="text-xs leading-relaxed text-amber-100 font-medium">
+              <p className="text-sm font-medium leading-relaxed text-ink-900">
                 {getMlopsRecommendation(selected.record)}
               </p>
 
               {selected.record && (
-                <div className="border-t border-amber-300/20 pt-2.5 space-y-1.5">
-                  <p className="text-[11px] font-bold uppercase tracking-wider text-amber-200">
+                <div className="space-y-1.5 border-t border-gold-300 pt-2.5">
+                  <p className="text-[11px] font-bold uppercase tracking-wider text-ink-900">
                     ¿Por qué este porcentaje?
                   </p>
-                  <p className="text-xs leading-relaxed text-amber-100/90">
+                  <p className="text-sm leading-relaxed text-ink-900">
                     {traducirDiagnostico(
                       selected.record.razonConfianza ||
                         selected.record.razon_confianza ||
@@ -784,9 +792,9 @@ export default function MantenimientoPredictivo({ assignedOnly = false }) {
                     )}
                   </p>
                   {selected.record.confianzaLstm != null && (
-                    <p className="text-xs text-slate-300 pt-1">
+                    <p className="pt-1 text-xs text-ink-600">
                       Tendencia LSTM:{' '}
-                      <strong className="text-white font-semibold">
+                      <strong className="font-semibold text-ink-900">
                         {traducirDiagnostico(selected.record.tendenciaLstm || 'No disponible')}
                       </strong>{' '}
                       · Confianza {Math.round(Number(selected.record.confianzaLstm) * 100)}%
@@ -798,38 +806,33 @@ export default function MantenimientoPredictivo({ assignedOnly = false }) {
 
             {/* Validación Técnica Feedback */}
             {selected.record && (
-              <div className="rounded-xl border border-cyan-400/30 bg-cyan-500/10 p-3.5 space-y-3">
+              <div className="space-y-3 rounded-2xl border border-ocean-300/60 bg-info-soft p-3.5">
                 <div>
-                  <p className="text-xs font-bold uppercase tracking-wider text-cyan-200">
+                  <p className="text-xs font-bold uppercase tracking-wider text-ocean-700">
                     Validación del técnico
                   </p>
-                  <p className="mt-1 text-xs text-slate-300">
+                  <p className="mt-1 text-sm text-ink-600">
                     Predicción IA:{' '}
-                    <strong className="text-white font-semibold">
+                    <strong className="font-semibold text-ink-900">
                       {traducirDiagnostico(selected.record.tipoFallaPredicha || 'No disponible')}
                     </strong>
                   </p>
                   {selected.record.fallaRealConfirmada && (
-                    <p className="mt-0.5 text-xs text-emerald-300 font-medium">
+                    <p className="mt-0.5 text-xs font-medium text-forest-700">
                       Falla confirmada: {traducirDiagnostico(selected.record.fallaRealConfirmada)}
                     </p>
                   )}
                   {selected.record.localSyncPending && (
-                    <p className="mt-0.5 text-xs text-amber-300 font-medium">
+                    <p className="mt-0.5 text-xs font-medium text-ink-900">
                       Confirmación pendiente de sincronización
                     </p>
                   )}
                 </div>
 
                 <div className="space-y-1.5">
-                  <label
-                    className="block text-xs font-medium text-slate-300"
-                    htmlFor="confirmed-failure"
-                  >
-                    Si la inspección indica otra falla, selecciónala:
-                  </label>
-                  <select
+                  <Select
                     id="confirmed-failure"
+                    label="Si la inspección indica otra falla, selecciónala:"
                     value={feedbackValue}
                     onChange={(event) =>
                       setFeedbackDraft({
@@ -837,7 +840,6 @@ export default function MantenimientoPredictivo({ assignedOnly = false }) {
                         value: event.target.value,
                       })
                     }
-                    className="w-full rounded-lg border border-[#30485a] bg-[#0d1f2d] px-3.5 py-2.5 text-xs font-semibold text-white outline-none focus:border-cyan-400 min-h-[44px]"
                   >
                     <option value="">Selecciona la falla real</option>
                     {[
@@ -849,28 +851,26 @@ export default function MantenimientoPredictivo({ assignedOnly = false }) {
                         {traducirDiagnostico(failureType)}
                       </option>
                     ))}
-                  </select>
+                  </Select>
                 </div>
 
                 <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                  <button
-                    type="button"
+                  <Button
+                    variant="secondary"
+                    loading={feedbackSaving}
                     disabled={feedbackSaving || !selected.record.tipoFallaPredicha}
                     onClick={() => saveFeedback(selected.record.tipoFallaPredicha)}
-                    className="flex min-h-[44px] items-center justify-center rounded-lg border border-cyan-400/40 bg-cyan-700 px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-cyan-600 disabled:opacity-50"
+                    className="min-h-11"
                   >
-                    {feedbackSaving
-                      ? 'Guardando...'
-                      : 'Confirmar diagnóstico / Guardar para reentrenamiento'}
-                  </button>
-                  <button
-                    type="button"
+                    Confirmar diagnóstico / Guardar para reentrenamiento
+                  </Button>
+                  <Button
+                    loading={feedbackSaving}
                     disabled={feedbackSaving || !feedbackValue}
                     onClick={() => saveFeedback(feedbackValue)}
-                    className="flex min-h-[44px] items-center justify-center rounded-lg border border-emerald-400/40 bg-emerald-600 px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-emerald-500 disabled:opacity-50"
                   >
-                    {feedbackSaving ? 'Guardando...' : 'Guardar falla real'}
-                  </button>
+                    Guardar falla real
+                  </Button>
                 </div>
               </div>
             )}
@@ -878,17 +878,16 @@ export default function MantenimientoPredictivo({ assignedOnly = false }) {
             {/* Acción Programar Mantenimiento */}
             {canSchedule && (
               <div className="pt-2">
-                <button
-                  type="button"
+                <Button
                   disabled={!selected.record}
                   onClick={scheduleMaintenance}
-                  className="flex min-h-[44px] w-full items-center justify-center rounded-lg border border-emerald-400/40 bg-emerald-600 px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-white transition-colors hover:bg-emerald-500 disabled:opacity-50 shadow-lg shadow-emerald-950/40"
+                  className="w-full uppercase tracking-wider"
                 >
                   Programar mantenimiento
-                </button>
+                </Button>
               </div>
             )}
-          </aside>
+          </Card>
         )}
       </div>
     </section>

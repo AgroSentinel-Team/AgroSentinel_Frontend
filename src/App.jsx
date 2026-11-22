@@ -1,8 +1,7 @@
 import { lazy, Suspense, useEffect, useReducer, useState } from 'react';
-import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import {
   getAuthToken,
-  hasUnexpiredToken,
   isSessionAuthenticated,
   SESSION_CHANGED_EVENT,
   SESSION_EXPIRED_EVENT,
@@ -16,6 +15,15 @@ import OfflineStatusBar from './components/OfflineStatusBar';
 import AccesoDenegado from './pages/AccesoDenegado';
 import { ACCESS_DENIED_EVENT } from './services/apiClient';
 import NotificationInbox from './components/NotificationInbox';
+import PwaNotices from './components/PwaNotices';
+
+const APP_SHELL_PATHS = new Set([
+  '/admin/dashboard',
+  '/supervisor/dashboard',
+  '/tecnico/dashboard',
+  '/operativo/dashboard',
+  '/almacen/dashboard',
+]);
 
 const AdminDashboard = lazy(() => import('./pages/Administrador/AdminDashboard'));
 const SuperDashboard = lazy(() => import('./pages/Supervisor/SuperDashboard'));
@@ -62,6 +70,11 @@ function AccessDeniedRedirect() {
   return null;
 }
 
+function RouteNotificationInbox() {
+  const { pathname } = useLocation();
+  return APP_SHELL_PATHS.has(pathname) ? null : <NotificationInbox floating />;
+}
+
 function SessionExpiredNotice() {
   const navigate = useNavigate();
   const [sessionExpired, setSessionExpired] = useState(false);
@@ -90,22 +103,22 @@ function SessionExpiredNotice() {
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/75 backdrop-blur-xs p-4"
+      className="fixed inset-0 z-[100] flex items-end justify-center bg-pine-900/45 p-0 backdrop-blur-xl sm:items-center sm:p-4"
       role="alertdialog"
       aria-modal="true"
       aria-labelledby="session-expired-title"
     >
-      <div className="w-full max-w-sm rounded-xl border border-[#36556f] bg-[#102637] p-6 text-center text-white shadow-2xl space-y-4">
+      <div className="w-full max-w-sm space-y-4 rounded-t-3xl border border-surface/40 bg-surface/70 p-6 pb-[calc(1.5rem+env(safe-area-inset-bottom))] text-center text-ink-900 shadow-xl backdrop-blur-xl sm:rounded-3xl sm:pb-6">
         <h2 id="session-expired-title" className="text-base sm:text-lg font-bold">
           Tu sesión ha terminado
         </h2>
-        <p className="text-xs sm:text-sm text-slate-300">
+        <p className="text-xs text-ink-600 sm:text-sm">
           Serás redirigido al inicio de sesión.
         </p>
         <button
           type="button"
           onClick={redirectToLogin}
-          className="inline-flex min-h-[44px] w-full items-center justify-center rounded-lg bg-cyan-600 px-4 text-xs font-bold uppercase tracking-wider text-white hover:bg-cyan-500 transition-colors shadow-lg shadow-cyan-950/40"
+          className="inline-flex min-h-11 w-full items-center justify-center rounded-xl bg-gradient-to-r from-gold-500 to-gold-600 px-4 text-xs font-bold uppercase tracking-wider text-pine-900 shadow-lg shadow-gold-600/20 hover:brightness-105"
         >
           Ir al inicio de sesión
         </button>
@@ -144,10 +157,10 @@ export default function App({ startupError = '' }) {
   const [, refreshSession] = useReducer((revision) => revision + 1, 0);
   useEffect(() => {
     const syncAtStartup = async () => {
-      const token = getAuthToken();
-      if (!token || !hasUnexpiredToken(token) || !(await isNetworkAvailable())) {
+      if (!isSessionAuthenticated() || !(await isNetworkAvailable())) {
         return;
       }
+      // Renueva el token si hace falta y envía lo que quedó pendiente offline.
       await syncPendingOfflineOperations();
     };
 
@@ -169,16 +182,17 @@ export default function App({ startupError = '' }) {
     <BrowserRouter>
       <SessionExpiredNotice />
       <AccessDeniedRedirect />
-      <NotificationInbox />
+      <RouteNotificationInbox />
       {startupError && (
-        <div role="alert" className="bg-amber-500/15 px-4 py-2 text-center text-xs text-amber-200">
+        <div role="alert" className="bg-warning-soft px-4 py-2 text-center text-xs text-forest-900">
           {startupError}
         </div>
       )}
       <OfflineStatusBar />
+      <PwaNotices />
       <Suspense
         fallback={
-          <div role="status" className="p-8 text-center text-sm text-sky-300">
+          <div role="status" className="p-8 text-center text-sm text-ocean-700">
             Cargando módulo...
           </div>
         }
