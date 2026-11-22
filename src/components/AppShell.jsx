@@ -95,7 +95,7 @@ export default function AppShell({
 
 			<aside
 				id={navigationId}
-				className={`agro-brand-overlay fixed inset-y-0 left-0 z-[60] flex w-72 shrink-0 flex-col overflow-hidden border-r border-white/10 transition-transform duration-200 ease-out lg:sticky lg:top-0 lg:h-dvh lg:translate-x-0 ${
+				className={`agro-brand-overlay fixed inset-y-0 left-0 z-[60] flex w-72 shrink-0 flex-col overflow-hidden border-r border-white/10 transition-transform duration-200 ease-out lg:sticky lg:top-0 lg:z-auto lg:h-dvh lg:translate-x-0 ${
 					mobileOpen ? "translate-x-0" : "-translate-x-full"
 				}`}
 				style={{
