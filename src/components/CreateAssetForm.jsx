@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { AlertTriangle, Plus, Settings2, Trash2, X } from 'lucide-react';
 import {
-    API_ORIGIN,
     createAsset,
     findAssetDuplicates,
     getCategories,
@@ -10,6 +9,7 @@ import {
     updateAsset,
     uploadAssetImage,
 } from '../services/assetService';
+import AssetImage from './AssetImage';
 import {
     buildSpecificationsPayload,
     computeCompleteness,
@@ -748,8 +748,8 @@ export default function CreateAssetForm({ asset = null, onCancel, onSaved }) {
                             />
                         </label>
                         {(imagePreview || asset?.imageUrl) && (
-                            <img
-                                src={imagePreview || `${API_ORIGIN}${asset.imageUrl}`}
+                            <AssetImage
+                                imageUrl={imagePreview || asset.imageUrl}
                                 alt={`Vista previa de ${asset?.name || form.name || 'activo'}`}
                                 className="h-28 w-36 rounded-lg border border-sand-200 object-cover"
                             />

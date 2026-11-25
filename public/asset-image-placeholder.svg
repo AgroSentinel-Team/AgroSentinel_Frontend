@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 200" role="img" aria-label="Imagen de maquinaria agrícola">
+  <rect width="320" height="200" rx="16" fill="#eef3e8"/>
+  <path d="M0 148c44-23 84-20 126-3s93 22 194-9v64H0z" fill="#c7d9b8"/>
+  <path d="M0 168c65-18 126-8 178 5s89 3 142-12v39H0z" fill="#9dbb87"/>
+  <g fill="#365b3d">
+    <path d="M81 91h91l16 27h23v24h-22a24 24 0 0 1-47 0h-26a24 24 0 0 1-47 0H53v-26h21z"/>
+    <path d="M93 70h56l18 21H89z"/>
+    <path d="M109 75h25v12h-25z" fill="#dbe9d2"/>
+    <circle cx="89" cy="142" r="13" fill="#263d2b"/>
+    <circle cx="165" cy="142" r="13" fill="#263d2b"/>
+  </g>
+  <path d="M223 118h36v7h-36zm4 14h26v6h-26z" fill="#6f8f5d"/>
+</svg>

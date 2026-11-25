@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { ClipboardList, FileDown, LoaderCircle, Settings2, ShieldAlert, Table2 } from 'lucide-react';
 import { Badge, Button, Card } from './ui';
-import { API_ORIGIN, getAssets, isFailureReportAdministrator } from '../services/assetService';
+import { getAssets, isFailureReportAdministrator } from '../services/assetService';
+import { resolveAssetImageUrl } from '../services/assetImageUrl';
 import { getLatestDiagnoses } from '../services/diagnosisService';
 import { classificationTone } from '../services/diagnosis';
 import { INVENTORY_CODE_STATUS_LABELS } from '../services/assetSpecs';
@@ -28,12 +29,12 @@ const slug = (text) => String(text || 'equipo')
 /** Descarga fotos de a pocas para no saturar la red del celular. */
 async function loadPhotos(entries, onProgress) {
 	const photos = new Map();
-	const pending = entries.filter(({ asset }) => asset.imageUrl);
+	const pending = entries.filter(({ asset }) => resolveAssetImageUrl(asset.imageUrl));
 	let done = 0;
 	const worker = async () => {
 		while (pending.length) {
 			const { asset } = pending.shift();
-			photos.set(asset.id, await loadPhotoForPdf(`${API_ORIGIN}${asset.imageUrl}`));
+			photos.set(asset.id, await loadPhotoForPdf(resolveAssetImageUrl(asset.imageUrl)));
 			done += 1;
 			onProgress(done);
 		}
@@ -110,13 +111,14 @@ export default function TechnicalReportPanel() {
 	};
 
 	const downloadSheet = (entry, index) => run(`sheet-${entry.asset.id}`, async () => {
-		const photo = entry.asset.imageUrl ? await loadPhotoForPdf(`${API_ORIGIN}${entry.asset.imageUrl}`) : null;
+		const imageUrl = resolveAssetImageUrl(entry.asset.imageUrl);
+		const photo = imageUrl ? await loadPhotoForPdf(imageUrl) : null;
 		buildAssetSheetPdf({ ...entry, photo }, settings, index + 1)
 			.save(reportFileName(`Ficha_${String(index + 1).padStart(2, '0')}_${slug(entry.asset.name)}`));
 	});
 
 	const downloadFull = () => run('full', async () => {
-		const withPhotos = entries.filter(({ asset }) => asset.imageUrl).length;
+		const withPhotos = entries.filter(({ asset }) => resolveAssetImageUrl(asset.imageUrl)).length;
 		const photos = await loadPhotos(entries, (done) => setBusy(`full:${done}/${withPhotos}`));
 		setBusy('full:pdf');
 		await new Promise((resolve) => window.setTimeout(resolve, 30));

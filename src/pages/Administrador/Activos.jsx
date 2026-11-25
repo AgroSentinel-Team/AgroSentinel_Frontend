@@ -17,13 +17,13 @@ import {
     X,
 } from 'lucide-react';
 import {
-    API_ORIGIN,
     deactivateAsset,
     deleteAsset,
     getAssetFailureTrends,
     getAssets,
     getPredictiveHistory,
 } from '../../services/assetService';
+import AssetImage from '../../components/AssetImage';
 import CreateAssetForm from '../../components/CreateAssetForm';
 import AssetReportModal from '../../components/AssetReportModal';
 import AssetDiagnosisModal from '../../components/AssetDiagnosisModal';
@@ -329,8 +329,8 @@ export default function Activos() {
                                     <div className="flex items-start gap-2">
                                         <div className="flex h-14 w-16 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-sand-200 bg-sand-50">
                                             {asset.imageUrl ? (
-                                                <img
-                                                    src={`${API_ORIGIN}${asset.imageUrl}`}
+                                                <AssetImage
+                                                    imageUrl={asset.imageUrl}
                                                     alt={`Imagen de ${asset.name}`}
                                                     className="h-full w-full object-cover"
                                                 />
@@ -479,8 +479,8 @@ export default function Activos() {
                                                 <div className="flex items-center gap-3">
                                                     <div className="flex h-12 w-14 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-sand-200 bg-sand-50">
                                                         {asset.imageUrl ? (
-                                                            <img
-                                                                src={`${API_ORIGIN}${asset.imageUrl}`}
+                                                            <AssetImage
+                                                                imageUrl={asset.imageUrl}
                                                                 alt={`Imagen de ${asset.name}`}
                                                                 className="h-full w-full object-cover"
                                                             />
