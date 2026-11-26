@@ -373,7 +373,7 @@ export default function FailureReportModal({ onClose, onSaved }) {
                                 </span>
                             )}
                             <p className="mt-1 text-[11px] leading-relaxed text-ink-600">
-                                La asignación automática sigue priorizando la menor carga disponible. Administradores y supervisores pueden asignar manualmente a cualquier técnico activo, sin bloqueo por carga.
+                                La asignación automática prioriza al técnico activo con menor carga y continúa asignándole reportes aunque supere la capacidad indicada.
                             </p>
                         </div>
                     )}
